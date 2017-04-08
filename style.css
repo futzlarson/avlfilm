@@ -1,0 +1,149 @@
+a {
+    color: #0067a3;
+    text-decoration: none;
+}
+a:hover { text-decoration: underline }
+body {
+    background-color: #ded2c3;
+    /*background-image: url('assets/bg-diamonds.png');*/
+    background-image: url('assets/rough-cloth-light.png');
+    font-family: 'Maven Pro', sans-serif;
+    line-height: 130%;
+    margin: 0;
+}
+header {
+    background-color: rgba(0, 104, 163, .8); /* #0067a3; */
+    border-bottom: 1px solid rgba(0, 0, 0, .3);
+    color: #fff;
+    font-size: 11pt;
+    padding: 15px 30px;
+}
+header a { color: white }
+header .right a { margin-left: 15px }
+header img {
+    height: 20px;
+}
+h1 {
+    line-height: 110%;
+    margin-top: 50px;
+}
+h2 {
+    font-size: 20pt;
+    margin: 0;
+}
+label,textarea {
+    display: block;
+    font-size: 10pt;
+}
+
+    table {
+        border-collapse: collapse;
+    }
+    th,td {
+        font-family: Arial;
+        font-size: 12px;
+        padding: 4px;
+    }
+    th {
+        background-color: #95afe4;
+        text-align: left;
+    }
+    tr {
+        background-color: #fff;
+    }
+    tr.alt {
+        background-color: #ebebfd;
+    }
+
+#alert {
+    background-color: #fff;
+    display: none;
+    left: 40%;
+    padding: 5px;
+    position: absolute;
+    top: 0;
+    z-index: 1;
+}
+#contact { display: none }
+#contact p {
+    color: red;
+    font-size: 11pt;
+}
+#notice {
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 5px;
+    box-shadow: 0 10px 16px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19) !important;
+    color: #fff;
+    margin: 30px 0;
+    padding: 15px;
+}
+#notice a {
+    color: #fff;
+    text-decoration: underline;
+}
+
+.blurb {
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 10px 16px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19) !important;
+    padding: 15px;
+}
+.gray { color: #bbb }
+.left { float: left }
+.clear { clear: both }
+.content {
+    margin: 0 auto;
+    width: 65%;
+}
+.hide { display: none }
+.important {
+    background-color: #b30000;
+    color: #fff;
+}
+.right { float: right }
+.spacer {
+    clear: both;
+    height: 1px;
+}
+
+footer {
+    background-color: #fff;
+    border-top: 1px solid rgba(0, 0, 0, .3);
+    font-size: 9pt;
+    margin-top: 50px;
+    opacity: 0.7;
+    padding: 5px 10px;
+    text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 320px) {
+    header {
+        font-size: 10pt;
+    }
+}
+@media (max-width: 500px) {
+    header {
+        padding: 15px;
+    }
+    header .left {
+        display: none;
+    }
+    header #about { margin-left: 0 }
+    h1 {
+        font-size: 21pt;
+        margin-top: 20px;
+    }
+    h2 {
+        font-size: 18pt;
+        line-height: 125%;
+    }
+}
+@media (max-width: 1000px) {
+    .content,.ui-dialog {
+        width: 90% !important;
+    }
+}
+
+/* jQuery UI Pepper Grinder shadow fix */
+.ui-widget-shadow { box-shadow: 0 0 10px #000000 }
