@@ -103,7 +103,7 @@
                     </li>
                     <li>
                         <a href="http://www.48hourfilm.com/asheville-nc">48-hour Film Project</a><br />
-                        June 2017 probably.
+                        June 17 - 18, 2017.
                     </li>
                     <li>
                         <a href="http://www.ashevillencfilmfestival.com">Asheville Film Festival</a><br />
@@ -133,22 +133,22 @@
                 <ul>
                     <li>
                         <a href="https://www.ashevillebrewing.com/movies/">Asheville Brewing Company</a><br />
-                        All tickets are just $3 for all shows.<br />
+                        All tickets are just <span class="green">$3</span> for all shows.<br />
                         <a href="https://www.google.com/maps/place/Asheville+Pizza+%26+Brewing+Co/@35.6221378,-82.5558037,17z/data=!3m1!4b1!4m5!3m4!1s0x8859f4c8537e7fa9:0x23d7cd5244e031f7!8m2!3d35.6221378!4d-82.553615">675 Merrimon Avenue</a>
                     </li>
                     <li>
                         <a href="https://www.carmike.com/nc/carmike-10-asheville-nc">AMC Classic River Hills 10 AKA Carmike Cinema 10</a><br />
-                        Cineplex with 3D &amp; jumbo digital screens showing first-run films, opera productions &amp; sports events. $5 Tuesdays: You do have to be a rewards card member, which is free, and you have to buy tickets at the box office.<br />
+                        Cineplex with 3D &amp; jumbo digital screens showing first-run films, opera productions &amp; sports events. <span class="green">$5 Tuesdays</span>: You do have to be a rewards card member, which is free, and you have to buy tickets at the box office.<br />
                         <a href="https://www.google.com/maps/place/Carmike+10/@35.570739,-82.5228177,17z/data=!3m1!4b1!4m5!3m4!1s0x8859f30a4ff417e3:0x26ec6bdbaae3ee60!8m2!3d35.570739!4d-82.520629">121 River Hills Rd</a>
                     </li>
                     <li>
                         <a href="https://www.cinemark.com/north-carolina/the-carolina-cinemark-asheville">Carolina Cinemas</a><br />
-                        Cinema showing first-run and indie films plus football, with a full bar and lounge. $5 2D Tuesdays.<br />
+                        Cinema showing first-run and indie films plus football, with a full bar and lounge. <span class="green">$5 2D Tuesdays</span>. Pro tip: buy yourself an e-gift card and you can avoid the fees.<br />
                         <a href="https://www.google.com/maps/place/The+Carolina+Cinemark+Asheville/@35.5115907,-82.5270439,17z/data=!3m1!4b1!4m5!3m4!1s0x8859f2825c655b81:0xd970a7a899cfc6b3!8m2!3d35.5115907!4d-82.5248552">1640 Hendersonville Rd, Asheville, NC 28803</a>
                     </li>
                     <li>
                         <a href="http://www.fineartstheatre.com">Fine Arts Theatre</a><br />
-                        Easygoing cinema showing 1st-run, art &amp; independent films in an art deco/modern setting.<br />
+                        Easygoing cinema showing 1st-run, art &amp; independent films in an art deco/modern setting. <span class="green">$6 Tuesdays</span>.<br />
                         <a href="https://www.google.com/maps/place/Fine+Arts+Theatre/@35.593571,-82.5533137,17z/data=!3m1!4b1!4m5!3m4!1s0x8859f359e223c221:0x70a200d72c8d1b05!8m2!3d35.593571!4d-82.551125">36 Biltmore Ave</a>
                     </li>
                     <li>
@@ -347,7 +347,7 @@
 
             <div class="answer">
                 <p>For equipment, <a href="http://ashevillecameragriplightingrental.com">AVL Camera Grip &amp; Lighting Rental</a> and <a href="http://www.ballphotosupply.com">Ball Photo</a>.</p>
-                <p>For studios and/or green screens, <a href="http://www.ashevilleschooloffilm.com">Asheville School of Film</a>.</p>
+                <p>For studios and/or green screens, <a href="http://www.ashevilleschooloffilm.com">Asheville School of Film</a> and <a href="http://theashevillestudio.com">The Asheville Studio</a>.</p>
             </div>
         </li>
     </ul>

@@ -89,6 +89,7 @@ label,textarea {
     padding: 15px;
 }
 .gray { color: #bbb }
+.green { color: #03aa51 }
 .left { float: left }
 .clear { clear: both }
 .content {
@@ -100,6 +101,7 @@ label,textarea {
     background-color: #b30000;
     color: #fff;
 }
+.red { color: #c00 }
 .right { float: right }
 .spacer {
     clear: both;
