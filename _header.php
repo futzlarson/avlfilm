@@ -5,7 +5,10 @@ $local = $server == 'localhost';
 $self = $_SERVER['PHP_SELF'];
 
 $options = array(
-    'hair_color' => array('-', 'Auburn', 'Bald', 'Black', 'Blonde', 'Brown', 'Gray', 'Honey Brown', 'Multi-color', 'Red', 'Salt and Pepper', 'Strawberry Blonde', 'White'),
+    'age_group' => array('-', 'Preteen', 'Teen Female', 'Teen Male', 'Adult Female', 'Adult Male'),
+    'eyes' => array('-', 'Blue', 'Brown', 'Blue/Green', 'Blue/Hazel', 'Green', 'Grey', 'Hazel'),
+    'gender' => array('-', 'Male', 'Female'),
+    'hair_color' => array('-', 'Auburn', 'Bald', 'Black', 'Blonde', 'Blue/Grey', 'Brown', 'Brown (Dark)', 'Brown (Light)', 'Gray', 'Honey Brown', 'Multi-color', 'Red', 'Salt and Pepper', 'Strawberry Blonde', 'White'),
     'hair_length' => array('-', 'Bald (total)', 'Bald (on top)', 'Buzzcut', 'Chin length', 'Long', 'Receding', 'Shaved', 'Short', 'Shoulder length'),
     'height_lower' => 43,
     'height_upper' => 77
@@ -23,7 +26,7 @@ if (strpos($self, 'actors.php') !== false) {
     $desc = "Want to be added to our database of actors? This is where to do it!";
 } else {
     $title = "Asheville Film";
-    $desc = "Frequently asked questions for the independent filmmaking community in Asheville, North Carolina. Find film schools, film festivals, movie theaters, actors, crew, equipment various other resources.";
+    $desc = "Frequently asked questions for the independent filmmaking community in Asheville, North Carolina. Find film schools, film festivals, movie theaters, actors, crew, equipment and various other resources.";
 }
 
 function to_height($i) {
@@ -33,12 +36,16 @@ function to_height($i) {
     if (strpos('.', $feet) !== false)
         $feet++;
 
-    $height = "$feet'$inches\"";
+    $height = "$feet'$inches";
 
     return $height;
 }
 function to_inches($height) {
     preg_match('/(\d*?)\'(\d*)/', $height, $match);
+
+    if (! isset($match[1]))
+        return;
+
     $inches = $match[1] * 12 + $match[2];
 
     return $inches;
@@ -59,16 +66,16 @@ function to_inches($height) {
     <meta property="og:title" content="<?php echo $title; ?>" />
     <meta property="og:description" content="<?php echo $desc; ?>" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="http://www.avlfilm.com<?php echo $self; ?>" />
-    <meta property="og:image" content="http://<?php echo $_SERVER['HTTP_HOST']; ?>/assets/logo-black.png" />
+    <meta property="og:url" content="https://avlfilm.com<?php echo $self; ?>" />
+    <meta property="og:image" content="https://<?php echo $_SERVER['HTTP_HOST']; ?>/assets/logo-black.png" />
     <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:height" content="200" />
+    <meta property="og:image:height" content="500" />
     <meta property="og:image:width" content="950" />
 
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 
-        <link rel="stylesheet" href="http://code.jquery.com/ui/1.12.1/themes/pepper-grinder/jquery-ui.css">
+        <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/pepper-grinder/jquery-ui.css">
 
     <link href="https://fonts.googleapis.com/css?family=Maven+Pro" rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
