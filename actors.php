@@ -1,6 +1,7 @@
 <?php
 
 require_once "/var/www/html/vendor/autoload.php";
+error_reporting(error_reporting() & ~E_NOTICE);
 
 $collection = (new MongoDB\Client)->avlfilm->actors;
 $cursor = $collection->find(
@@ -100,11 +101,6 @@ include '_header.php';
         <div class="left hide" style="margin-left: 50px">
             <em>Eyes</em>
             <div class="options">
-                <?php foreach($options['eyes'] as $f) { ?>
-                    <input disabled checked="checked" id="hair_<?= $f ?>" type="checkbox" />
-                    <label for="hair_<?= $f ?>"><?= $f ?></label>
-                    <br />
-                <?php } ?>
             </div>
         </div>
 
@@ -149,7 +145,7 @@ include '_header.php';
             Would other options (hair color, hair length, weight or eye color) be helpful? <a class="contact" href="#">Tell us!</a>
         </p>
         <p style="font-size: 9pt; margin-bottom: 0">
-            Currently populated by actors from: <a href="http://screenartiststalent.com">Screen Artists Talent</a>. <a href="add.php">Want to be added?</a>
+            Currently populated by actors from: <a href="http://screenartiststalent.com">Screen Artists Talent</a>, <a href="https://www.gagetalent.com">Gage Models and Talent Agency</a>. <a href="add.php">Want to be added?</a>
         </p>
     </fieldset>
 
@@ -165,6 +161,8 @@ include '_header.php';
         <tr>
             <th>Photo</th>
             <th>Name</th>
+            <th>Gender</th>
+            <th>Age group</th>
             <th>Height</th>
             <th>Hair&nbsp;color</th>
             <th>Hair&nbsp;length</th>
@@ -183,6 +181,8 @@ include '_header.php';
                     <a href="<?= $actor->resume ?>" target="_blank"><img class="headshot" src="<?= $actor->headshot ?>" /></a>
                 </td>
                 <td><?= $actor->name ?></td>
+                <td><?= isset($actor->gender) ? ucfirst($actor->gender) : '' ?></td>
+                <td><?= $actor->age_group ?></td>
                 <td name="height" inches="<?= to_inches($actor->height) ?>"><?= $actor->height ?></td>
                 <td><?= $actor->hair_color ?></td>
                 <td><?= $actor->hair_length ?></td>
@@ -198,7 +198,9 @@ include '_header.php';
                 <td>
                     <?php if ($actor->rep == 'sat') { ?>
                         <a href="mailto:jessy@screenartiststalent.com?subject=[avlfilm.com] <?= $actor->name ?>">SAT</a>
-                    <?php } else if (isset($actor->contact)) { ?>
+                    <?php } else if ($actor->rep == 'gage') { ?>
+                        <a href="https://www.gagetalent.com/book-talent.php?id=<?= $actor->gage_id ?>">Gage</a>
+                    <?php } else if ($actor->contact) { ?>
                         <a href="mailto:<?= $actor->contact ?>?subject=[avlfilm.com] <?= $actor->name ?>">Email</a>
                     <?php } ?>
                 </td>
@@ -239,6 +241,7 @@ include '_header.php';
         // Taller.
         if ($('[id=chk_taller]').is(':checked')) {
             var taller = $('[name=taller]').val();
+            console.log('taller than: ' + taller);
 
             $('tr').each(function() {
                 var height = $(this).find('[name=height]');
