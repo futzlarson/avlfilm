@@ -69,19 +69,27 @@
     </div>
 
     <form action="/scripts/add_actor.php" method="post" enctype="multipart/form-data">
+        <p class="red" style="margin-top: 0">Red fields are <u>not</u> required, but highly encouraged.</p>
+
         <div class="left">
-            <label>Name</label>
+            <label class="red">Name</label>
             <input name="name" tabindex="1" type="text" />
 
-            <label>Hair color</label>
-            <!--<input name="hair_color" tabindex="3" type="text" />-->
+            <label>Hair Color</label>
             <select name="hair_color" tabindex="3">
                 <?php foreach ($options['hair_color'] as $c) { ?>
                     <option><?= $c ?></option>
                 <?php } ?>
             </select>
 
-            <label>
+            <label class="red">Gender</label>
+            <select name="gender">
+                <?php foreach ($options['gender'] as $c) { ?>
+                    <option><?= $c ?></option>
+                <?php } ?>
+            </select>
+
+            <label class="red">
                 Contact
                 <i class="fa fa-question-circle-o" title="Your preferred way of being contacted. Phone number or email address."></i>
             </label>
@@ -96,49 +104,59 @@
             </label>
             <input name="rep" tabindex="9" type="text" />
 
-            <label>
-                Headshot upload
-                <i class="fa fa-question-circle-o" title="Max size 10mb."></i>
+            <label class="red">
+                Headshot Upload
+                <i class="fa fa-question-circle-o" title="Max size 10mb. Use this field or Headshot Link."></i>
             </label>
             <input name="headshot_file" tabindex="11" type="file" />
 
-            <label>Headshot link</label>
+            <label class="red">Headshot Link</label>
             <input name="headshot_link" tabindex="13" type="text" />
         </div>
         <div class="left" id="right">
-            <label>Height</label>
-            <!--<input name="height" tabindex="2" type="text" />-->
+            <label class="red">Height</label>
             <select name="height" tabindex="2">
                 <option>-</option>
                 <?php foreach (range($options['height_upper'], $options['height_lower']) as $i) { ?>
-                    <option value="<?= $i ?>"><?= to_height($i) ?></option>
+                    <option><?= to_height($i) ?></option>
                 <?php } ?>
             </select>
 
-            <label>Hair length</label>
-            <!--<input name="hair_length" tabindex="4" type="text" />-->
+            <label>Hair Length</label>
             <select name="hair_length" tabindex="4">
                 <?php foreach (array('-', 'Bald (total)', 'Bald (on top)', 'Buzzcut', 'Chin length', 'Long', 'Receding', 'Shaved', 'Short', 'Shoulder length') as $o) { ?>
                     <option><?= $o ?></option>
                 <?php } ?>
             </select>
 
-            <label>Eye color</label>
-            <input name="eyes" tabindex="6" type="text" />
+            <label class="red">Age Group</label>
+            <select name="gender">
+                <?php foreach ($options['age_group'] as $c) { ?>
+                    <option><?= $c ?></option>
+                <?php } ?>
+            </select>
+
+            <label>Eye Color</label>
+            <!--<input name="eyes" tabindex="6" type="text" />-->
+            <select name="eyes" tabindex="6">
+                <?php foreach ($options['eyes'] as $c) { ?>
+                    <option><?= $c ?></option>
+                <?php } ?>
+            </select>
 
             <label>Reel</label>
             <input name="reel" tabindex="8" type="text" />
 
-            <label>IMDB link</label>
+            <label>IMDB Link</label>
             <input name="imdb" tabindex="10" type="text" />
 
-            <label>
-                Resume upload
-                <i class="fa fa-question-circle-o" title="Max size 10mb."></i>
+            <label class="red">
+                Resume Upload
+                <i class="fa fa-question-circle-o" title="Max size 10mb. Use this field or Resume Link."></i>
             </label>
             <input name="resume_file" tabindex="12" type="file" />
 
-            <label>Resume link</label>
+            <label class="red">Resume Link</label>
             <input name="resume_link" tabindex="14" type="text" />
         </div>
 
