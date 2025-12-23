@@ -10,7 +10,10 @@ const runMigrate = async () => {
     throw new Error('POSTGRES_URL is not defined');
   }
 
-  const connection = postgres(process.env.POSTGRES_URL, { max: 1 });
+  // Handle both postgres:// and postgresql:// protocols
+  const connectionString = process.env.POSTGRES_URL.replace(/^postgres:\/\//, 'postgresql://');
+
+  const connection = postgres(connectionString, { max: 1 });
   const db = drizzle(connection);
 
   console.log('⏳ Running migrations...');
