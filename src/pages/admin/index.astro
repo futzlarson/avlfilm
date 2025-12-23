@@ -1,0 +1,192 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Admin Dashboard">
+  <h1>Admin Dashboard</h1>
+
+  <div class="admin-section">
+    <h2>Banner Settings</h2>
+    <div id="message" class="message"></div>
+
+    <form id="banner-form">
+      <div class="form-group">
+        <label for="banner-html">Banner HTML Content:</label>
+        <textarea
+          id="banner-html"
+          name="banner_html"
+          rows="5"
+          required
+        ></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            id="banner-enabled"
+            name="banner_enabled"
+          />
+          Enable Banner
+        </label>
+      </div>
+
+      <button type="submit" class="submit-btn">Save Banner Settings</button>
+    </form>
+  </div>
+</BaseLayout>
+
+<style>
+  .admin-section {
+    max-width: 800px;
+    margin: 2rem 0;
+    padding: 2rem;
+    background: #f9f9f9;
+    border-radius: 8px;
+  }
+
+  h2 {
+    margin-bottom: 1.5rem;
+    color: #333;
+  }
+
+  .message {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    display: none;
+  }
+
+  .message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    display: block;
+  }
+
+  .message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    display: block;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #333;
+  }
+
+  textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.9rem;
+    resize: vertical;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  input[type="checkbox"] {
+    margin-right: 0.5rem;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+
+  .submit-btn {
+    background-color: #1a1a1a;
+    color: white;
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .submit-btn:hover {
+    background-color: #333;
+  }
+
+  .submit-btn:disabled {
+    background-color: #999;
+    cursor: not-allowed;
+  }
+</style>
+
+<script>
+  interface BannerData {
+    banner_html: string;
+    banner_enabled: boolean;
+  }
+
+  const form = document.getElementById('banner-form') as HTMLFormElement;
+  const htmlTextarea = document.getElementById('banner-html') as HTMLTextAreaElement;
+  const enabledCheckbox = document.getElementById('banner-enabled') as HTMLInputElement;
+  const messageDiv = document.getElementById('message') as HTMLDivElement;
+
+  function showMessage(text: string, type: 'success' | 'error') {
+    messageDiv.textContent = text;
+    messageDiv.className = `message ${type}`;
+    setTimeout(() => {
+      messageDiv.className = 'message';
+    }, 5000);
+  }
+
+  async function loadBannerSettings() {
+    try {
+      const response = await fetch('/api/banner');
+      if (!response.ok) throw new Error('Failed to load banner settings');
+
+      const data: BannerData = await response.json();
+      htmlTextarea.value = data.banner_html;
+      enabledCheckbox.checked = data.banner_enabled;
+    } catch (error) {
+      showMessage('Failed to load banner settings', 'error');
+      console.error(error);
+    }
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    submitBtn.disabled = true;
+
+    try {
+      const response = await fetch('/api/banner', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          banner_html: htmlTextarea.value,
+          banner_enabled: enabledCheckbox.checked,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update banner');
+
+      showMessage('Banner settings updated successfully!', 'success');
+    } catch (error) {
+      showMessage('Failed to update banner settings', 'error');
+      console.error(error);
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  loadBannerSettings();
+</script>

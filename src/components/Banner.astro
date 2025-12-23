@@ -1,0 +1,54 @@
+---
+interface BannerData {
+  banner_html: string;
+  banner_enabled: boolean;
+}
+
+let bannerData: BannerData | null = null;
+
+try {
+  const response = await fetch(`${Astro.url.origin}/api/banner`);
+  if (response.ok) {
+    bannerData = await response.json();
+  }
+} catch (error) {
+  console.error('Failed to fetch banner:', error);
+}
+
+const shouldDisplay = bannerData?.banner_enabled === true;
+---
+
+{shouldDisplay && bannerData && (
+  <div class="banner">
+    <div class="banner-content" set:html={bannerData.banner_html} />
+  </div>
+)}
+
+<style>
+  .banner {
+    background-color: #ffeb3b;
+    border-bottom: 2px solid #fdd835;
+    padding: 1rem 2rem;
+  }
+
+  .banner-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .banner-content :global(p) {
+    margin: 0.5rem 0;
+  }
+
+  .banner-content :global(a) {
+    color: #1565c0;
+    text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    .banner {
+      padding: 1rem;
+    }
+  }
+</style>
