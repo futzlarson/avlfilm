@@ -179,11 +179,15 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
       if (!response.ok) throw new Error('Failed to update banner');
 
-      showMessage('Banner settings updated successfully!', 'success');
+      showMessage('Banner settings updated successfully! Reloading...', 'success');
+
+      // Reload the page to see the updated banner
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error) {
       showMessage('Failed to update banner settings', 'error');
       console.error(error);
-    } finally {
       submitBtn.disabled = false;
     }
   });

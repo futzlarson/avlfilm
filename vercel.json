@@ -1,12 +1,1 @@
-{
-  "routes": [
-    {
-      "src": "/admin(.*)",
-      "dest": "/admin$1",
-      "headers": {
-        "cache-control": "s-maxage=0"
-      },
-      "continue": true
-    }
-  ]
-}
+{}

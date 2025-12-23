@@ -26,29 +26,41 @@ const shouldDisplay = bannerData?.banner_enabled === true;
 
 <style>
   .banner {
-    background-color: #ffeb3b;
-    border-bottom: 2px solid #fdd835;
-    padding: 1rem 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.75rem 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
   .banner-content {
     max-width: 1200px;
     margin: 0 auto;
     text-align: center;
+    font-size: 0.95rem;
   }
 
   .banner-content :global(p) {
-    margin: 0.5rem 0;
+    margin: 0;
+    line-height: 1.4;
   }
 
   .banner-content :global(a) {
-    color: #1565c0;
+    color: #ffd700;
     text-decoration: underline;
+    font-weight: 500;
+  }
+
+  .banner-content :global(a:hover) {
+    color: #ffed4e;
   }
 
   @media (max-width: 768px) {
     .banner {
-      padding: 1rem;
+      padding: 0.75rem 1rem;
+    }
+
+    .banner-content {
+      font-size: 0.9rem;
     }
   }
 </style>
