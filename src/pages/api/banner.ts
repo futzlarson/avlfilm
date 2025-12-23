@@ -1,15 +1,23 @@
 import type { APIRoute } from 'astro';
-import { sql } from '@vercel/postgres';
+import { db } from '../../db';
+import { siteSettings } from '../../db/schema';
+import { eq } from 'drizzle-orm';
 
 export const GET: APIRoute = async () => {
   try {
-    const { rows } = await sql`
-      SELECT key, value FROM site_settings
-      WHERE key IN ('banner_html', 'banner_enabled')
-    `;
+    const settings = await db
+      .select()
+      .from(siteSettings)
+      .where(eq(siteSettings.key, 'banner_html'))
+      .union(
+        db
+          .select()
+          .from(siteSettings)
+          .where(eq(siteSettings.key, 'banner_enabled'))
+      );
 
-    const bannerHtml = rows.find(row => row.key === 'banner_html')?.value || '<p>Welcome to AVL Film!</p>';
-    const bannerEnabled = rows.find(row => row.key === 'banner_enabled')?.value === 'true';
+    const bannerHtml = settings.find(row => row.key === 'banner_html')?.value || '<p>Welcome to AVL Film!</p>';
+    const bannerEnabled = settings.find(row => row.key === 'banner_enabled')?.value === 'true';
 
     return new Response(
       JSON.stringify({
@@ -60,20 +68,22 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // Update banner_html
-    await sql`
-      INSERT INTO site_settings (key, value, updated_at)
-      VALUES ('banner_html', ${banner_html}, CURRENT_TIMESTAMP)
-      ON CONFLICT (key)
-      DO UPDATE SET value = ${banner_html}, updated_at = CURRENT_TIMESTAMP
-    `;
+    await db
+      .insert(siteSettings)
+      .values({ key: 'banner_html', value: banner_html })
+      .onConflictDoUpdate({
+        target: siteSettings.key,
+        set: { value: banner_html, updatedAt: new Date() },
+      });
 
     // Update banner_enabled
-    await sql`
-      INSERT INTO site_settings (key, value, updated_at)
-      VALUES ('banner_enabled', ${banner_enabled.toString()}, CURRENT_TIMESTAMP)
-      ON CONFLICT (key)
-      DO UPDATE SET value = ${banner_enabled.toString()}, updated_at = CURRENT_TIMESTAMP
-    `;
+    await db
+      .insert(siteSettings)
+      .values({ key: 'banner_enabled', value: banner_enabled.toString() })
+      .onConflictDoUpdate({
+        target: siteSettings.key,
+        set: { value: banner_enabled.toString(), updatedAt: new Date() },
+      });
 
     return new Response(
       JSON.stringify({ success: true }),

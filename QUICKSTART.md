@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-## 🚀 Get Up and Running in 5 Minutes
+## 🚀 Get Up and Running in 3 Minutes
 
 ### Step 1: Install Dependencies
 ```bash
@@ -9,31 +9,19 @@ npm install
 
 ### Step 2: Set Up Database
 
-1. Create a Vercel Postgres database at https://vercel.com/dashboard
-2. Copy your `POSTGRES_URL` from the database settings
+1. Use your existing Supabase account or create a new Postgres database
+2. Copy your `POSTGRES_URL` connection string
 3. Update `.env.local`:
    ```
    POSTGRES_URL="your-postgres-connection-string-here"
    ```
 
-### Step 3: Initialize Database Tables
-
-Run this SQL in your Vercel Postgres dashboard (Query tab):
-
-```sql
-CREATE TABLE site_settings (
-  id SERIAL PRIMARY KEY,
-  key VARCHAR(255) UNIQUE NOT NULL,
-  value TEXT,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-INSERT INTO site_settings (key, value)
-VALUES ('banner_html', '<p>Welcome to AVL Film!</p>');
-
-INSERT INTO site_settings (key, value)
-VALUES ('banner_enabled', 'true');
+### Step 3: Run Database Migrations
+```bash
+npm run db:migrate
 ```
+
+This automatically creates tables and seeds default data.
 
 ### Step 4: Start Development Server
 ```bash
@@ -50,24 +38,30 @@ Go to http://localhost:4321/admin to edit the banner.
 
 1. Push code to GitHub
 2. Import project in Vercel
-3. Vercel will auto-detect Astro and configure everything
-4. Enable password protection in Vercel project settings → Deployment Protection
+3. Add `POSTGRES_URL` environment variable in Vercel settings
+4. Run `npm run db:migrate` to set up production database
 5. Deploy!
 
 ## ✅ What's Included
 
 - ✨ Homepage, Calendar, Directory, and FAQ pages
 - 🎨 Responsive design with clean styling
-- 🔐 Password-protected admin dashboard
+- 🔐 Password-protected admin dashboard (configure in Vercel)
 - 📢 Dynamic banner system
-- 🗄️ Vercel Postgres integration
+- 🗄️ Drizzle ORM with SQL migrations
 - 🚀 Ready for deployment
 
 ## 🛠️ Common Commands
 
+### Development
 - `npm run dev` - Start dev server (localhost:4321)
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
+
+### Database
+- `npm run db:migrate` - Run database migrations
+- `npm run db:generate` - Generate new migration after schema changes
+- `npm run db:studio` - Open visual database browser
 
 ## 📝 Next Steps
 
@@ -76,4 +70,4 @@ The stub API routes in `/src/pages/api/` are ready for you to implement:
 - `submit-crew.ts` - Submit new filmmaker
 - `update-crew.ts` - Update filmmaker status
 
-See `spec.md` for the complete specification.
+See `DATABASE_SETUP.md` for detailed migration workflow and `README.md` for full documentation.
