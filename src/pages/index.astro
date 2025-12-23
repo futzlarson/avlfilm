@@ -4,4 +4,42 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 <BaseLayout title="Home">
   <h1>Welcome to AVL Film</h1>
+
+  <div class="cta-section">
+    <a href="https://c0e0fd1a26ab11f0ba37895d88f54a92.eo.page/8qtgt" target="_blank" rel="noopener noreferrer" class="newsletter-btn">
+      Sign up for our newsletter
+    </a>
+  </div>
 </BaseLayout>
+
+<style>
+  h1 {
+    margin-bottom: 2rem;
+  }
+
+  .cta-section {
+    margin-top: 2rem;
+  }
+
+  .newsletter-btn {
+    display: inline-block;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+
+  .newsletter-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  .newsletter-btn:active {
+    transform: translateY(0);
+  }
+</style>
