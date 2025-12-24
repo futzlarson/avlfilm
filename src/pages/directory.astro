@@ -29,6 +29,10 @@ try {
     Connect with local filmmakers, crew members, and industry professionals in the Asheville area.
   </p>
 
+  <div class="mobile-warning">
+    <p>For the best viewing experience, we recommend viewing this directory on a desktop or tablet.</p>
+  </div>
+
   {error ? (
     <div class="error-message">
       <p>{error}</p>
@@ -87,6 +91,27 @@ try {
     background: #f9fafb;
     border-radius: 8px;
     color: #666;
+  }
+
+  .mobile-warning {
+    background: #fef3c7;
+    border: 1px solid #fbbf24;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  .mobile-warning p {
+    margin: 0;
+    color: #92400e;
+    font-size: 0.875rem;
+  }
+
+  @media (min-width: 769px) {
+    .mobile-warning {
+      display: none;
+    }
   }
 
   @media (max-width: 768px) {
