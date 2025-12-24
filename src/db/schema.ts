@@ -10,7 +10,7 @@ export const siteSettings = pgTable('site_settings', {
 export const filmmakers = pgTable('filmmakers', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
-  email: varchar('email', { length: 255 }).notNull(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
   phone: varchar('phone', { length: 20 }),
   roles: text('roles').notNull(),
   company: varchar('company', { length: 255 }),

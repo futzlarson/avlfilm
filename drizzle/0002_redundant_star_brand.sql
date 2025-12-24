@@ -1,0 +1,1 @@
+ALTER TABLE "filmmakers" ADD CONSTRAINT "filmmakers_email_unique" UNIQUE("email");
