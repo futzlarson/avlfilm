@@ -37,7 +37,8 @@ export const POST: APIRoute = async ({ request }) => {
     if (process.env.RESEND_API_KEY && process.env.ADMIN_EMAIL) {
       try {
         await resend.emails.send({
-          from: 'AVL Film Directory <noreply@avlfilm.com>',
+          from: 'AVL Film <onboarding@resend.dev>',
+          replyTo: process.env.ADMIN_EMAIL,
           to: process.env.ADMIN_EMAIL,
           subject: 'New Filmmaker Directory Submission',
           html: `
