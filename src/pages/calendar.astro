@@ -28,7 +28,7 @@ const isMobile = Astro.request.headers.get('user-agent')?.toLowerCase().includes
     iframe.src = isMobile ? mobileSrc : desktopSrc;
 
     // Update on resize (debounced)
-    let resizeTimeout: number;
+    let resizeTimeout: ReturnType<typeof setTimeout>;
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(() => {
