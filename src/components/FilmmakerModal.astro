@@ -1,4 +1,6 @@
 ---
+import { normalizeUrl } from '../utils/url';
+
 interface Props {
   id: string;
 }
@@ -12,36 +14,38 @@ const { id } = Astro.props;
     <button class="modal-close">&times;</button>
     <div class="modal-body">
       <h2 class="filmmaker-name"></h2>
-      <div class="filmmaker-details">
-        <div class="detail-row">
-          <strong>Email:</strong>
-          <a class="filmmaker-email" href=""></a>
-        </div>
-        <div class="detail-row phone-row">
-          <strong>Phone:</strong>
-          <span class="filmmaker-phone"></span>
-        </div>
-        <div class="detail-row">
-          <strong>Roles:</strong>
-          <span class="filmmaker-roles"></span>
-        </div>
-        <div class="detail-row company-row">
-          <strong>Company:</strong>
-          <span class="filmmaker-company"></span>
-        </div>
-        <div class="detail-row website-row">
-          <strong>Website:</strong>
-          <a class="filmmaker-website" href="" target="_blank" rel="noopener noreferrer"></a>
-        </div>
-        <div class="detail-row social-row">
-          <strong>Social Media:</strong>
-          <span class="filmmaker-social"></span>
-        </div>
-        <div class="detail-row gear-row">
-          <strong>Equipment/Gear:</strong>
-          <span class="filmmaker-gear"></span>
-        </div>
-      </div>
+      <table class="filmmaker-details">
+        <tbody>
+          <tr>
+            <th>Email</th>
+            <td><a class="filmmaker-email" href=""></a></td>
+          </tr>
+          <tr class="phone-row">
+            <th>Phone</th>
+            <td><span class="filmmaker-phone"></span></td>
+          </tr>
+          <tr>
+            <th>Roles</th>
+            <td><span class="filmmaker-roles"></span></td>
+          </tr>
+          <tr class="company-row">
+            <th>Company</th>
+            <td><span class="filmmaker-company"></span></td>
+          </tr>
+          <tr class="website-row">
+            <th>Website</th>
+            <td><a class="filmmaker-website" href="" target="_blank" rel="noopener noreferrer"></a></td>
+          </tr>
+          <tr class="social-row">
+            <th>Social Media</th>
+            <td><span class="filmmaker-social"></span></td>
+          </tr>
+          <tr class="gear-row">
+            <th>Equipment/Gear</th>
+            <td><span class="filmmaker-gear"></span></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
@@ -110,36 +114,38 @@ const { id } = Astro.props;
   }
 
   .filmmaker-details {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+    width: 100%;
+    border-collapse: collapse;
   }
 
-  .detail-row {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-
-  .detail-row strong {
-    color: #666;
+  .filmmaker-details th {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    background: #f3f4f6;
+    color: #374151;
+    font-weight: 600;
     font-size: 0.875rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    width: 30%;
+    border-bottom: 1px solid #e5e7eb;
   }
 
-  .detail-row span,
-  .detail-row a {
+  .filmmaker-details td {
+    padding: 0.75rem 1rem;
     color: #1a1a1a;
-    font-size: 1rem;
+    border-bottom: 1px solid #e5e7eb;
   }
 
-  .detail-row a {
+  .filmmaker-details tr:last-child th,
+  .filmmaker-details tr:last-child td {
+    border-bottom: none;
+  }
+
+  .filmmaker-details a {
     color: #667eea;
     text-decoration: none;
   }
 
-  .detail-row a:hover {
+  .filmmaker-details a:hover {
     text-decoration: underline;
   }
 
@@ -200,7 +206,7 @@ const { id } = Astro.props;
     const phoneSpan = modal.querySelector('.filmmaker-phone')!;
     if (filmmaker.phone) {
       phoneSpan.textContent = formatPhone(filmmaker.phone);
-      phoneRow.style.display = 'flex';
+      phoneRow.style.display = 'table-row';
     } else {
       phoneRow.style.display = 'none';
     }
@@ -211,7 +217,7 @@ const { id } = Astro.props;
     const companySpan = modal.querySelector('.filmmaker-company')!;
     if (filmmaker.company) {
       companySpan.textContent = filmmaker.company;
-      companyRow.style.display = 'flex';
+      companyRow.style.display = 'table-row';
     } else {
       companyRow.style.display = 'none';
     }
@@ -220,8 +226,8 @@ const { id } = Astro.props;
     const websiteLink = modal.querySelector('.filmmaker-website') as HTMLAnchorElement;
     if (filmmaker.website) {
       websiteLink.textContent = filmmaker.website;
-      websiteLink.href = filmmaker.website.startsWith('http') ? filmmaker.website : `https://${filmmaker.website}`;
-      websiteRow.style.display = 'flex';
+      websiteLink.href = normalizeUrlClient(filmmaker.website);
+      websiteRow.style.display = 'table-row';
     } else {
       websiteRow.style.display = 'none';
     }
@@ -230,7 +236,7 @@ const { id } = Astro.props;
     const socialSpan = modal.querySelector('.filmmaker-social')!;
     if (filmmaker.socialMedia) {
       socialSpan.textContent = filmmaker.socialMedia;
-      socialRow.style.display = 'flex';
+      socialRow.style.display = 'table-row';
     } else {
       socialRow.style.display = 'none';
     }
@@ -239,7 +245,7 @@ const { id } = Astro.props;
     const gearSpan = modal.querySelector('.filmmaker-gear')!;
     if (filmmaker.gear) {
       gearSpan.textContent = filmmaker.gear;
-      gearRow.style.display = 'flex';
+      gearRow.style.display = 'table-row';
     } else {
       gearRow.style.display = 'none';
     }
@@ -254,6 +260,16 @@ const { id } = Astro.props;
       return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
     }
     return phone;
+  }
+
+  function normalizeUrlClient(url: string | null | undefined): string {
+    if (!url) return '';
+    const trimmed = url.trim();
+    if (!trimmed) return '';
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+    return `https://${trimmed}`;
   }
 
   (window as any).openFilmmakerModal = openFilmmakerModal;
