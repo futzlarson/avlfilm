@@ -20,7 +20,7 @@
   "type": "module",
   "dependencies": {
     "@astrojs/check": "^0.9.6",
-    "@astrojs/vercel": "^8.0.4",
+    "@astrojs/vercel": "^9.0.2",
     "@vercel/postgres": "^0.10.0",
     "astro": "^5.16.6",
     "dotenv": "^17.2.3",
