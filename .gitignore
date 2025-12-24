@@ -30,3 +30,6 @@ pnpm-debug.log*
 
 # Drizzle
 drizzle/meta
+
+# Metadata
+meta/
