@@ -1,7 +1,5 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-
-const isMobile = Astro.request.headers.get('user-agent')?.toLowerCase().includes('mobile') || false;
 ---
 
 <BaseLayout title="Calendar">
@@ -12,9 +10,7 @@ const isMobile = Astro.request.headers.get('user-agent')?.toLowerCase().includes
   <div class="calendar-container">
     <iframe
       id="calendar-iframe"
-      src=""
-      frameborder="0"
-      scrolling="no">
+      src="">
     </iframe>
   </div>
 
@@ -54,6 +50,7 @@ const isMobile = Astro.request.headers.get('user-agent')?.toLowerCase().includes
       width: 800px;
       height: 600px;
       border: solid 1px #777;
+      overflow: hidden;
     }
 
     @media (max-width: 768px) {

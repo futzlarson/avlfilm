@@ -209,7 +209,7 @@ async function importCSV(csvPath: string) {
       }
 
       const [
-        timestamp,
+        _timestamp,
         name,
         email,
         phone,

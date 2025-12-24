@@ -247,7 +247,7 @@ import { FILM_ROLES } from '../config/roles';
   }
 </style>
 
-<script define:vars={{ roles: FILM_ROLES }}>
+<script is:inline define:vars={{ roles: FILM_ROLES }}>
   const selectedRoles = new Set();
 
   function updateSelectedRoles() {

@@ -17,7 +17,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     // Parse Basic Auth header
     const base64Credentials = authHeader.split(' ')[1];
     const credentials = atob(base64Credentials);
-    const [username, password] = credentials.split(':');
+    const [_username, password] = credentials.split(':');
 
     // Check against environment variable
     const adminPassword = import.meta.env.ADMIN_PASSWORD || 'admin';
