@@ -6,3 +6,18 @@ export const siteSettings = pgTable('site_settings', {
   value: text('value'),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
+
+export const filmmakers = pgTable('filmmakers', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  email: varchar('email', { length: 255 }).notNull(),
+  phone: varchar('phone', { length: 20 }),
+  roles: text('roles').notNull(),
+  company: varchar('company', { length: 255 }),
+  website: varchar('website', { length: 500 }),
+  socialMedia: varchar('social_media', { length: 500 }),
+  gear: text('gear'),
+  status: varchar('status', { length: 20 }).default('pending'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});

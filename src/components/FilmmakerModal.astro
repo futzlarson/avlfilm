@@ -1,0 +1,260 @@
+---
+interface Props {
+  id: string;
+}
+
+const { id } = Astro.props;
+---
+
+<div id={id} class="modal">
+  <div class="modal-overlay"></div>
+  <div class="modal-content">
+    <button class="modal-close">&times;</button>
+    <div class="modal-body">
+      <h2 class="filmmaker-name"></h2>
+      <div class="filmmaker-details">
+        <div class="detail-row">
+          <strong>Email:</strong>
+          <a class="filmmaker-email" href=""></a>
+        </div>
+        <div class="detail-row phone-row">
+          <strong>Phone:</strong>
+          <span class="filmmaker-phone"></span>
+        </div>
+        <div class="detail-row">
+          <strong>Roles:</strong>
+          <span class="filmmaker-roles"></span>
+        </div>
+        <div class="detail-row company-row">
+          <strong>Company:</strong>
+          <span class="filmmaker-company"></span>
+        </div>
+        <div class="detail-row website-row">
+          <strong>Website:</strong>
+          <a class="filmmaker-website" href="" target="_blank" rel="noopener noreferrer"></a>
+        </div>
+        <div class="detail-row social-row">
+          <strong>Social Media:</strong>
+          <span class="filmmaker-social"></span>
+        </div>
+        <div class="detail-row gear-row">
+          <strong>Equipment/Gear:</strong>
+          <span class="filmmaker-gear"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal.active {
+    display: flex;
+  }
+
+  .modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .modal-content {
+    position: relative;
+    background: white;
+    border-radius: 8px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    color: #666;
+    line-height: 1;
+    padding: 0;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-close:hover {
+    color: #000;
+  }
+
+  .modal-body {
+    padding: 2rem;
+  }
+
+  .filmmaker-name {
+    margin: 0 0 1.5rem;
+    color: #1a1a1a;
+    font-size: 1.75rem;
+  }
+
+  .filmmaker-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .detail-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .detail-row strong {
+    color: #666;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .detail-row span,
+  .detail-row a {
+    color: #1a1a1a;
+    font-size: 1rem;
+  }
+
+  .detail-row a {
+    color: #667eea;
+    text-decoration: none;
+  }
+
+  .detail-row a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    .modal-content {
+      width: 95%;
+      max-height: 90vh;
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+    }
+
+    .filmmaker-name {
+      font-size: 1.5rem;
+    }
+  }
+</style>
+
+<script>
+  function setupModal(modalId: string) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+
+    const overlay = modal.querySelector('.modal-overlay');
+    const closeBtn = modal.querySelector('.modal-close');
+
+    const close = () => {
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    };
+
+    overlay?.addEventListener('click', close);
+    closeBtn?.addEventListener('click', close);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.classList.contains('active')) {
+        close();
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    setupModal('filmmaker-modal');
+  });
+
+  export function openFilmmakerModal(filmmaker: any) {
+    const modal = document.getElementById('filmmaker-modal');
+    if (!modal) return;
+
+    modal.querySelector('.filmmaker-name')!.textContent = filmmaker.name;
+
+    const emailLink = modal.querySelector('.filmmaker-email') as HTMLAnchorElement;
+    emailLink.textContent = filmmaker.email;
+    emailLink.href = `mailto:${filmmaker.email}`;
+
+    const phoneRow = modal.querySelector('.phone-row') as HTMLElement;
+    const phoneSpan = modal.querySelector('.filmmaker-phone')!;
+    if (filmmaker.phone) {
+      phoneSpan.textContent = formatPhone(filmmaker.phone);
+      phoneRow.style.display = 'flex';
+    } else {
+      phoneRow.style.display = 'none';
+    }
+
+    modal.querySelector('.filmmaker-roles')!.textContent = filmmaker.roles;
+
+    const companyRow = modal.querySelector('.company-row') as HTMLElement;
+    const companySpan = modal.querySelector('.filmmaker-company')!;
+    if (filmmaker.company) {
+      companySpan.textContent = filmmaker.company;
+      companyRow.style.display = 'flex';
+    } else {
+      companyRow.style.display = 'none';
+    }
+
+    const websiteRow = modal.querySelector('.website-row') as HTMLElement;
+    const websiteLink = modal.querySelector('.filmmaker-website') as HTMLAnchorElement;
+    if (filmmaker.website) {
+      websiteLink.textContent = filmmaker.website;
+      websiteLink.href = filmmaker.website.startsWith('http') ? filmmaker.website : `https://${filmmaker.website}`;
+      websiteRow.style.display = 'flex';
+    } else {
+      websiteRow.style.display = 'none';
+    }
+
+    const socialRow = modal.querySelector('.social-row') as HTMLElement;
+    const socialSpan = modal.querySelector('.filmmaker-social')!;
+    if (filmmaker.socialMedia) {
+      socialSpan.textContent = filmmaker.socialMedia;
+      socialRow.style.display = 'flex';
+    } else {
+      socialRow.style.display = 'none';
+    }
+
+    const gearRow = modal.querySelector('.gear-row') as HTMLElement;
+    const gearSpan = modal.querySelector('.filmmaker-gear')!;
+    if (filmmaker.gear) {
+      gearSpan.textContent = filmmaker.gear;
+      gearRow.style.display = 'flex';
+    } else {
+      gearRow.style.display = 'none';
+    }
+
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function formatPhone(phone: string): string {
+    const cleaned = phone.replace(/\D/g, '');
+    if (cleaned.length === 10) {
+      return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+    }
+    return phone;
+  }
+
+  (window as any).openFilmmakerModal = openFilmmakerModal;
+</script>

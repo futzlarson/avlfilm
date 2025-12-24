@@ -1,0 +1,372 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { FILM_ROLES } from '../config/roles';
+---
+
+<BaseLayout title="Submit to Directory">
+  <h1>Add Yourself to the Filmmaker Directory</h1>
+  <p class="intro">Join the AVL Film community! Fill out the form below to be listed in our filmmaker directory.</p>
+
+  <form id="submit-form" class="filmmaker-form">
+    <div class="form-group">
+      <label for="name">Name <span class="required">*</span></label>
+      <input type="text" id="name" name="name" required />
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email <span class="required">*</span></label>
+      <input type="email" id="email" name="email" required />
+    </div>
+
+    <div class="form-group">
+      <label for="phone">Phone</label>
+      <input type="tel" id="phone" name="phone" placeholder="###-###-####" />
+    </div>
+
+    <div class="form-group">
+      <label for="roles">Roles <span class="required">*</span></label>
+      <div class="autocomplete-container">
+        <input
+          type="text"
+          id="roles-input"
+          placeholder="Start typing to select roles..."
+          autocomplete="off"
+        />
+        <div id="roles-dropdown" class="autocomplete-dropdown"></div>
+      </div>
+      <div id="selected-roles" class="selected-roles"></div>
+      <input type="hidden" id="roles" name="roles" required />
+    </div>
+
+    <div class="form-group">
+      <label for="company">Company</label>
+      <input type="text" id="company" name="company" />
+    </div>
+
+    <div class="form-group">
+      <label for="website">Website</label>
+      <input type="url" id="website" name="website" placeholder="https://example.com" />
+    </div>
+
+    <div class="form-group">
+      <label for="socialMedia">Social Media</label>
+      <input type="text" id="socialMedia" name="socialMedia" placeholder="@username or profile URL" />
+    </div>
+
+    <div class="form-group">
+      <label for="gear">Equipment/Gear</label>
+      <textarea id="gear" name="gear" rows="4" placeholder="List your equipment and gear..."></textarea>
+    </div>
+
+    <button type="submit" class="submit-btn">Submit</button>
+  </form>
+
+  <div id="success-message" class="success-message" style="display: none;">
+    <h2>Thank you for submitting!</h2>
+    <p>Your submission has been received and will be reviewed by our team. You'll be added to the directory once approved.</p>
+    <a href="/directory" class="back-link">Back to Directory</a>
+  </div>
+</BaseLayout>
+
+<style>
+  h1 {
+    color: #1a1a1a;
+    margin-bottom: 1rem;
+  }
+
+  .intro {
+    margin-bottom: 2rem;
+    color: #666;
+    font-size: 1.1rem;
+  }
+
+  .filmmaker-form {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .required {
+    color: #dc2626;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="url"],
+  textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-family: inherit;
+  }
+
+  input:focus,
+  textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  .autocomplete-container {
+    position: relative;
+  }
+
+  .autocomplete-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    display: none;
+    z-index: 10;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .autocomplete-dropdown.active {
+    display: block;
+  }
+
+  .autocomplete-item {
+    padding: 0.75rem;
+    cursor: pointer;
+    transition: background-color 0.15s;
+  }
+
+  .autocomplete-item:hover {
+    background-color: #f3f4f6;
+  }
+
+  .selected-roles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    min-height: 2rem;
+  }
+
+  .role-tag {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .role-tag button {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 1.25rem;
+    line-height: 1;
+    padding: 0;
+  }
+
+  .submit-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+
+  .submit-btn:hover {
+    transform: translateY(-2px);
+  }
+
+  .submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .success-message {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #f0fdf4;
+    border: 2px solid #86efac;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .success-message h2 {
+    color: #166534;
+    margin-bottom: 1rem;
+  }
+
+  .success-message p {
+    color: #166534;
+    margin-bottom: 1.5rem;
+  }
+
+  .back-link {
+    display: inline-block;
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .back-link:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 1.75rem;
+    }
+
+    .intro {
+      font-size: 1rem;
+    }
+  }
+</style>
+
+<script define:vars={{ roles: FILM_ROLES }}>
+  const selectedRoles = new Set();
+
+  function updateSelectedRoles() {
+    const container = document.getElementById('selected-roles');
+    const hiddenInput = document.getElementById('roles');
+
+    if (!container || !hiddenInput) return;
+
+    container.innerHTML = '';
+
+    selectedRoles.forEach(role => {
+      const tag = document.createElement('div');
+      tag.className = 'role-tag';
+      tag.innerHTML = `
+        ${role}
+        <button type="button" data-role="${role}">&times;</button>
+      `;
+
+      const btn = tag.querySelector('button');
+      btn?.addEventListener('click', () => {
+        selectedRoles.delete(role);
+        updateSelectedRoles();
+      });
+
+      container.appendChild(tag);
+    });
+
+    hiddenInput.value = Array.from(selectedRoles).join(', ');
+  }
+
+  function setupAutocomplete() {
+    const input = document.getElementById('roles-input');
+    const dropdown = document.getElementById('roles-dropdown');
+
+    if (!input || !dropdown) return;
+
+    input.addEventListener('input', (e) => {
+      const value = e.target.value.toLowerCase();
+
+      if (!value) {
+        dropdown.classList.remove('active');
+        return;
+      }
+
+      const matches = roles.filter(role =>
+        role.toLowerCase().includes(value) && !selectedRoles.has(role)
+      );
+
+      if (matches.length === 0) {
+        dropdown.classList.remove('active');
+        return;
+      }
+
+      dropdown.innerHTML = matches.map(role =>
+        `<div class="autocomplete-item" data-role="${role}">${role}</div>`
+      ).join('');
+
+      dropdown.querySelectorAll('.autocomplete-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const role = item.getAttribute('data-role');
+          if (role) {
+            selectedRoles.add(role);
+            updateSelectedRoles();
+            input.value = '';
+            dropdown.classList.remove('active');
+          }
+        });
+      });
+
+      dropdown.classList.add('active');
+    });
+
+    input.addEventListener('blur', () => {
+      setTimeout(() => dropdown.classList.remove('active'), 200);
+    });
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    const form = e.target;
+    const submitBtn = form.querySelector('.submit-btn');
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+      const response = await fetch('/api/submit-filmmaker', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit');
+      }
+
+      form.style.display = 'none';
+      document.querySelector('.intro').remove();
+      document.querySelector('h1').remove();
+      document.getElementById('success-message').style.display = 'block';
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Failed to submit. Please try again.');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    setupAutocomplete();
+
+    const form = document.getElementById('submit-form');
+    form?.addEventListener('submit', handleSubmit);
+  });
+</script>
+</BaseLayout>

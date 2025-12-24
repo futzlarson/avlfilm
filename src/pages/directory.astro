@@ -1,7 +1,110 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import FilmmakerTable from '../components/FilmmakerTable.astro';
+import FilmmakerModal from '../components/FilmmakerModal.astro';
+
+let filmmakers: any[] = [];
+let error = null;
+
+try {
+  const response = await fetch(`${Astro.url.origin}/api/get-filmmakers`);
+  if (response.ok) {
+    filmmakers = await response.json();
+  } else {
+    error = 'Failed to load filmmakers';
+  }
+} catch (e) {
+  console.error('Error fetching filmmakers:', e);
+  error = 'Failed to load filmmakers';
+}
 ---
 
 <BaseLayout title="Directory">
-  <h1>Filmmaker Directory</h1>
+  <div class="directory-header">
+    <h1>Filmmaker Directory</h1>
+    <a href="/submit" class="add-yourself-btn">Add Yourself</a>
+  </div>
+
+  <p class="intro">
+    Connect with local filmmakers, crew members, and industry professionals in the Asheville area.
+  </p>
+
+  {error ? (
+    <div class="error-message">
+      <p>{error}</p>
+    </div>
+  ) : filmmakers.length > 0 ? (
+    <FilmmakerTable filmmakers={filmmakers} />
+  ) : (
+    <div class="empty-message">
+      <p>No filmmakers in the directory yet. Be the first to add yourself!</p>
+    </div>
+  )}
+
+  <FilmmakerModal id="filmmaker-modal" />
 </BaseLayout>
+
+<style>
+  .directory-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  h1 {
+    margin: 0;
+    color: #1a1a1a;
+  }
+
+  .add-yourself-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: transform 0.15s;
+    display: inline-block;
+  }
+
+  .add-yourself-btn:hover {
+    transform: translateY(-2px);
+  }
+
+  .intro {
+    margin-bottom: 2rem;
+    color: #666;
+    font-size: 1.1rem;
+  }
+
+  .error-message,
+  .empty-message {
+    padding: 2rem;
+    text-align: center;
+    background: #f9fafb;
+    border-radius: 8px;
+    color: #666;
+  }
+
+  @media (max-width: 768px) {
+    .directory-header {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .add-yourself-btn {
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+    }
+
+    .intro {
+      font-size: 1rem;
+    }
+  }
+</style>

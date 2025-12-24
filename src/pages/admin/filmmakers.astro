@@ -1,0 +1,557 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Admin - Filmmakers">
+  <div class="admin-header">
+    <h1>Filmmaker Directory Management</h1>
+    <a href="/admin" class="back-link">← Back to Admin</a>
+  </div>
+
+  <div class="admin-section">
+    <h2>Pending Submissions (<span id="pending-count">0</span>)</h2>
+    <div id="pending-filmmakers"></div>
+  </div>
+
+  <div class="admin-section">
+    <h2>All Filmmakers</h2>
+    <div class="filter-bar">
+      <label>
+        Status:
+        <select id="status-filter">
+          <option value="all">All</option>
+          <option value="approved">Approved</option>
+          <option value="pending">Pending</option>
+          <option value="archived">Archived</option>
+        </select>
+      </label>
+    </div>
+    <div id="all-filmmakers"></div>
+  </div>
+</BaseLayout>
+
+<style>
+  .admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  h1 {
+    margin: 0;
+    color: #1a1a1a;
+  }
+
+  .back-link {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .back-link:hover {
+    text-decoration: underline;
+  }
+
+  .admin-section {
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  h2 {
+    margin: 0 0 1.5rem;
+    color: #333;
+  }
+
+  .filter-bar {
+    margin-bottom: 1.5rem;
+  }
+
+  .filter-bar label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .filter-bar select {
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+
+  .filmmaker-card {
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    background: #f9fafb;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+  }
+
+  .filmmaker-card.editing {
+    background: #fff;
+    border: 2px solid #667eea;
+  }
+
+  .filmmaker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    gap: 1rem;
+  }
+
+  .filmmaker-info h3 {
+    margin: 0 0 0.5rem;
+    color: #1a1a1a;
+  }
+
+  .status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .status-badge.pending {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .status-badge.approved {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  .status-badge.archived {
+    background: #e5e7eb;
+    color: #6b7280;
+  }
+
+  .filmmaker-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: opacity 0.15s;
+  }
+
+  .btn:hover {
+    opacity: 0.8;
+  }
+
+  .btn-approve {
+    background: #10b981;
+    color: white;
+  }
+
+  .btn-archive {
+    background: #6b7280;
+    color: white;
+  }
+
+  .btn-edit {
+    background: #667eea;
+    color: white;
+  }
+
+  .btn-save {
+    background: #10b981;
+    color: white;
+  }
+
+  .btn-cancel {
+    background: #e5e7eb;
+    color: #333;
+  }
+
+  .filmmaker-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .detail-item strong {
+    color: #666;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .detail-item span {
+    color: #1a1a1a;
+  }
+
+  .edit-form {
+    display: none;
+  }
+
+  .edit-form.active {
+    display: block;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #666;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-family: inherit;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #9ca3af;
+  }
+
+  @media (max-width: 768px) {
+    .admin-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .filmmaker-header {
+      flex-direction: column;
+    }
+
+    .filmmaker-details {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  let allFilmmakers: any[] = [];
+
+  async function loadPendingFilmmakers() {
+    try {
+      const response = await fetch('/api/get-pending-filmmakers');
+      const filmmakers = await response.json();
+
+      const countEl = document.getElementById('pending-count');
+      const containerEl = document.getElementById('pending-filmmakers');
+
+      if (!countEl || !containerEl) return;
+
+      countEl.textContent = filmmakers.length.toString();
+
+      if (filmmakers.length === 0) {
+        containerEl.innerHTML = '<div class="empty-state">No pending submissions</div>';
+        return;
+      }
+
+      containerEl.innerHTML = filmmakers.map((f: any) => `
+        <div class="filmmaker-card" data-id="${f.id}">
+          <div class="filmmaker-header">
+            <div class="filmmaker-info">
+              <h3>${f.name}</h3>
+              <span class="status-badge pending">Pending</span>
+            </div>
+            <div class="filmmaker-actions">
+              <button class="btn btn-approve" onclick="approveFilmmaker(${f.id})">Approve</button>
+              <button class="btn btn-archive" onclick="archiveFilmmaker(${f.id})">Archive</button>
+            </div>
+          </div>
+          <div class="filmmaker-details">
+            <div class="detail-item">
+              <strong>Email</strong>
+              <span>${f.email}</span>
+            </div>
+            ${f.phone ? `
+              <div class="detail-item">
+                <strong>Phone</strong>
+                <span>${formatPhone(f.phone)}</span>
+              </div>
+            ` : ''}
+            <div class="detail-item">
+              <strong>Roles</strong>
+              <span>${f.roles}</span>
+            </div>
+            ${f.company ? `
+              <div class="detail-item">
+                <strong>Company</strong>
+                <span>${f.company}</span>
+              </div>
+            ` : ''}
+            ${f.website ? `
+              <div class="detail-item">
+                <strong>Website</strong>
+                <span>${f.website}</span>
+              </div>
+            ` : ''}
+            ${f.socialMedia ? `
+              <div class="detail-item">
+                <strong>Social Media</strong>
+                <span>${f.socialMedia}</span>
+              </div>
+            ` : ''}
+            ${f.gear ? `
+              <div class="detail-item">
+                <strong>Gear</strong>
+                <span>${f.gear}</span>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `).join('');
+    } catch (error) {
+      console.error('Error loading pending filmmakers:', error);
+    }
+  }
+
+  async function loadAllFilmmakers() {
+    try {
+      const response = await fetch('/api/get-filmmakers?include_all=true');
+      allFilmmakers = await response.json();
+      renderAllFilmmakers();
+    } catch (error) {
+      console.error('Error loading all filmmakers:', error);
+    }
+  }
+
+  function renderAllFilmmakers() {
+    const containerEl = document.getElementById('all-filmmakers');
+    const filterEl = document.getElementById('status-filter') as HTMLSelectElement;
+
+    if (!containerEl || !filterEl) return;
+
+    const statusFilter = filterEl.value;
+
+    let filtered = allFilmmakers;
+    if (statusFilter !== 'all') {
+      filtered = allFilmmakers.filter(f => f.status === statusFilter);
+    }
+
+    if (filtered.length === 0) {
+      containerEl.innerHTML = '<div class="empty-state">No filmmakers found</div>';
+      return;
+    }
+
+    containerEl.innerHTML = filtered.map((f: any) => `
+      <div class="filmmaker-card" data-id="${f.id}">
+        <div class="filmmaker-header">
+          <div class="filmmaker-info">
+            <h3>${f.name}</h3>
+            <span class="status-badge ${f.status}">${f.status}</span>
+          </div>
+          <div class="filmmaker-actions">
+            <button class="btn btn-edit" onclick="toggleEdit(${f.id})">Edit</button>
+            ${f.status === 'approved' ? `
+              <button class="btn btn-archive" onclick="updateStatus(${f.id}, 'archived')">Archive</button>
+            ` : f.status === 'archived' ? `
+              <button class="btn btn-approve" onclick="updateStatus(${f.id}, 'approved')">Approve</button>
+            ` : `
+              <button class="btn btn-approve" onclick="updateStatus(${f.id}, 'approved')">Approve</button>
+              <button class="btn btn-archive" onclick="updateStatus(${f.id}, 'archived')">Archive</button>
+            `}
+          </div>
+        </div>
+
+        <div class="filmmaker-view">
+          <div class="filmmaker-details">
+            <div class="detail-item">
+              <strong>Email</strong>
+              <span>${f.email}</span>
+            </div>
+            ${f.phone ? `
+              <div class="detail-item">
+                <strong>Phone</strong>
+                <span>${formatPhone(f.phone)}</span>
+              </div>
+            ` : ''}
+            <div class="detail-item">
+              <strong>Roles</strong>
+              <span>${f.roles}</span>
+            </div>
+            ${f.company ? `
+              <div class="detail-item">
+                <strong>Company</strong>
+                <span>${f.company}</span>
+              </div>
+            ` : ''}
+            ${f.website ? `
+              <div class="detail-item">
+                <strong>Website</strong>
+                <span>${f.website}</span>
+              </div>
+            ` : ''}
+            ${f.socialMedia ? `
+              <div class="detail-item">
+                <strong>Social Media</strong>
+                <span>${f.socialMedia}</span>
+              </div>
+            ` : ''}
+            ${f.gear ? `
+              <div class="detail-item">
+                <strong>Gear</strong>
+                <span>${f.gear}</span>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+
+        <form class="edit-form" onsubmit="saveFilmmaker(event, ${f.id})">
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" name="name" value="${f.name}" required>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" value="${f.email}" required>
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="tel" name="phone" value="${f.phone || ''}">
+          </div>
+          <div class="form-group">
+            <label>Roles</label>
+            <input type="text" name="roles" value="${f.roles}" required>
+          </div>
+          <div class="form-group">
+            <label>Company</label>
+            <input type="text" name="company" value="${f.company || ''}">
+          </div>
+          <div class="form-group">
+            <label>Website</label>
+            <input type="url" name="website" value="${f.website || ''}">
+          </div>
+          <div class="form-group">
+            <label>Social Media</label>
+            <input type="text" name="socialMedia" value="${f.socialMedia || ''}">
+          </div>
+          <div class="form-group">
+            <label>Gear</label>
+            <textarea name="gear" rows="3">${f.gear || ''}</textarea>
+          </div>
+          <div class="filmmaker-actions">
+            <button type="submit" class="btn btn-save">Save</button>
+            <button type="button" class="btn btn-cancel" onclick="toggleEdit(${f.id})">Cancel</button>
+          </div>
+        </form>
+      </div>
+    `).join('');
+  }
+
+  function formatPhone(phone: string): string {
+    const cleaned = phone.replace(/\D/g, '');
+    if (cleaned.length === 10) {
+      return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+    }
+    return phone;
+  }
+
+  async function approveFilmmaker(id: number) {
+    await updateFilmmaker(id, { status: 'approved' });
+  }
+
+  async function archiveFilmmaker(id: number) {
+    await updateFilmmaker(id, { status: 'archived' });
+  }
+
+  async function updateStatus(id: number, status: string) {
+    await updateFilmmaker(id, { status });
+  }
+
+  async function updateFilmmaker(id: number, data: any) {
+    try {
+      const response = await fetch('/api/approve-filmmaker', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id, ...data }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update filmmaker');
+      }
+
+      await Promise.all([loadPendingFilmmakers(), loadAllFilmmakers()]);
+    } catch (error) {
+      console.error('Error updating filmmaker:', error);
+      alert('Failed to update filmmaker');
+    }
+  }
+
+  function toggleEdit(id: number) {
+    const card = document.querySelector(`[data-id="${id}"]`);
+    if (!card) return;
+
+    const viewEl = card.querySelector('.filmmaker-view');
+    const formEl = card.querySelector('.edit-form');
+
+    if (!viewEl || !formEl) return;
+
+    const isEditing = card.classList.contains('editing');
+
+    if (isEditing) {
+      card.classList.remove('editing');
+      viewEl.removeAttribute('style');
+      formEl.classList.remove('active');
+    } else {
+      card.classList.add('editing');
+      (viewEl as HTMLElement).style.display = 'none';
+      formEl.classList.add('active');
+    }
+  }
+
+  async function saveFilmmaker(event: Event, id: number) {
+    event.preventDefault();
+
+    const form = event.target as HTMLFormElement;
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    await updateFilmmaker(id, data);
+  }
+
+  (window as any).approveFilmmaker = approveFilmmaker;
+  (window as any).archiveFilmmaker = archiveFilmmaker;
+  (window as any).updateStatus = updateStatus;
+  (window as any).toggleEdit = toggleEdit;
+  (window as any).saveFilmmaker = saveFilmmaker;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadPendingFilmmakers();
+    loadAllFilmmakers();
+
+    const filterEl = document.getElementById('status-filter');
+    filterEl?.addEventListener('change', renderAllFilmmakers);
+  });
+</script>
+</BaseLayout>

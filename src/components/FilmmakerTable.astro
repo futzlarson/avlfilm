@@ -1,0 +1,231 @@
+---
+interface Props {
+  filmmakers: any[];
+}
+
+const { filmmakers } = Astro.props;
+
+function formatPhone(phone: string | null): string {
+  if (!phone) return '';
+  const cleaned = phone.replace(/\D/g, '');
+  if (cleaned.length === 10) {
+    return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+  }
+  return phone;
+}
+---
+
+<div class="table-container">
+  <table class="filmmaker-table">
+    <thead>
+      <tr>
+        <th data-sort="name" class="sortable">
+          Name
+          <span class="sort-indicator"></span>
+        </th>
+        <th data-sort="email" class="sortable">
+          Email
+          <span class="sort-indicator"></span>
+        </th>
+        <th data-sort="phone" class="sortable">
+          Phone
+          <span class="sort-indicator"></span>
+        </th>
+        <th data-sort="roles" class="sortable">
+          Roles
+          <span class="sort-indicator"></span>
+        </th>
+        <th data-sort="company" class="sortable">
+          Company
+          <span class="sort-indicator"></span>
+        </th>
+        <th data-sort="gear" class="sortable">
+          Gear
+          <span class="sort-indicator"></span>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      {filmmakers.map((filmmaker) => (
+        <tr class="filmmaker-row" data-filmmaker={JSON.stringify(filmmaker)}>
+          <td>{filmmaker.name}</td>
+          <td><a href={`mailto:${filmmaker.email}`}>{filmmaker.email}</a></td>
+          <td>{formatPhone(filmmaker.phone)}</td>
+          <td>{filmmaker.roles}</td>
+          <td>{filmmaker.company || ''}</td>
+          <td class="gear-cell">{filmmaker.gear || ''}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .table-container {
+    overflow-x: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .filmmaker-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+  }
+
+  .filmmaker-table th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .filmmaker-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    padding-right: 2rem;
+  }
+
+  .filmmaker-table th.sortable:hover {
+    background: linear-gradient(135deg, #5568d3 0%, #65408b 100%);
+  }
+
+  .sort-indicator {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    opacity: 0.5;
+  }
+
+  .sort-indicator::after {
+    content: '⇅';
+  }
+
+  th.sort-asc .sort-indicator::after {
+    content: '↑';
+    opacity: 1;
+  }
+
+  th.sort-desc .sort-indicator::after {
+    content: '↓';
+    opacity: 1;
+  }
+
+  .filmmaker-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .filmmaker-row {
+    cursor: pointer;
+    transition: background-color 0.15s;
+  }
+
+  .filmmaker-row:hover {
+    background-color: #f9fafb;
+  }
+
+  .filmmaker-table a {
+    color: #667eea;
+    text-decoration: none;
+  }
+
+  .filmmaker-table a:hover {
+    text-decoration: underline;
+  }
+
+  .gear-cell {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 768px) {
+    .filmmaker-table th,
+    .filmmaker-table td {
+      padding: 0.75rem 0.5rem;
+      font-size: 0.875rem;
+    }
+
+    .gear-cell {
+      max-width: 120px;
+    }
+  }
+</style>
+
+<script>
+  let currentSort = { column: 'name', direction: 'asc' as 'asc' | 'desc' };
+
+  function setupTable() {
+    const table = document.querySelector('.filmmaker-table');
+    if (!table) return;
+
+    const headers = table.querySelectorAll('th.sortable');
+    headers.forEach(header => {
+      header.addEventListener('click', () => {
+        const column = header.getAttribute('data-sort');
+        if (!column) return;
+
+        if (currentSort.column === column) {
+          currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+        } else {
+          currentSort.column = column;
+          currentSort.direction = 'asc';
+        }
+
+        headers.forEach(h => h.classList.remove('sort-asc', 'sort-desc'));
+        header.classList.add(`sort-${currentSort.direction}`);
+
+        sortTable(column, currentSort.direction);
+      });
+    });
+
+    const rows = table.querySelectorAll('.filmmaker-row');
+    rows.forEach(row => {
+      row.addEventListener('click', (e) => {
+        if ((e.target as HTMLElement).tagName === 'A') return;
+
+        const filmmakerData = row.getAttribute('data-filmmaker');
+        if (filmmakerData) {
+          const filmmaker = JSON.parse(filmmakerData);
+          (window as any).openFilmmakerModal(filmmaker);
+        }
+      });
+    });
+  }
+
+  function sortTable(column: string, direction: 'asc' | 'desc') {
+    const table = document.querySelector('.filmmaker-table');
+    if (!table) return;
+
+    const tbody = table.querySelector('tbody');
+    if (!tbody) return;
+
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+
+    rows.sort((a, b) => {
+      const aData = JSON.parse(a.getAttribute('data-filmmaker') || '{}');
+      const bData = JSON.parse(b.getAttribute('data-filmmaker') || '{}');
+
+      let aVal = aData[column] || '';
+      let bVal = bData[column] || '';
+
+      if (typeof aVal === 'string') aVal = aVal.toLowerCase();
+      if (typeof bVal === 'string') bVal = bVal.toLowerCase();
+
+      if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+      if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    rows.forEach(row => tbody.appendChild(row));
+  }
+
+  document.addEventListener('DOMContentLoaded', setupTable);
+</script>

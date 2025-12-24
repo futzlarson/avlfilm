@@ -5,6 +5,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 <BaseLayout title="Admin Dashboard">
   <h1>Admin Dashboard</h1>
 
+  <div class="admin-nav">
+    <a href="/admin/filmmakers" class="admin-nav-link">Filmmaker Directory Management</a>
+  </div>
+
   <div class="admin-section">
     <h2>Banner Settings</h2>
     <div id="message" class="message"></div>
@@ -37,6 +41,29 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 </BaseLayout>
 
 <style>
+  .admin-nav {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .admin-nav-link {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 600;
+    transition: transform 0.15s;
+  }
+
+  .admin-nav-link:hover {
+    transform: translateY(-2px);
+  }
+
   .admin-section {
     max-width: 800px;
     margin: 2rem 0;
