@@ -15,8 +15,10 @@ See `README.md` for full documentation.
 - Database schema: `src/db/schema.ts`
 - Base layout: `src/layouts/BaseLayout.astro`
 - Migrations: `drizzle/*.sql`
-- Admin: `src/pages/admin/index.astro`
+- Admin: `src/pages/admin/index.astro`, `src/pages/admin/filmmakers.astro`
 - API routes: `src/pages/api/*.ts`
+- Config: `src/config/roles.ts` (standardized film roles)
+- Scripts: `src/scripts/import-csv.ts` (CSV import for filmmakers)
 
 ## Database Workflow
 1. Edit `src/db/schema.ts`
@@ -33,6 +35,7 @@ npm run build        # Production build
 npm run db:migrate   # Run migrations
 npm run db:generate  # Generate migration
 npm run db:studio    # Visual DB browser
+npm run import:csv   # Import filmmakers from CSV
 ```
 
 ## Code Patterns
@@ -49,8 +52,18 @@ await db.select().from(siteSettings)
 await db.update(siteSettings).set({ value: 'x' }).where(eq(siteSettings.key, 'y'))
 ```
 
+## Features
+
+### Filmmaker Directory
+- Public directory at `/directory` with sortable table
+- Submission form at `/submit` with role autocomplete
+- Admin management at `/admin/filmmakers` (approve/edit/archive)
+- Email notifications via Resend for new submissions
+- CSV import script with role normalization and duplicate detection
+
 ## Important Notes
 - Admin uses HTTP Basic Auth via Vercel deployment protection
 - Migrations run manually, not on deploy
 - Keep solutions simple, avoid over-engineering
 - Mobile breakpoint: 768px
+- Filmmaker submissions default to 'pending' status until approved
