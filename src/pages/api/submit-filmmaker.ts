@@ -5,7 +5,7 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, url }) => {
   try {
     const body = await request.json();
     const { name, email, phone, roles, company, website, socialMedia, gear } = body;
@@ -36,6 +36,8 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (process.env.RESEND_API_KEY && process.env.ADMIN_EMAIL) {
       try {
+        const adminUrl = `${url.origin}/admin/filmmakers`;
+
         await resend.emails.send({
           from: 'AVL Film <onboarding@resend.dev>',
           replyTo: process.env.ADMIN_EMAIL,
@@ -51,7 +53,7 @@ export const POST: APIRoute = async ({ request }) => {
             <p><strong>Website:</strong> ${website || 'N/A'}</p>
             <p><strong>Social Media:</strong> ${socialMedia || 'N/A'}</p>
             <p><strong>Gear:</strong> ${gear || 'N/A'}</p>
-            <p><a href="https://avlfilm.com/admin/filmmakers">Review in Admin</a></p>
+            <p><a href="${adminUrl}">Review in Admin</a></p>
           `,
         });
       } catch (emailError) {
