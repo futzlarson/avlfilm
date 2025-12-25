@@ -16,7 +16,6 @@ Visit http://localhost:4321
 ## Tech Stack
 - Astro 5 + TypeScript
 - PostgreSQL + Drizzle ORM
-- Tailwind CSS 4
 - Vercel hosting
 
 ## Commands

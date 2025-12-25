@@ -8,7 +8,6 @@ See `README.md` for full documentation.
 ## Tech Stack
 - Astro 5 + TypeScript (strict)
 - PostgreSQL (Vercel Postgres) + Drizzle ORM
-- Tailwind CSS 4
 - Vercel hosting
 
 ## Key File Locations
@@ -39,6 +38,8 @@ npm run import:csv   # Import filmmakers from CSV
 ```
 
 ## Code Patterns
+
+### Database
 ```typescript
 // Import DB
 import { db } from '../../db'
@@ -51,6 +52,54 @@ await db.select().from(siteSettings)
 // Update
 await db.update(siteSettings).set({ value: 'x' }).where(eq(siteSettings.key, 'y'))
 ```
+
+### Astro Scoped CSS
+**CRITICAL**: Astro scopes CSS by default. Dynamically created elements (via JavaScript) won't receive scoped styles.
+
+**THE RULE**: If HTML is generated via `innerHTML`, template strings, or `document.createElement()`, ALL classes used in that HTML MUST be wrapped in `:global()`.
+
+**Common mistake**: Forgetting that `containerEl.innerHTML = ...` creates dynamic content that needs `:global()` for ALL classes, even basic layout classes like `.filmmaker-actions`, `.view-actions`, etc.
+
+```astro
+<style>
+  /* This works for static HTML in the .astro file */
+  .my-class { color: red; }
+
+  /* This is required for ANY class used in JavaScript-generated HTML */
+  :global(.dynamic-class) { color: blue; }
+  :global(.dynamic-class:hover) { color: green; }
+
+  /* Even layout/structural classes need :global() if used in innerHTML */
+  :global(.button-container) {
+    display: flex;
+    gap: 0.5rem;
+  }
+</style>
+
+<script>
+  // Any of these patterns require :global() for the classes:
+
+  // Pattern 1: createElement
+  const el = document.createElement('div');
+  el.className = 'dynamic-class';
+
+  // Pattern 2: innerHTML (COMMON IN THIS CODEBASE)
+  containerEl.innerHTML = `
+    <div class="dynamic-class">
+      <div class="button-container">
+        <button class="btn">Click me</button>
+      </div>
+    </div>
+  `;
+  // ALL classes above (.dynamic-class, .button-container, .btn) need :global()
+</script>
+```
+
+**Quick check**: If you see `containerEl.innerHTML =` in the code, scan the template string for ALL class names and verify each has a `:global()` CSS rule.
+
+**Examples in this codebase**:
+- `/submit` - Role tags (`.role-tag`) and autocomplete items (`.autocomplete-item`) use `:global()`
+- `/admin/filmmakers` - Buttons (`.btn`, `.btn-approve`, etc.), cards (`.filmmaker-card`), and action containers (`.filmmaker-actions`, `.view-actions`) all use `:global()` because they're created via `innerHTML`
 
 ## Features
 
