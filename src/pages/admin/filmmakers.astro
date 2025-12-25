@@ -394,7 +394,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     `;
   }
 
-  function toggleEditMode(card: Element, containerSelector: string) {
+  function toggleEditMode(card: Element) {
     const formEl = card.querySelector('form');
     const editActionsEl = card.querySelector('.edit-actions') as HTMLElement;
     const viewActionsEl = card.querySelector('.view-actions') as HTMLElement;
@@ -537,12 +537,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
   function toggleEditAll(id: number) {
     const card = document.querySelector(`#all-filmmakers [data-id="${id}"]`);
-    if (card) toggleEditMode(card, '#all-filmmakers');
+    if (card) toggleEditMode(card);
   }
 
   function toggleEditPending(id: number) {
     const card = document.querySelector(`#pending-filmmakers [data-id="${id}"]`);
-    if (card) toggleEditMode(card, '#pending-filmmakers');
+    if (card) toggleEditMode(card);
   }
 
   async function saveFilmmakerAll(event: Event, id: number) {
