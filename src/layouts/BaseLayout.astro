@@ -3,9 +3,15 @@ import Banner from '../components/Banner.astro';
 
 interface Props {
   title: string;
+  description?: string;
+  keywords?: string;
+  ogImage?: string;
 }
 
-const { title } = Astro.props;
+const { title, description, keywords, ogImage } = Astro.props;
+const defaultDescription = 'AVL Film Festival - Connecting filmmakers and film enthusiasts in Asheville, NC';
+const finalDescription = description || defaultDescription;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site || Astro.url.origin);
 ---
 
 <!DOCTYPE html>
@@ -14,6 +20,27 @@ const { title } = Astro.props;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title} - AVL Film</title>
+    <meta name="description" content={finalDescription} />
+    {keywords && <meta name="keywords" content={keywords} />}
+    <link rel="canonical" href={canonicalURL} />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:title" content={`${title} - AVL Film`} />
+    <meta property="og:description" content={finalDescription} />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content={canonicalURL} />
+    <meta name="twitter:title" content={`${title} - AVL Film`} />
+    <meta name="twitter:description" content={finalDescription} />
+    {ogImage && <meta name="twitter:image" content={ogImage} />}
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>" />
+
     <style is:global>
       * {
         margin: 0;
