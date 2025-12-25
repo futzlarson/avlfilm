@@ -15,16 +15,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
   <div class="admin-section">
     <h2>All Filmmakers</h2>
-    <div class="filter-bar">
-      <label>
-        Status:
-        <select id="status-filter">
-          <option value="all">All</option>
-          <option value="approved">Approved</option>
-          <option value="pending">Pending</option>
-          <option value="archived">Archived</option>
-        </select>
-      </label>
+    <div class="search-bar">
+      <input
+        type="text"
+        id="search-input"
+        placeholder="Search by name or email..."
+        autocomplete="off"
+      />
     </div>
     <div id="all-filmmakers"></div>
   </div>
@@ -68,31 +65,33 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     color: #333;
   }
 
-  .filter-bar {
+  .search-bar {
     margin-bottom: 1.5rem;
   }
 
-  .filter-bar label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-weight: 600;
-    color: #333;
-  }
-
-  .filter-bar select {
-    padding: 0.5rem;
+  .search-bar input {
+    width: 100%;
+    max-width: 500px;
+    padding: 0.75rem 1rem;
     border: 1px solid #d1d5db;
-    border-radius: 4px;
+    border-radius: 6px;
     font-size: 1rem;
+    font-family: inherit;
   }
 
-  .filmmaker-card {
+  .search-bar input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  :global(.filmmaker-card) {
     padding: 1.5rem;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     background: #f9fafb;
     border-radius: 8px;
-    border: 1px solid #e5e7eb;
+    border: 2px solid #e5e7eb;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   }
 
   .filmmaker-card.editing {
@@ -103,14 +102,33 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .filmmaker-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
+    align-items: center;
+    margin-bottom: 1.5rem;
     gap: 1rem;
+    flex-wrap: nowrap;
+  }
+
+  .filmmaker-info {
+    flex-shrink: 1;
+    min-width: 0;
   }
 
   .filmmaker-info h3 {
-    margin: 0 0 0.5rem;
+    margin: 0;
     color: #1a1a1a;
+  }
+
+  :global(.filmmaker-actions) {
+    flex-shrink: 0;
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: nowrap;
+  }
+
+  :global(.view-actions) {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: nowrap;
   }
 
   .status-badge {
@@ -136,101 +154,154 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     color: #6b7280;
   }
 
-  .filmmaker-actions {
+  :global(.edit-actions) {
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
-  }
-
-  .btn {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: opacity 0.15s;
-  }
-
-  .btn:hover {
-    opacity: 0.8;
-  }
-
-  .btn-approve {
-    background: #10b981;
-    color: white;
-  }
-
-  .btn-archive {
-    background: #6b7280;
-    color: white;
-  }
-
-  .btn-edit {
-    background: #667eea;
-    color: white;
-  }
-
-  .btn-save {
-    background: #10b981;
-    color: white;
-  }
-
-  .btn-cancel {
-    background: #e5e7eb;
-    color: #333;
-  }
-
-  .filmmaker-details {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
     margin-top: 1rem;
   }
 
-  .detail-item {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+  :global(.btn) {
+    padding: 0.625rem 1.25rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 
-  .detail-item strong {
-    color: #666;
-    font-size: 0.875rem;
+  :global(.btn:hover) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  :global(.btn:active) {
+    transform: translateY(0);
+  }
+
+  :global(.btn-approve) {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+  }
+
+  :global(.btn-approve:hover) {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  }
+
+  :global(.btn-archive) {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+  }
+
+  :global(.btn-archive:hover) {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  }
+
+  :global(.btn-edit) {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+
+  :global(.btn-edit:hover) {
+    background: linear-gradient(135deg, #5568d3 0%, #6b4199 100%);
+  }
+
+  :global(.btn-save) {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+  }
+
+  :global(.btn-save:hover) {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  }
+
+  :global(.btn-cancel) {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+  }
+
+  :global(.btn-cancel:hover) {
+    background: #e5e7eb;
+  }
+
+  :global(.info-table) {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px #e5e7eb;
+  }
+
+  :global(.info-table td) {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+  }
+
+  :global(.info-table tr:last-child td) {
+    border-bottom: none;
+  }
+
+  :global(.info-table td:first-child) {
+    font-weight: 600;
+    color: #f3f4f6;
     text-transform: uppercase;
+    font-size: 0.8125rem;
     letter-spacing: 0.05em;
+    width: 140px;
+    background: #4b5563;
+    border-right: 1px solid #e5e7eb;
   }
 
-  .detail-item span {
+  :global(.info-table td:last-child) {
     color: #1a1a1a;
   }
 
-  .edit-form {
-    display: none;
-  }
-
-  .edit-form.active {
-    display: block;
-  }
-
-  .form-group {
-    margin-bottom: 1rem;
-  }
-
-  .form-group label {
-    display: block;
-    margin-bottom: 0.25rem;
-    font-weight: 600;
-    font-size: 0.875rem;
-    color: #666;
-  }
-
-  .form-group input,
-  .form-group textarea {
+  :global(.info-table input),
+  :global(.info-table textarea),
+  :global(.info-table select) {
     width: 100%;
     padding: 0.5rem;
     border: 1px solid #d1d5db;
     border-radius: 4px;
     font-family: inherit;
+    font-size: 0.9375rem;
+    box-sizing: border-box;
+  }
+
+  :global(.info-table input:read-only),
+  :global(.info-table textarea:read-only) {
+    border: none;
+    padding: 0;
+    background: transparent;
+    resize: none;
+    cursor: default;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  :global(.info-table select:disabled) {
+    border: none;
+    padding: 0;
+    background: transparent;
+    cursor: default;
+    -webkit-appearance: none;
+    appearance: none;
+    color: #1a1a1a;
+  }
+
+  :global(.info-table input:read-only:focus),
+  :global(.info-table textarea:read-only:focus),
+  :global(.info-table select:disabled:focus) {
+    outline: none;
+  }
+
+  :global(.info-table tr.empty-row) {
+    display: none;
   }
 
   .empty-state {
@@ -258,6 +329,124 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 <script>
   let allFilmmakers: any[] = [];
 
+  function renderFilmmakerCard(f: any, showApproveButton: boolean = false) {
+    return `
+      <div class="filmmaker-card" data-id="${f.id}">
+        <h3 style="margin: 0 0 1.25rem 0;">${f.name}</h3>
+
+        <form onsubmit="${showApproveButton ? 'saveFilmmakerPending' : 'saveFilmmakerAll'}(event, ${f.id})">
+          <table class="info-table">
+            <tr>
+              <td>Name</td>
+              <td><input type="text" name="name" value="${f.name}" readonly required></td>
+            </tr>
+            <tr>
+              <td>Email</td>
+              <td><input type="email" name="email" value="${f.email}" readonly required></td>
+            </tr>
+            <tr>
+              <td>Roles</td>
+              <td><input type="text" name="roles" value="${f.roles}" readonly required></td>
+            </tr>
+            <tr class="${!f.phone ? 'empty-row' : ''}" data-field="phone">
+              <td>Phone</td>
+              <td><input type="tel" name="phone" value="${f.phone || ''}" readonly></td>
+            </tr>
+            <tr class="${!f.company ? 'empty-row' : ''}" data-field="company">
+              <td>Company</td>
+              <td><input type="text" name="company" value="${f.company || ''}" readonly></td>
+            </tr>
+            <tr class="${!f.website ? 'empty-row' : ''}" data-field="website">
+              <td>Website</td>
+              <td><input type="url" name="website" value="${f.website || ''}" readonly></td>
+            </tr>
+            <tr class="${!f.socialMedia ? 'empty-row' : ''}" data-field="socialMedia">
+              <td>Social Media</td>
+              <td><input type="text" name="socialMedia" value="${f.socialMedia || ''}" readonly></td>
+            </tr>
+            <tr class="${!f.gear ? 'empty-row' : ''}" data-field="gear">
+              <td>Gear</td>
+              <td><textarea name="gear" rows="3" readonly>${f.gear || ''}</textarea></td>
+            </tr>
+            ${!showApproveButton ? `
+              <tr data-field="status" style="display: none;">
+                <td>Status</td>
+                <td>
+                  <select name="status" disabled>
+                    <option value="pending" ${f.status === 'pending' ? 'selected' : ''}>Pending</option>
+                    <option value="approved" ${f.status === 'approved' ? 'selected' : ''}>Approved</option>
+                    <option value="archived" ${f.status === 'archived' ? 'selected' : ''}>Archived</option>
+                  </select>
+                </td>
+              </tr>
+            ` : ''}
+          </table>
+
+          <div class="filmmaker-actions view-actions" style="margin-top: 1.25rem;">
+            ${showApproveButton ? `
+              <button type="button" class="btn btn-approve" onclick="approveFilmmaker(${f.id})">Approve</button>
+            ` : ''}
+            <button type="button" class="btn btn-edit" onclick="${showApproveButton ? 'toggleEditPending' : 'toggleEditAll'}(${f.id})">Edit</button>
+            <button type="button" class="btn btn-archive" onclick="archiveFilmmaker(${f.id})">Archive</button>
+          </div>
+
+          <div class="edit-actions" style="display: none;">
+            <button type="submit" class="btn btn-save">Save</button>
+            <button type="button" class="btn btn-cancel" onclick="${showApproveButton ? 'toggleEditPending' : 'toggleEditAll'}(${f.id})">Cancel</button>
+          </div>
+        </form>
+      </div>
+    `;
+  }
+
+  function toggleEditMode(card: Element, containerSelector: string) {
+    const formEl = card.querySelector('form');
+    const editActionsEl = card.querySelector('.edit-actions') as HTMLElement;
+    const viewActionsEl = card.querySelector('.view-actions') as HTMLElement;
+    const inputs = formEl?.querySelectorAll('input, textarea');
+    const selectEl = formEl?.querySelector('select');
+    const allRows = formEl?.querySelectorAll('tr[data-field]');
+    const statusRow = formEl?.querySelector('tr[data-field="status"]') as HTMLElement;
+
+    if (!formEl || !editActionsEl || !viewActionsEl || !inputs) return;
+
+    const isEditing = !inputs[0].hasAttribute('readonly');
+
+    if (isEditing) {
+      // Reset form to original values first
+      formEl.reset();
+      // Cancel editing
+      card.classList.remove('editing');
+      inputs.forEach(input => {
+        (input as HTMLInputElement).setAttribute('readonly', '');
+      });
+      if (selectEl) selectEl.setAttribute('disabled', '');
+      editActionsEl.style.setProperty('display', 'none');
+      viewActionsEl.style.setProperty('display', 'flex');
+      // Hide status row and empty rows in display mode
+      if (statusRow) statusRow.style.display = 'none';
+      allRows?.forEach(row => {
+        if (row.classList.contains('empty-row')) {
+          (row as HTMLElement).style.display = 'none';
+        }
+      });
+    } else {
+      // Start editing
+      card.classList.add('editing');
+      inputs.forEach(input => {
+        (input as HTMLInputElement).removeAttribute('readonly');
+      });
+      if (selectEl) selectEl.removeAttribute('disabled');
+      editActionsEl.style.setProperty('display', 'flex');
+      viewActionsEl.style.setProperty('display', 'none');
+      // Show all rows in edit mode, including status and empty ones
+      allRows?.forEach(row => {
+        (row as HTMLElement).style.display = 'table-row';
+      });
+      if (statusRow) statusRow.style.display = 'table-row';
+    }
+  }
+
   async function loadPendingFilmmakers() {
     try {
       const response = await fetch('/api/get-pending-filmmakers');
@@ -275,60 +464,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         return;
       }
 
-      containerEl.innerHTML = filmmakers.map((f: any) => `
-        <div class="filmmaker-card" data-id="${f.id}">
-          <div class="filmmaker-header">
-            <div class="filmmaker-info">
-              <h3>${f.name}</h3>
-              <span class="status-badge pending">Pending</span>
-            </div>
-            <div class="filmmaker-actions">
-              <button class="btn btn-approve" onclick="approveFilmmaker(${f.id})">Approve</button>
-              <button class="btn btn-archive" onclick="archiveFilmmaker(${f.id})">Archive</button>
-            </div>
-          </div>
-          <div class="filmmaker-details">
-            <div class="detail-item">
-              <strong>Email</strong>
-              <span>${f.email}</span>
-            </div>
-            ${f.phone ? `
-              <div class="detail-item">
-                <strong>Phone</strong>
-                <span>${formatPhone(f.phone)}</span>
-              </div>
-            ` : ''}
-            <div class="detail-item">
-              <strong>Roles</strong>
-              <span>${f.roles}</span>
-            </div>
-            ${f.company ? `
-              <div class="detail-item">
-                <strong>Company</strong>
-                <span>${f.company}</span>
-              </div>
-            ` : ''}
-            ${f.website ? `
-              <div class="detail-item">
-                <strong>Website</strong>
-                <span>${f.website}</span>
-              </div>
-            ` : ''}
-            ${f.socialMedia ? `
-              <div class="detail-item">
-                <strong>Social Media</strong>
-                <span>${f.socialMedia}</span>
-              </div>
-            ` : ''}
-            ${f.gear ? `
-              <div class="detail-item">
-                <strong>Gear</strong>
-                <span>${f.gear}</span>
-              </div>
-            ` : ''}
-          </div>
-        </div>
-      `).join('');
+      containerEl.innerHTML = filmmakers.map((f: any) => renderFilmmakerCard(f, true)).join('');
     } catch (error) {
       console.error('Error loading pending filmmakers:', error);
     }
@@ -346,133 +482,29 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
   function renderAllFilmmakers() {
     const containerEl = document.getElementById('all-filmmakers');
-    const filterEl = document.getElementById('status-filter') as HTMLSelectElement;
+    const searchInput = document.getElementById('search-input') as HTMLInputElement;
 
-    if (!containerEl || !filterEl) return;
+    if (!containerEl) return;
 
-    const statusFilter = filterEl.value;
+    const searchTerm = searchInput?.value.toLowerCase() || '';
 
-    let filtered = allFilmmakers;
-    if (statusFilter !== 'all') {
-      filtered = allFilmmakers.filter(f => f.status === statusFilter);
+    // Hide all filmmakers by default if no search term
+    if (!searchTerm) {
+      containerEl.innerHTML = '';
+      return;
     }
+
+    const filtered = allFilmmakers.filter(f =>
+      f.name.toLowerCase().includes(searchTerm) ||
+      f.email.toLowerCase().includes(searchTerm)
+    );
 
     if (filtered.length === 0) {
       containerEl.innerHTML = '<div class="empty-state">No filmmakers found</div>';
       return;
     }
 
-    containerEl.innerHTML = filtered.map((f: any) => `
-      <div class="filmmaker-card" data-id="${f.id}">
-        <div class="filmmaker-header">
-          <div class="filmmaker-info">
-            <h3>${f.name}</h3>
-            <span class="status-badge ${f.status}">${f.status}</span>
-          </div>
-          <div class="filmmaker-actions">
-            <button class="btn btn-edit" onclick="toggleEdit(${f.id})">Edit</button>
-            ${f.status === 'approved' ? `
-              <button class="btn btn-archive" onclick="updateStatus(${f.id}, 'archived')">Archive</button>
-            ` : f.status === 'archived' ? `
-              <button class="btn btn-approve" onclick="updateStatus(${f.id}, 'approved')">Approve</button>
-            ` : `
-              <button class="btn btn-approve" onclick="updateStatus(${f.id}, 'approved')">Approve</button>
-              <button class="btn btn-archive" onclick="updateStatus(${f.id}, 'archived')">Archive</button>
-            `}
-          </div>
-        </div>
-
-        <div class="filmmaker-view">
-          <div class="filmmaker-details">
-            <div class="detail-item">
-              <strong>Email</strong>
-              <span>${f.email}</span>
-            </div>
-            ${f.phone ? `
-              <div class="detail-item">
-                <strong>Phone</strong>
-                <span>${formatPhone(f.phone)}</span>
-              </div>
-            ` : ''}
-            <div class="detail-item">
-              <strong>Roles</strong>
-              <span>${f.roles}</span>
-            </div>
-            ${f.company ? `
-              <div class="detail-item">
-                <strong>Company</strong>
-                <span>${f.company}</span>
-              </div>
-            ` : ''}
-            ${f.website ? `
-              <div class="detail-item">
-                <strong>Website</strong>
-                <span>${f.website}</span>
-              </div>
-            ` : ''}
-            ${f.socialMedia ? `
-              <div class="detail-item">
-                <strong>Social Media</strong>
-                <span>${f.socialMedia}</span>
-              </div>
-            ` : ''}
-            ${f.gear ? `
-              <div class="detail-item">
-                <strong>Gear</strong>
-                <span>${f.gear}</span>
-              </div>
-            ` : ''}
-          </div>
-        </div>
-
-        <form class="edit-form" onsubmit="saveFilmmaker(event, ${f.id})">
-          <div class="form-group">
-            <label>Name</label>
-            <input type="text" name="name" value="${f.name}" required>
-          </div>
-          <div class="form-group">
-            <label>Email</label>
-            <input type="email" name="email" value="${f.email}" required>
-          </div>
-          <div class="form-group">
-            <label>Phone</label>
-            <input type="tel" name="phone" value="${f.phone || ''}">
-          </div>
-          <div class="form-group">
-            <label>Roles</label>
-            <input type="text" name="roles" value="${f.roles}" required>
-          </div>
-          <div class="form-group">
-            <label>Company</label>
-            <input type="text" name="company" value="${f.company || ''}">
-          </div>
-          <div class="form-group">
-            <label>Website</label>
-            <input type="url" name="website" value="${f.website || ''}">
-          </div>
-          <div class="form-group">
-            <label>Social Media</label>
-            <input type="text" name="socialMedia" value="${f.socialMedia || ''}">
-          </div>
-          <div class="form-group">
-            <label>Gear</label>
-            <textarea name="gear" rows="3">${f.gear || ''}</textarea>
-          </div>
-          <div class="filmmaker-actions">
-            <button type="submit" class="btn btn-save">Save</button>
-            <button type="button" class="btn btn-cancel" onclick="toggleEdit(${f.id})">Cancel</button>
-          </div>
-        </form>
-      </div>
-    `).join('');
-  }
-
-  function formatPhone(phone: string): string {
-    const cleaned = phone.replace(/\D/g, '');
-    if (cleaned.length === 10) {
-      return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
-    }
-    return phone;
+    containerEl.innerHTML = filtered.map((f: any) => renderFilmmakerCard(f, false)).join('');
   }
 
   async function approveFilmmaker(id: number) {
@@ -508,50 +540,46 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     }
   }
 
-  function toggleEdit(id: number) {
-    const card = document.querySelector(`[data-id="${id}"]`);
-    if (!card) return;
-
-    const viewEl = card.querySelector('.filmmaker-view');
-    const formEl = card.querySelector('.edit-form');
-
-    if (!viewEl || !formEl) return;
-
-    const isEditing = card.classList.contains('editing');
-
-    if (isEditing) {
-      card.classList.remove('editing');
-      viewEl.removeAttribute('style');
-      formEl.classList.remove('active');
-    } else {
-      card.classList.add('editing');
-      (viewEl as HTMLElement).style.display = 'none';
-      formEl.classList.add('active');
-    }
+  function toggleEditAll(id: number) {
+    const card = document.querySelector(`#all-filmmakers [data-id="${id}"]`);
+    if (card) toggleEditMode(card, '#all-filmmakers');
   }
 
-  async function saveFilmmaker(event: Event, id: number) {
-    event.preventDefault();
+  function toggleEditPending(id: number) {
+    const card = document.querySelector(`#pending-filmmakers [data-id="${id}"]`);
+    if (card) toggleEditMode(card, '#pending-filmmakers');
+  }
 
+  async function saveFilmmakerAll(event: Event, id: number) {
+    event.preventDefault();
     const form = event.target as HTMLFormElement;
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
+    await updateFilmmaker(id, data);
+  }
 
+  async function saveFilmmakerPending(event: Event, id: number) {
+    event.preventDefault();
+    const form = event.target as HTMLFormElement;
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
     await updateFilmmaker(id, data);
   }
 
   (window as any).approveFilmmaker = approveFilmmaker;
   (window as any).archiveFilmmaker = archiveFilmmaker;
   (window as any).updateStatus = updateStatus;
-  (window as any).toggleEdit = toggleEdit;
-  (window as any).saveFilmmaker = saveFilmmaker;
+  (window as any).toggleEditAll = toggleEditAll;
+  (window as any).saveFilmmakerAll = saveFilmmakerAll;
+  (window as any).toggleEditPending = toggleEditPending;
+  (window as any).saveFilmmakerPending = saveFilmmakerPending;
 
   document.addEventListener('DOMContentLoaded', () => {
     loadPendingFilmmakers();
     loadAllFilmmakers();
 
-    const filterEl = document.getElementById('status-filter');
-    filterEl?.addEventListener('change', renderAllFilmmakers);
+    const searchInput = document.getElementById('search-input');
+    searchInput?.addEventListener('input', renderAllFilmmakers);
   });
 </script>
 </BaseLayout>

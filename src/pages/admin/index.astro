@@ -5,9 +5,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 <BaseLayout title="Admin Dashboard">
   <h1>Admin Dashboard</h1>
 
-  <div class="admin-nav">
-    <a href="/admin/filmmakers" class="admin-nav-link">Manage Filmmakers</a>
-  </div>
+  <a href="/admin/filmmakers" class="admin-nav-link">Manage Filmmakers</a>
 
   <div class="admin-section">
     <h2>Banner Settings</h2>
@@ -15,7 +13,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
     <form id="banner-form">
       <div class="form-group">
-        <label for="banner-html">Banner HTML Content:</label>
         <textarea
           id="banner-html"
           name="banner_html"
@@ -35,7 +32,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         </label>
       </div>
 
-      <button type="submit" class="submit-btn">Save Banner Settings</button>
+      <button type="submit" class="submit-btn">Save</button>
     </form>
   </div>
 </BaseLayout>
