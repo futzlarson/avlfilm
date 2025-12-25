@@ -131,3 +131,15 @@ await db.update(siteSettings).set({ value: 'x' }).where(eq(siteSettings.key, 'y'
 - Keep solutions simple, avoid over-engineering
 - Mobile breakpoint: 768px
 - Filmmaker submissions default to 'pending' status until approved
+
+## Dependency Management
+**IMPORTANT:** When updating dependencies, always check `git diff package.json` before committing.
+
+npm's resolver can accidentally downgrade packages when running `npm install` or `npm update` due to:
+- Lock file inconsistencies
+- Peer dependency conflicts
+- Using `npm update` without targeting specific packages
+
+**Example:** Running `npm install` after removing Tailwind once downgraded `drizzle-kit` from `0.31.8` to `0.18.1` (19 months old!).
+
+**Best practice:** Review package.json changes and verify critical packages like `@astrojs/vercel`, `drizzle-kit`, and `drizzle-orm` are on expected versions.

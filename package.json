@@ -30,7 +30,7 @@
     "typescript": "^5.9.3"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.18.1",
+    "drizzle-kit": "^0.31.8",
     "tsx": "^4.21.0"
   }
 }
