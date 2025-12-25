@@ -8,6 +8,7 @@ See `README.md` for full documentation.
 ## Tech Stack
 - Astro 5 + TypeScript (strict)
 - PostgreSQL (Vercel Postgres) + Drizzle ORM
+- Vanilla CSS (scoped styles in .astro files)
 - Vercel hosting
 
 ## Key File Locations
@@ -38,6 +39,20 @@ npm run import:csv   # Import filmmakers from CSV
 ```
 
 ## Code Patterns
+
+### Global CSS Utilities
+BaseLayout.astro provides global reusable styles in `<style is:global>`:
+
+**Typography & Layout:**
+- `h1` - Consistent heading style (color: #1a1a1a, margin-bottom: 1rem)
+- `.intro` - Intro paragraph style (gray text, larger font, bottom margin)
+
+**Components:**
+- `.btn-primary` - Purple gradient button with hover effect (brand color)
+
+**Usage:** Just use these classes directly in any .astro file - no need to redefine styles.
+
+**Note:** box-sizing: border-box is applied globally to all elements.
 
 ### Database
 ```typescript
