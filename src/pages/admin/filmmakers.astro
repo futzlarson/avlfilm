@@ -10,7 +10,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
   <div class="admin-section">
     <h2>Pending Submissions (<span id="pending-count">0</span>)</h2>
-    <div id="pending-filmmakers"></div>
+    <div id="pending-filmmakers">
+      <div class="loading-state">Loading pending submissions...</div>
+    </div>
   </div>
 
   <div class="admin-section">
@@ -23,7 +25,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         autocomplete="off"
       />
     </div>
-    <div id="all-filmmakers"></div>
+    <div id="all-filmmakers">
+      <div class="loading-state">Enter a search term to find filmmakers...</div>
+    </div>
   </div>
 </BaseLayout>
 
@@ -303,6 +307,16 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     text-align: center;
     padding: 3rem 1rem;
     color: #9ca3af;
+  }
+
+  .loading-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #9ca3af;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   @media (max-width: 768px) {
