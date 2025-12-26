@@ -199,6 +199,8 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site || Astro.url.origin)
         }
       }
     </style>
+
+    <Analytics />
   </head>
   <body>
     <Banner />
@@ -218,8 +220,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site || Astro.url.origin)
     <main>
       <slot />
     </main>
-
-    <Analytics />
 
     <footer>
       <div class="social-links">
