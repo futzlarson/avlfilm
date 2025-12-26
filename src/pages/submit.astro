@@ -1,6 +1,17 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { FILM_ROLES } from '../config/roles';
+import { FILM_ROLES_WITH_ALIASES } from '../config/roles';
+
+// Build a flat lookup map for client-side normalization (simple object that can be serialized)
+const roleAliasMap: Record<string, string> = {};
+for (const [canonical, aliases] of Object.entries(FILM_ROLES_WITH_ALIASES)) {
+  roleAliasMap[canonical.toLowerCase()] = canonical;
+  for (const alias of aliases) {
+    roleAliasMap[alias.toLowerCase()] = canonical;
+  }
+}
+
+const canonicalRoles = Object.keys(FILM_ROLES_WITH_ALIASES);
 ---
 
 <BaseLayout title="Submit to Directory">
@@ -258,7 +269,7 @@ import { FILM_ROLES } from '../config/roles';
   }
 </style>
 
-<script is:inline define:vars={{ roles: FILM_ROLES }}>
+<script is:inline define:vars={{ roles: canonicalRoles, roleMap: roleAliasMap }}>
   const selectedRoles = new Set();
 
   function updateSelectedRoles() {
@@ -303,9 +314,18 @@ import { FILM_ROLES } from '../config/roles';
         return;
       }
 
-      const matches = roles.filter(role =>
-        role.toLowerCase().includes(value) && !selectedRoles.has(role)
-      );
+      // Search both canonical roles and aliases, but only show canonical in dropdown
+      const matches = roles.filter(role => {
+        // Check if canonical role matches
+        if (role.toLowerCase().includes(value) && !selectedRoles.has(role)) {
+          return true;
+        }
+        // Check if any alias matches (using the roleMap keys)
+        const aliasMatches = Object.keys(roleMap).some(alias => {
+          return alias.includes(value) && roleMap[alias] === role && !selectedRoles.has(role);
+        });
+        return aliasMatches;
+      });
 
       if (matches.length === 0) {
         dropdown.classList.remove('active');
