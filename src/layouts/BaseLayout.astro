@@ -1,5 +1,6 @@
 ---
 import Banner from '../components/Banner.astro';
+import Analytics from '@vercel/analytics/astro';
 
 interface Props {
   title: string;
@@ -217,6 +218,8 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site || Astro.url.origin)
     <main>
       <slot />
     </main>
+
+    <Analytics />
 
     <footer>
       <div class="social-links">
