@@ -8,6 +8,7 @@ See `README.md` for full documentation.
 ## Tech Stack
 - Astro 5 + TypeScript (strict)
 - PostgreSQL (Vercel Postgres) + Drizzle ORM
+- Redis (Redis Labs) - Rate limiting for contact reveals
 - Vanilla CSS (scoped styles in .astro files)
 - Vercel hosting
 
@@ -17,9 +18,14 @@ See `README.md` for full documentation.
 - Migrations: `drizzle/*.sql`
 - Admin: `src/pages/admin/index.astro`, `src/pages/admin/filmmakers.astro`
 - API routes: `src/pages/api/*.ts`
+  - `/api/get-filmmakers` - Public directory listing (email/phone excluded)
+  - `/api/reveal-contact` - Rate-limited contact reveal endpoint
 - Config: `src/config/roles.ts` (standardized film roles organized by category - SINGLE SOURCE OF TRUTH)
-- Components: `src/components/FilmmakerTable.astro` (directory table with filtering)
+- Components:
+  - `src/components/FilmmakerTable.astro` (directory table with filtering)
+  - `src/components/FilmmakerModal.astro` (filmmaker details modal with contact reveal)
 - Scripts: `src/scripts/import-csv.ts` (CSV import for filmmakers)
+- Environment: `.env.local` requires `REDIS_URL` for rate limiting
 
 ## Database Workflow
 1. Edit `src/db/schema.ts`
@@ -122,10 +128,16 @@ await db.update(siteSettings).set({ value: 'x' }).where(eq(siteSettings.key, 'y'
 ### Filmmaker Directory
 - Public directory at `/directory` with sortable table and role filtering
   - Default sort: alphabetical by name (A-Z)
-  - Click column headers to sort by name, email, roles, company, or gear
+  - Click column headers to sort by name, roles, company, or gear (email removed from table)
   - Filter by role: collapsible multi-select checkboxes organized by category
   - Live count showing filtered/total filmmakers
   - Selected filters shown as removable tags
+- **Anti-Scraping Protection**: Email/phone hidden by default, revealed via server-side API
+  - Contact info excluded from initial HTML response (`/api/get-filmmakers`)
+  - Click-to-reveal button fetches contact from `/api/reveal-contact`
+  - Redis rate limiting: 20 reveals per IP per hour
+  - Client-side caching for revealed contacts (session-only, resets on page reload)
+  - Uses `redis` package with Redis Labs
 - Submission form at `/submit` with role autocomplete
 - Admin management at `/admin/filmmakers` (approve/edit/archive)
 - Email notifications via Resend for new submissions
