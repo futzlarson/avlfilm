@@ -17,7 +17,8 @@ See `README.md` for full documentation.
 - Migrations: `drizzle/*.sql`
 - Admin: `src/pages/admin/index.astro`, `src/pages/admin/filmmakers.astro`
 - API routes: `src/pages/api/*.ts`
-- Config: `src/config/roles.ts` (standardized film roles)
+- Config: `src/config/roles.ts` (standardized film roles organized by category - SINGLE SOURCE OF TRUTH)
+- Components: `src/components/FilmmakerTable.astro` (directory table with filtering)
 - Scripts: `src/scripts/import-csv.ts` (CSV import for filmmakers)
 
 ## Database Workflow
@@ -119,11 +120,24 @@ await db.update(siteSettings).set({ value: 'x' }).where(eq(siteSettings.key, 'y'
 ## Features
 
 ### Filmmaker Directory
-- Public directory at `/directory` with sortable table
+- Public directory at `/directory` with sortable table and role filtering
+  - Default sort: alphabetical by name (A-Z)
+  - Click column headers to sort by name, email, roles, company, or gear
+  - Filter by role: collapsible multi-select checkboxes organized by category
+  - Live count showing filtered/total filmmakers
+  - Selected filters shown as removable tags
 - Submission form at `/submit` with role autocomplete
 - Admin management at `/admin/filmmakers` (approve/edit/archive)
 - Email notifications via Resend for new submissions
 - CSV import script with role normalization and duplicate detection
+
+### Film Roles System
+All roles are defined in `src/config/roles.ts` using `FILM_ROLES_BY_CATEGORY`:
+- Roles organized by category (Camera & Photography, Direction & Production, Sound, etc.)
+- Each role has aliases for normalization (e.g., "DP" → "Director of Photography (DP)")
+- `FILM_ROLES_BY_CATEGORY` is the single source of truth - all other exports derive from it
+- Auto-generates flattened lists for autocomplete and filtering
+- Role normalization ensures consistent data storage
 
 ## Important Notes
 - Admin uses HTTP Basic Auth via Vercel deployment protection

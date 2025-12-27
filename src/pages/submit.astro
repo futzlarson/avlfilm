@@ -1,17 +1,19 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { FILM_ROLES_WITH_ALIASES } from '../config/roles';
+import { FILM_ROLES_BY_CATEGORY } from '../config/roles';
 
 // Build a flat lookup map for client-side normalization (simple object that can be serialized)
 const roleAliasMap: Record<string, string> = {};
-for (const [canonical, aliases] of Object.entries(FILM_ROLES_WITH_ALIASES)) {
-  roleAliasMap[canonical.toLowerCase()] = canonical;
-  for (const alias of aliases) {
-    roleAliasMap[alias.toLowerCase()] = canonical;
+for (const rolesObj of Object.values(FILM_ROLES_BY_CATEGORY)) {
+  for (const [canonical, aliases] of Object.entries(rolesObj)) {
+    roleAliasMap[canonical.toLowerCase()] = canonical;
+    for (const alias of aliases) {
+      roleAliasMap[alias.toLowerCase()] = canonical;
+    }
   }
 }
 
-const canonicalRoles = Object.keys(FILM_ROLES_WITH_ALIASES);
+const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj => Object.keys(rolesObj));
 ---
 
 <BaseLayout title="Submit to Directory">

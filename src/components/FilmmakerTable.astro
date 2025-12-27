@@ -1,5 +1,6 @@
 ---
 import { normalizeUrl } from '../utils/url';
+import { FILM_ROLES_BY_CATEGORY } from '../config/roles';
 
 interface Props {
   filmmakers: any[];
@@ -7,6 +8,29 @@ interface Props {
 
 const { filmmakers } = Astro.props;
 ---
+
+<div class="filter-container">
+  <div class="filter-header-row">
+    <button type="button" class="filter-toggle" id="filter-toggle">
+      <span class="filter-toggle-text">Filter by role</span>
+      <span class="filter-toggle-icon">▼</span>
+    </button>
+    <span class="filmmaker-count" id="filmmaker-count"></span>
+  </div>
+  <div class="selected-roles-header"></div>
+  <div class="filter-content" id="filter-content">
+    <div class="filter-content-inner">
+      {Object.entries(FILM_ROLES_BY_CATEGORY).map(([category, rolesObj]) => (
+        <div class="filter-section">
+          <h4>{category}</h4>
+          {Object.keys(rolesObj).map(role => (
+            <label><input type="checkbox" value={role}> {role}</label>
+          ))}
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
 
 <div class="table-container">
   <table class="filmmaker-table">
@@ -55,6 +79,157 @@ const { filmmakers } = Astro.props;
 </div>
 
 <style>
+  .filter-container {
+    margin-bottom: 0;
+  }
+
+  .filter-header-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .filter-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    transition: all 0.15s;
+  }
+
+  .filter-toggle:hover {
+    border-color: #667eea;
+    color: #667eea;
+  }
+
+  .filter-toggle-icon {
+    transition: transform 0.2s;
+    font-size: 0.625rem;
+    opacity: 0.6;
+  }
+
+  .filter-toggle.expanded .filter-toggle-icon {
+    transform: rotate(180deg);
+  }
+
+  .filmmaker-count {
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+
+  .selected-roles-header:not(:empty) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  :global(.role-filter-tag) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 16px;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  :global(.role-filter-tag button) {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0;
+    font-size: 1.25rem;
+    line-height: 1;
+    opacity: 0.8;
+    transition: opacity 0.15s;
+  }
+
+  :global(.role-filter-tag button:hover) {
+    opacity: 1;
+  }
+
+  .filter-content {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                margin 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  .filter-content > div {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .filter-content.expanded {
+    grid-template-rows: 1fr;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .filter-content-inner {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem 2rem;
+    padding: 1.5rem;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    opacity: 0;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .filter-content.expanded .filter-content-inner {
+    opacity: 1;
+  }
+
+  .filter-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .filter-section h4 {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    margin: 0 0 0.375rem 0;
+    letter-spacing: 0.025em;
+  }
+
+  .filter-section label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: #374151;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .filter-section label:hover {
+    color: #667eea;
+  }
+
+  .filter-section input[type="checkbox"] {
+    cursor: pointer;
+  }
+
   .table-container {
     overflow-x: auto;
     border-radius: 8px;
@@ -146,6 +321,15 @@ const { filmmakers } = Astro.props;
   }
 
   @media (max-width: 768px) {
+    .filter-content-inner {
+      grid-template-columns: 1fr;
+      padding: 1rem;
+    }
+
+    .filter-content.expanded {
+      overflow: visible;
+    }
+
     .filmmaker-table th,
     .filmmaker-table td {
       padding: 0.75rem 0.5rem;
@@ -160,6 +344,119 @@ const { filmmakers } = Astro.props;
 
 <script>
   let currentSort = { column: 'name', direction: 'asc' as 'asc' | 'desc' };
+  let selectedRoles: Set<string> = new Set();
+
+  function updateCount() {
+    const countEl = document.getElementById('filmmaker-count');
+    if (!countEl) return;
+
+    const table = document.querySelector('.filmmaker-table');
+    if (!table) return;
+
+    const rows = table.querySelectorAll('.filmmaker-row');
+    const totalCount = rows.length;
+    const visibleCount = Array.from(rows).filter(row =>
+      (row as HTMLElement).style.display !== 'none'
+    ).length;
+
+    if (selectedRoles.size === 0) {
+      countEl.textContent = `${totalCount} ${totalCount === 1 ? 'filmmaker' : 'filmmakers'}`;
+    } else {
+      countEl.textContent = `${visibleCount} of ${totalCount} ${totalCount === 1 ? 'filmmaker' : 'filmmakers'}`;
+    }
+  }
+
+  function setupRoleFilter() {
+    const toggle = document.getElementById('filter-toggle');
+    const content = document.getElementById('filter-content');
+    const checkboxes = document.querySelectorAll('.filter-content input[type="checkbox"]');
+
+    if (!toggle || !content) return;
+
+    // Toggle filter visibility
+    toggle.addEventListener('click', () => {
+      toggle.classList.toggle('expanded');
+      content.classList.toggle('expanded');
+    });
+
+    // Handle checkbox changes
+    checkboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', (e) => {
+        const target = e.target as HTMLInputElement;
+        const role = target.value;
+
+        if (target.checked) {
+          selectedRoles.add(role);
+        } else {
+          selectedRoles.delete(role);
+        }
+
+        renderSelectedRoles();
+        applyFilter();
+      });
+    });
+  }
+
+  function renderSelectedRoles() {
+    const container = document.querySelector('.selected-roles-header');
+    if (!container) return;
+
+    if (selectedRoles.size === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
+    container.innerHTML = Array.from(selectedRoles).map(role => `
+      <span class="role-filter-tag">
+        ${role}
+        <button type="button" data-role="${role}" aria-label="Remove ${role}">&times;</button>
+      </span>
+    `).join('');
+
+    // Add click handlers to remove buttons
+    container.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const role = btn.getAttribute('data-role');
+        if (role) {
+          selectedRoles.delete(role);
+
+          // Uncheck the checkbox
+          const checkbox = document.querySelector(`.filter-content input[value="${role}"]`) as HTMLInputElement;
+          if (checkbox) checkbox.checked = false;
+
+          renderSelectedRoles();
+          applyFilter();
+        }
+      });
+    });
+  }
+
+  function applyFilter() {
+    const table = document.querySelector('.filmmaker-table');
+    if (!table) return;
+
+    const rows = table.querySelectorAll('.filmmaker-row');
+
+    rows.forEach(row => {
+      const filmmakerData = row.getAttribute('data-filmmaker');
+      if (!filmmakerData) return;
+
+      const filmmaker = JSON.parse(filmmakerData);
+      const filmmakerRoles = filmmaker.roles.split(',').map((r: string) => r.trim());
+
+      if (selectedRoles.size === 0) {
+        (row as HTMLElement).style.display = '';
+      } else {
+        // Show row if filmmaker has ANY of the selected roles
+        const hasMatchingRole = filmmakerRoles.some((role: string) =>
+          selectedRoles.has(role)
+        );
+        (row as HTMLElement).style.display = hasMatchingRole ? '' : 'none';
+      }
+    });
+
+    updateCount();
+  }
 
   function setupTable() {
     const table = document.querySelector('.filmmaker-table');
@@ -229,5 +526,9 @@ const { filmmakers } = Astro.props;
     rows.forEach(row => tbody.appendChild(row));
   }
 
-  document.addEventListener('DOMContentLoaded', setupTable);
+  document.addEventListener('DOMContentLoaded', () => {
+    setupRoleFilter();
+    setupTable();
+    updateCount();
+  });
 </script>
