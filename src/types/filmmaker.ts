@@ -14,3 +14,6 @@ export interface Filmmaker {
   createdAt: Date | null;
   updatedAt: Date | null;
 }
+
+// Public filmmaker type - excludes contact info for anti-scraping protection
+export type PublicFilmmaker = Omit<Filmmaker, 'email' | 'phone'>;

@@ -3,6 +3,7 @@ import { db } from '../../db';
 import { filmmakers } from '../../db/schema';
 import { eq } from 'drizzle-orm';
 import { isAuthenticated, unauthorizedResponse } from '../../lib/auth';
+import { errorResponse, successResponse } from '../../lib/api';
 
 export const POST: APIRoute = async ({ request }) => {
   // Require authentication
@@ -15,18 +16,11 @@ export const POST: APIRoute = async ({ request }) => {
     const { id, ...updates } = body;
 
     if (!id) {
-      return new Response(
-        JSON.stringify({ error: 'Filmmaker ID is required' }),
-        {
-          status: 400,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      return errorResponse('Filmmaker ID is required');
     }
 
-    const updateData: any = {
+    // Drizzle accepts Partial<Filmmaker> for updates
+    const updateData = {
       ...updates,
       updatedAt: new Date(),
     };
@@ -38,36 +32,12 @@ export const POST: APIRoute = async ({ request }) => {
       .returning();
 
     if (!filmmaker) {
-      return new Response(
-        JSON.stringify({ error: 'Filmmaker not found' }),
-        {
-          status: 404,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      return errorResponse('Filmmaker not found', 404);
     }
 
-    return new Response(
-      JSON.stringify({ success: true, filmmaker }),
-      {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    return successResponse({ filmmaker });
   } catch (error) {
     console.error('Error updating filmmaker:', error);
-    return new Response(
-      JSON.stringify({ error: 'Failed to update filmmaker' }),
-      {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    return errorResponse('Failed to update filmmaker', 500);
   }
 };

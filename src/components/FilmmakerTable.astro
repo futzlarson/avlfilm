@@ -1,9 +1,10 @@
 ---
 import { normalizeUrl } from '../utils/url';
 import { FILM_ROLES_BY_CATEGORY } from '../config/roles';
+import type { PublicFilmmaker } from '../types/filmmaker';
 
 interface Props {
-  filmmakers: any[];
+  filmmakers: PublicFilmmaker[];
 }
 
 const { filmmakers } = Astro.props;

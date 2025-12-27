@@ -213,6 +213,8 @@ const { id } = Astro.props;
 </style>
 
 <script>
+  import type { PublicFilmmaker } from '../types/filmmaker';
+
   function setupModal(modalId: string) {
     const modal = document.getElementById(modalId);
     if (!modal) return;
@@ -239,10 +241,10 @@ const { id } = Astro.props;
     setupModal('filmmaker-modal');
   });
 
-  let currentFilmmaker: any = null;
+  let currentFilmmaker: PublicFilmmaker | null = null;
   const contactCache = new Map<number, { email: string | null; phone: string | null }>(); // Cache contact data
 
-  export function openFilmmakerModal(filmmaker: any) {
+  export function openFilmmakerModal(filmmaker: PublicFilmmaker) {
     const modal = document.getElementById('filmmaker-modal');
     if (!modal) return;
 
