@@ -12,7 +12,7 @@ const { filmmakers } = Astro.props;
   <table class="filmmaker-table">
     <thead>
       <tr>
-        <th data-sort="name" class="sortable">
+        <th data-sort="name" class="sortable sort-asc">
           Name
           <span class="sort-indicator"></span>
         </th>
@@ -197,6 +197,9 @@ const { filmmakers } = Astro.props;
         }
       });
     });
+
+    // Perform initial sort by name
+    sortTable(currentSort.column, currentSort.direction);
   }
 
   function sortTable(column: string, direction: 'asc' | 'desc') {
