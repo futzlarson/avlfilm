@@ -40,10 +40,6 @@ const { filmmakers } = Astro.props;
           Name
           <span class="sort-indicator"></span>
         </th>
-        <th data-sort="email" class="sortable">
-          Email
-          <span class="sort-indicator"></span>
-        </th>
         <th data-sort="roles" class="sortable">
           Roles
           <span class="sort-indicator"></span>
@@ -62,7 +58,6 @@ const { filmmakers } = Astro.props;
       {filmmakers.map((filmmaker) => (
         <tr class="filmmaker-row" data-filmmaker={JSON.stringify(filmmaker)}>
           <td class="name-cell">{filmmaker.name}</td>
-          <td><a href={`mailto:${filmmaker.email}`}>{filmmaker.email}</a></td>
           <td>{filmmaker.roles}</td>
           <td>
             {filmmaker.company && filmmaker.website ? (
@@ -291,6 +286,10 @@ const { filmmakers } = Astro.props;
     border-bottom: 1px solid #e5e7eb;
   }
 
+  .filmmaker-table td:first-child {
+    white-space: nowrap;
+  }
+
   .filmmaker-row {
     cursor: pointer;
     transition: background-color 0.15s;
@@ -307,10 +306,6 @@ const { filmmakers } = Astro.props;
 
   .filmmaker-table a:hover {
     text-decoration: underline;
-  }
-
-  .name-cell {
-    max-width: 150px;
   }
 
   .gear-cell {

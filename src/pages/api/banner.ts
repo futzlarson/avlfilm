@@ -2,8 +2,13 @@ import type { APIRoute } from 'astro';
 import { db } from '../../db';
 import { siteSettings } from '../../db/schema';
 import { eq } from 'drizzle-orm';
+import { isAuthenticated, unauthorizedResponse } from '../../lib/auth';
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ request }) => {
+  // Require authentication for reading banner settings (admin only)
+  if (!isAuthenticated(request)) {
+    return unauthorizedResponse();
+  }
   try {
     const settings = await db
       .select()
@@ -49,6 +54,11 @@ export const GET: APIRoute = async () => {
 };
 
 export const POST: APIRoute = async ({ request }) => {
+  // Require authentication for updating banner settings
+  if (!isAuthenticated(request)) {
+    return unauthorizedResponse();
+  }
+
   try {
     const body = await request.json();
     const { banner_html, banner_enabled } = body;

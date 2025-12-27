@@ -481,7 +481,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
   async function loadAllFilmmakers() {
     try {
-      const response = await fetch('/api/get-filmmakers?include_all=true');
+      const response = await fetch('/api/get-filmmakers?include_all=true&include_contact=true');
       allFilmmakers = await response.json();
       renderAllFilmmakers();
     } catch (error) {

@@ -2,8 +2,14 @@ import type { APIRoute } from 'astro';
 import { db } from '../../db';
 import { filmmakers } from '../../db/schema';
 import { eq } from 'drizzle-orm';
+import { isAuthenticated, unauthorizedResponse } from '../../lib/auth';
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ request }) => {
+  // Require authentication
+  if (!isAuthenticated(request)) {
+    return unauthorizedResponse();
+  }
+
   try {
     const results = await db
       .select()

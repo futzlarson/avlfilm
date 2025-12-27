@@ -12,13 +12,18 @@ const { id } = Astro.props;
     <button class="modal-close">&times;</button>
     <div class="modal-body">
       <h2 class="filmmaker-name"></h2>
+      <div class="reveal-contact-section">
+        <button class="reveal-contact-btn" id="reveal-contact-btn">
+          Reveal contact information
+        </button>
+      </div>
       <table class="filmmaker-details">
         <tbody>
-          <tr>
+          <tr class="contact-row email-row" style="display: none;">
             <th>Email</th>
             <td><a class="filmmaker-email" href=""></a></td>
           </tr>
-          <tr class="phone-row">
+          <tr class="contact-row phone-row" style="display: none;">
             <th>Phone</th>
             <td><span class="filmmaker-phone"></span></td>
           </tr>
@@ -106,14 +111,47 @@ const { id } = Astro.props;
   }
 
   .filmmaker-name {
-    margin: 0 0 1.5rem;
+    margin: 0 0 1rem;
     color: #1a1a1a;
     font-size: 1.75rem;
   }
 
+  .reveal-contact-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .reveal-contact-btn {
+    padding: 0.625rem 1.25rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .reveal-contact-btn:hover {
+    opacity: 0.9;
+  }
+
+  .reveal-contact-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .reveal-contact-btn.hidden {
+    display: none !important;
+  }
+
   .filmmaker-details {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    overflow: hidden;
   }
 
   .filmmaker-details th {
@@ -125,6 +163,7 @@ const { id } = Astro.props;
     font-size: 0.875rem;
     width: 30%;
     border-bottom: 1px solid #e5e7eb;
+    border-right: 1px solid #e5e7eb;
   }
 
   .filmmaker-details td {
@@ -135,6 +174,16 @@ const { id } = Astro.props;
 
   .filmmaker-details tr:last-child th,
   .filmmaker-details tr:last-child td {
+    border-bottom: none;
+  }
+
+  /* Remove border from visible last row when some rows are hidden */
+  .filmmaker-details tr[style*="display: none"] {
+    display: none !important;
+  }
+
+  .filmmaker-details tr:not([style*="display: none"]):last-of-type th,
+  .filmmaker-details tr:not([style*="display: none"]):last-of-type td {
     border-bottom: none;
   }
 
@@ -190,22 +239,60 @@ const { id } = Astro.props;
     setupModal('filmmaker-modal');
   });
 
+  let currentFilmmaker: any = null;
+  const contactCache = new Map<number, { email: string | null; phone: string | null }>(); // Cache contact data
+
   export function openFilmmakerModal(filmmaker: any) {
     const modal = document.getElementById('filmmaker-modal');
     if (!modal) return;
 
+    currentFilmmaker = filmmaker;
+
     modal.querySelector('.filmmaker-name')!.textContent = filmmaker.name;
 
-    const emailLink = modal.querySelector('.filmmaker-email') as HTMLAnchorElement;
-    emailLink.textContent = filmmaker.email;
-    emailLink.href = `mailto:${filmmaker.email}`;
+    // Check if this filmmaker's contact is in cache
+    const cachedContact = contactCache.get(filmmaker.id);
 
+    const revealBtn = document.getElementById('reveal-contact-btn') as HTMLButtonElement;
+    const emailRow = modal.querySelector('.email-row') as HTMLElement;
     const phoneRow = modal.querySelector('.phone-row') as HTMLElement;
+    const emailLink = modal.querySelector('.filmmaker-email') as HTMLAnchorElement;
     const phoneSpan = modal.querySelector('.filmmaker-phone')!;
-    if (filmmaker.phone) {
-      phoneSpan.textContent = formatPhone(filmmaker.phone);
-      phoneRow.style.display = 'table-row';
+
+    if (cachedContact) {
+      // Contact is cached, display it immediately
+      revealBtn.classList.add('hidden');
+
+      // Populate email
+      if (cachedContact.email) {
+        emailLink.textContent = cachedContact.email;
+        emailLink.href = `mailto:${cachedContact.email}`;
+        emailRow.style.display = 'table-row';
+      } else {
+        emailRow.style.display = 'none';
+      }
+
+      // Populate phone
+      if (cachedContact.phone) {
+        phoneSpan.textContent = formatPhone(cachedContact.phone);
+        phoneRow.style.display = 'table-row';
+      } else {
+        phoneRow.style.display = 'none';
+      }
     } else {
+      // Reset to initial state
+      if (revealBtn) {
+        revealBtn.classList.remove('hidden');
+        revealBtn.style.display = 'block';
+        revealBtn.disabled = false;
+        revealBtn.textContent = 'Reveal contact information';
+      }
+
+      // Clear and hide contact rows
+      emailLink.textContent = '';
+      emailLink.href = '';
+      phoneSpan.textContent = '';
+      emailRow.style.display = 'none';
       phoneRow.style.display = 'none';
     }
 
@@ -271,4 +358,87 @@ const { id } = Astro.props;
   }
 
   (window as any).openFilmmakerModal = openFilmmakerModal;
+
+  // Setup reveal contact functionality
+  document.addEventListener('DOMContentLoaded', () => {
+    const revealBtn = document.getElementById('reveal-contact-btn');
+
+    if (revealBtn) {
+      revealBtn.addEventListener('click', handleRevealContact);
+    }
+  });
+
+  async function fetchAndDisplayContact(filmmakerId: number, modal: HTMLElement) {
+    const emailRow = modal.querySelector('.email-row') as HTMLElement;
+    const phoneRow = modal.querySelector('.phone-row') as HTMLElement;
+
+    try {
+      const response = await fetch('/api/reveal-contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ filmmakerId }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to load contact information');
+      }
+
+      const data = await response.json();
+
+      // Populate email
+      const emailLink = modal.querySelector('.filmmaker-email') as HTMLAnchorElement;
+      if (data.email) {
+        emailLink.textContent = data.email;
+        emailLink.href = `mailto:${data.email}`;
+        emailRow.style.display = 'table-row';
+      }
+
+      // Populate phone
+      const phoneSpan = modal.querySelector('.filmmaker-phone')!;
+      if (data.phone) {
+        phoneSpan.textContent = formatPhone(data.phone);
+        phoneRow.style.display = 'table-row';
+      }
+
+      // Cache the contact data
+      contactCache.set(filmmakerId, {
+        email: data.email || null,
+        phone: data.phone || null,
+      });
+    } catch (error) {
+      console.error('Error revealing contact:', error);
+      throw error;
+    }
+  }
+
+  async function handleRevealContact() {
+    const modal = document.getElementById('filmmaker-modal');
+    if (!modal || !currentFilmmaker) return;
+
+    const revealBtn = document.getElementById('reveal-contact-btn') as HTMLButtonElement;
+    if (!revealBtn) return;
+
+    // Disable button and show loading state
+    revealBtn.disabled = true;
+    revealBtn.textContent = 'Loading...';
+
+    try {
+      await fetchAndDisplayContact(currentFilmmaker.id, modal);
+
+      // Hide button
+      revealBtn.classList.add('hidden');
+    } catch (error) {
+      // Show error message and re-enable button
+      revealBtn.textContent = error instanceof Error ? error.message : 'Error loading contact info';
+      revealBtn.disabled = false;
+
+      // Reset button text after 3 seconds
+      setTimeout(() => {
+        revealBtn.textContent = 'Reveal contact information';
+      }, 3000);
+    }
+  }
 </script>
