@@ -1,5 +1,20 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { db } from '../../db';
+import { filmmakers } from '../../db/schema';
+import type { Filmmaker } from '../../types/filmmaker';
+
+// Load all filmmakers on server
+let allFilmmakers: Filmmaker[] = [];
+
+try {
+  allFilmmakers = await db.select().from(filmmakers);
+} catch (error) {
+  console.error('Failed to load filmmakers:', error);
+}
+
+// Filter pending client-side
+const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
 ---
 
 <BaseLayout title="Admin - Filmmakers">
@@ -9,9 +24,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   </div>
 
   <div class="admin-section">
-    <h2>Pending Submissions (<span id="pending-count">0</span>)</h2>
-    <div id="pending-filmmakers">
-      <div class="loading-state">Loading pending submissions...</div>
+    <h2>Pending Submissions (<span id="pending-count">{pendingFilmmakers.length}</span>)</h2>
+    <div id="pending-filmmakers" data-filmmakers={JSON.stringify(pendingFilmmakers)}>
+      {pendingFilmmakers.length === 0 ? (
+        <div class="empty-state">No pending submissions</div>
+      ) : null}
     </div>
   </div>
 
@@ -25,9 +42,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         autocomplete="off"
       />
     </div>
-    <div id="all-filmmakers">
-      <div class="loading-state">Enter a search term to find filmmakers...</div>
-    </div>
+    <div id="all-filmmakers" data-filmmakers={JSON.stringify(allFilmmakers)}></div>
   </div>
 </BaseLayout>
 
@@ -336,9 +351,16 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 </style>
 
 <script>
-  let allFilmmakers: any[] = [];
+  import type { Filmmaker } from '../../types/filmmaker';
 
-  function renderFilmmakerCard(f: any, showApproveButton: boolean = false) {
+  // Load data from data attributes
+  const pendingContainer = document.getElementById('pending-filmmakers')!;
+  const allContainer = document.getElementById('all-filmmakers')!;
+
+  const pendingFilmmakers: Filmmaker[] = JSON.parse(pendingContainer.dataset.filmmakers || '[]');
+  const allFilmmakers: Filmmaker[] = JSON.parse(allContainer.dataset.filmmakers || '[]');
+
+  function renderFilmmakerCard(f: Filmmaker, showApproveButton: boolean = false) {
     return `
       <div class="filmmaker-card" data-id="${f.id}">
         <h3 style="margin: 0 0 1.25rem 0;">${f.name}</h3>
@@ -456,36 +478,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     }
   }
 
-  async function loadPendingFilmmakers() {
-    try {
-      const response = await fetch('/api/get-pending-filmmakers');
-      const filmmakers = await response.json();
+  function renderPendingFilmmakers() {
+    const containerEl = document.getElementById('pending-filmmakers');
+    if (!containerEl) return;
 
-      const countEl = document.getElementById('pending-count');
-      const containerEl = document.getElementById('pending-filmmakers');
-
-      if (!countEl || !containerEl) return;
-
-      countEl.textContent = filmmakers.length.toString();
-
-      if (filmmakers.length === 0) {
-        containerEl.innerHTML = '<div class="empty-state">No pending submissions</div>';
-        return;
-      }
-
-      containerEl.innerHTML = filmmakers.map((f: any) => renderFilmmakerCard(f, true)).join('');
-    } catch (error) {
-      console.error('Error loading pending filmmakers:', error);
-    }
-  }
-
-  async function loadAllFilmmakers() {
-    try {
-      const response = await fetch('/api/get-filmmakers?include_all=true&include_contact=true');
-      allFilmmakers = await response.json();
-      renderAllFilmmakers();
-    } catch (error) {
-      console.error('Error loading all filmmakers:', error);
+    if (pendingFilmmakers.length > 0) {
+      containerEl.innerHTML = pendingFilmmakers.map(f => renderFilmmakerCard(f, true)).join('');
     }
   }
 
@@ -513,7 +511,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       return;
     }
 
-    containerEl.innerHTML = filtered.map((f: any) => renderFilmmakerCard(f, false)).join('');
+    containerEl.innerHTML = filtered.map(f => renderFilmmakerCard(f, false)).join('');
   }
 
   async function approveFilmmaker(id: number) {
@@ -542,7 +540,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         throw new Error('Failed to update filmmaker');
       }
 
-      await Promise.all([loadPendingFilmmakers(), loadAllFilmmakers()]);
+      // Reload page to get fresh data from server
+      window.location.reload();
     } catch (error) {
       console.error('Error updating filmmaker:', error);
       alert('Failed to update filmmaker');
@@ -584,8 +583,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   (window as any).saveFilmmakerPending = saveFilmmakerPending;
 
   document.addEventListener('DOMContentLoaded', () => {
-    loadPendingFilmmakers();
-    loadAllFilmmakers();
+    renderPendingFilmmakers();
 
     const searchInput = document.getElementById('search-input');
     searchInput?.addEventListener('input', renderAllFilmmakers);

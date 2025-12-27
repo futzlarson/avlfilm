@@ -2,17 +2,22 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import FilmmakerTable from '../components/FilmmakerTable.astro';
 import FilmmakerModal from '../components/FilmmakerModal.astro';
+import { db } from '../db';
+import { filmmakers as filmmakersTable } from '../db/schema';
+import { eq } from 'drizzle-orm';
 
 let filmmakers: any[] = [];
 let error = null;
 
 try {
-  const response = await fetch(`${Astro.url.origin}/api/get-filmmakers`);
-  if (response.ok) {
-    filmmakers = await response.json();
-  } else {
-    error = 'Failed to load filmmakers';
-  }
+  // Fetch approved filmmakers directly from database
+  const results = await db
+    .select()
+    .from(filmmakersTable)
+    .where(eq(filmmakersTable.status, 'approved'));
+
+  // Remove email and phone from results
+  filmmakers = results.map(({ email, phone, ...filmmaker }) => filmmaker);
 } catch (e) {
   console.error('Error fetching filmmakers:', e);
   error = 'Failed to load filmmakers';

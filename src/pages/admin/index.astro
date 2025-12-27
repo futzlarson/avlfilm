@@ -1,5 +1,23 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { db } from '../../db';
+import { siteSettings } from '../../db/schema';
+import { inArray } from 'drizzle-orm';
+
+let bannerHtml = '<p>Welcome to AVL Film!</p>';
+let bannerEnabled = false;
+
+try {
+  const settings = await db
+    .select()
+    .from(siteSettings)
+    .where(inArray(siteSettings.key, ['banner_html', 'banner_enabled']));
+
+  bannerHtml = settings.find(row => row.key === 'banner_html')?.value || '<p>Welcome to AVL Film!</p>';
+  bannerEnabled = settings.find(row => row.key === 'banner_enabled')?.value === 'true';
+} catch (error) {
+  console.error('Failed to load banner settings:', error);
+}
 ---
 
 <BaseLayout title="Admin Dashboard">
@@ -18,7 +36,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           name="banner_html"
           rows="5"
           required
-        ></textarea>
+        >{bannerHtml}</textarea>
       </div>
 
       <div class="form-group">
@@ -27,6 +45,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             type="checkbox"
             id="banner-enabled"
             name="banner_enabled"
+            checked={bannerEnabled}
           />
           Enable Banner
         </label>
@@ -151,11 +170,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 </style>
 
 <script>
-  interface BannerData {
-    banner_html: string;
-    banner_enabled: boolean;
-  }
-
   const form = document.getElementById('banner-form') as HTMLFormElement;
   const htmlTextarea = document.getElementById('banner-html') as HTMLTextAreaElement;
   const enabledCheckbox = document.getElementById('banner-enabled') as HTMLInputElement;
@@ -167,20 +181,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     setTimeout(() => {
       messageDiv.className = 'message';
     }, 5000);
-  }
-
-  async function loadBannerSettings() {
-    try {
-      const response = await fetch('/api/banner');
-      if (!response.ok) throw new Error('Failed to load banner settings');
-
-      const data: BannerData = await response.json();
-      htmlTextarea.value = data.banner_html;
-      enabledCheckbox.checked = data.banner_enabled;
-    } catch (error) {
-      showMessage('Failed to load banner settings', 'error');
-      console.error(error);
-    }
   }
 
   form.addEventListener('submit', async (e) => {
@@ -203,18 +203,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
       if (!response.ok) throw new Error('Failed to update banner');
 
-      showMessage('Banner settings updated successfully! Reloading...', 'success');
-
       // Reload the page to see the updated banner
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      window.location.reload();
     } catch (error) {
       showMessage('Failed to update banner settings', 'error');
       console.error(error);
       submitBtn.disabled = false;
     }
   });
-
-  loadBannerSettings();
 </script>

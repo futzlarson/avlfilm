@@ -1,57 +1,7 @@
 import type { APIRoute } from 'astro';
 import { db } from '../../db';
 import { siteSettings } from '../../db/schema';
-import { eq } from 'drizzle-orm';
 import { isAuthenticated, unauthorizedResponse } from '../../lib/auth';
-
-export const GET: APIRoute = async ({ request }) => {
-  // Require authentication for reading banner settings (admin only)
-  if (!isAuthenticated(request)) {
-    return unauthorizedResponse();
-  }
-  try {
-    const settings = await db
-      .select()
-      .from(siteSettings)
-      .where(eq(siteSettings.key, 'banner_html'))
-      .union(
-        db
-          .select()
-          .from(siteSettings)
-          .where(eq(siteSettings.key, 'banner_enabled'))
-      );
-
-    const bannerHtml = settings.find(row => row.key === 'banner_html')?.value || '<p>Welcome to AVL Film!</p>';
-    const bannerEnabled = settings.find(row => row.key === 'banner_enabled')?.value === 'true';
-
-    return new Response(
-      JSON.stringify({
-        banner_html: bannerHtml,
-        banner_enabled: bannerEnabled,
-      }),
-      {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-  } catch (error) {
-    console.error('Failed to fetch banner settings:', error);
-    return new Response(
-      JSON.stringify({
-        banner_html: '<p>Welcome to AVL Film!</p>',
-        banner_enabled: false,
-      }),
-      {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-  }
-};
 
 export const POST: APIRoute = async ({ request }) => {
   // Require authentication for updating banner settings

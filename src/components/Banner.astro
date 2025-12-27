@@ -1,26 +1,27 @@
 ---
-interface BannerData {
-  banner_html: string;
-  banner_enabled: boolean;
-}
+import { db } from '../db';
+import { siteSettings } from '../db/schema';
+import { inArray } from 'drizzle-orm';
 
-let bannerData: BannerData | null = null;
+let bannerHtml = '<p>Welcome to AVL Film!</p>';
+let bannerEnabled = false;
 
 try {
-  const response = await fetch(`${Astro.url.origin}/api/banner`);
-  if (response.ok) {
-    bannerData = await response.json();
-  }
-} catch (error) {
-  console.error('Failed to fetch banner:', error);
-}
+  const settings = await db
+    .select()
+    .from(siteSettings)
+    .where(inArray(siteSettings.key, ['banner_html', 'banner_enabled']));
 
-const shouldDisplay = bannerData?.banner_enabled === true;
+  bannerHtml = settings.find(row => row.key === 'banner_html')?.value || '<p>Welcome to AVL Film!</p>';
+  bannerEnabled = settings.find(row => row.key === 'banner_enabled')?.value === 'true';
+} catch (error) {
+  console.error('Failed to fetch banner settings:', error);
+}
 ---
 
-{shouldDisplay && bannerData && (
+{bannerEnabled && (
   <div class="banner">
-    <div class="banner-content" set:html={bannerData.banner_html} />
+    <div class="banner-content" set:html={bannerHtml} />
   </div>
 )}
 
