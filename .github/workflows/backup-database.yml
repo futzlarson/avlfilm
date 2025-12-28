@@ -45,12 +45,12 @@ jobs:
           filename="backup-${timestamp}.dump"
 
           echo "Creating backup: $filename"
-          pg_dump "$POSTGRES_URL" \
-            -n public \
-            -n drizzle \
-            -F c \
-            --compress=9 \
-            -f "$filename"
+
+          # PostgreSQL version on runner is 16, but Supabase uses 17
+          # Use Docker to get matching pg_dump version
+          docker run --rm \
+            postgres:17-alpine \
+            pg_dump "$POSTGRES_URL" -n public -n drizzle -F c --compress=9 > "$filename"
 
           echo "Backup created successfully"
           echo "BACKUP_FILE=$filename" >> $GITHUB_ENV
