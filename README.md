@@ -1,5 +1,9 @@
 # AVL Film Website
 
+> **Audience:** New developers/collaborators setting up the project.
+>
+> **Purpose:** Quick start guide, setup instructions, and basic project overview.
+
 Website for avlfilm.com - built with Astro, TypeScript, and PostgreSQL.
 
 ## Quick Start
@@ -63,3 +67,9 @@ Create `.env.local`:
 ```
 POSTGRES_URL="postgresql://..."
 ```
+
+## Documentation
+
+- **README.md** (this file) - Quick start for new collaborators
+- **CLAUDE.md** - AI assistant guidelines and code patterns
+- **TECHNICAL.md** - Deep architecture documentation for developers

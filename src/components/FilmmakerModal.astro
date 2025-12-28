@@ -215,6 +215,7 @@ const { id } = Astro.props;
 <script>
   import type { PublicFilmmaker } from '../types/filmmaker';
   import { formatPhone } from '../utils/formatting';
+  import { normalizeUrl } from '../utils/url';
 
   function setupModal(modalId: string) {
     const modal = document.getElementById(modalId);
@@ -314,7 +315,7 @@ const { id } = Astro.props;
     const websiteLink = modal.querySelector('.filmmaker-website') as HTMLAnchorElement;
     if (filmmaker.website) {
       websiteLink.textContent = filmmaker.website;
-      websiteLink.href = normalizeUrlClient(filmmaker.website);
+      websiteLink.href = normalizeUrl(filmmaker.website);
       websiteRow.style.display = 'table-row';
     } else {
       websiteRow.style.display = 'none';
@@ -340,16 +341,6 @@ const { id } = Astro.props;
 
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
-  }
-
-  function normalizeUrlClient(url: string | null | undefined): string {
-    if (!url) return '';
-    const trimmed = url.trim();
-    if (!trimmed) return '';
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-      return trimmed;
-    }
-    return `https://${trimmed}`;
   }
 
   (window as any).openFilmmakerModal = openFilmmakerModal;

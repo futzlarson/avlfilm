@@ -24,16 +24,12 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
   </div>
 
   <div class="admin-section">
-    <h2>Pending Submissions (<span id="pending-count">{pendingFilmmakers.length}</span>)</h2>
-    <div id="pending-filmmakers">
-      {pendingFilmmakers.length === 0 ? (
-        <div class="empty-state">No pending submissions</div>
-      ) : null}
-    </div>
+    <h2>Pending Submissions: <span id="pending-count">{pendingFilmmakers.length}</span></h2>
+    <div id="pending-filmmakers"></div>
   </div>
 
   <div class="admin-section">
-    <h2>All Filmmakers</h2>
+    <h2>Filmmaker Search</h2>
     <div class="search-bar">
       <input
         type="text"
@@ -108,44 +104,27 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   }
 
-  .filmmaker-card.editing {
+  :global(.filmmaker-card.editing) {
     background: #fff;
     border: 2px solid #667eea;
   }
 
-  .filmmaker-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    gap: 1rem;
-    flex-wrap: nowrap;
-  }
-
-  .filmmaker-info {
-    flex-shrink: 1;
-    min-width: 0;
-  }
-
-  .filmmaker-info h3 {
-    margin: 0;
-    color: #1a1a1a;
-  }
-
-  :global(.filmmaker-actions) {
-    flex-shrink: 0;
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: nowrap;
-  }
-
+  :global(.filmmaker-actions),
   :global(.view-actions) {
     display: flex;
     gap: 0.75rem;
     flex-wrap: nowrap;
   }
 
-  .status-badge {
+  :global(.filmmaker-actions) {
+    flex-shrink: 0;
+  }
+
+  :global(.status-display) {
+    display: inline;
+  }
+
+  :global(.status-badge) {
     padding: 0.25rem 0.75rem;
     border-radius: 999px;
     font-size: 0.875rem;
@@ -153,19 +132,19 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
     text-transform: uppercase;
   }
 
-  .status-badge.pending {
+  :global(.status-badge.pending) {
     background: #fef3c7;
     color: #92400e;
   }
 
-  .status-badge.approved {
+  :global(.status-badge.approved) {
     background: #d1fae5;
     color: #065f46;
   }
 
-  .status-badge.archived {
-    background: #e5e7eb;
-    color: #6b7280;
+  :global(.status-badge.archived) {
+    background: #fee2e2;
+    color: #991b1b;
   }
 
   :global(.edit-actions) {
@@ -195,12 +174,14 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
     transform: translateY(0);
   }
 
-  :global(.btn-approve) {
+  :global(.btn-approve),
+  :global(.btn-save) {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
   }
 
-  :global(.btn-approve:hover) {
+  :global(.btn-approve:hover),
+  :global(.btn-save:hover) {
     background: linear-gradient(135deg, #059669 0%, #047857 100%);
   }
 
@@ -220,15 +201,6 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
 
   :global(.btn-edit:hover) {
     background: linear-gradient(135deg, #5568d3 0%, #6b4199 100%);
-  }
-
-  :global(.btn-save) {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-  }
-
-  :global(.btn-save:hover) {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
   }
 
   :global(.btn-cancel) {
@@ -324,28 +296,10 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
     color: #9ca3af;
   }
 
-  .loading-state {
-    text-align: center;
-    padding: 3rem 1rem;
-    color: #9ca3af;
-    min-height: 200px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
   @media (max-width: 768px) {
     .admin-header {
       flex-direction: column;
       align-items: flex-start;
-    }
-
-    .filmmaker-header {
-      flex-direction: column;
-    }
-
-    .filmmaker-details {
-      grid-template-columns: 1fr;
     }
   }
 </style>
@@ -365,7 +319,7 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
       <div class="filmmaker-card" data-id="${f.id}">
         <h3 style="margin: 0 0 1.25rem 0;">${f.name}</h3>
 
-        <form onsubmit="${showApproveButton ? 'saveFilmmakerPending' : 'saveFilmmakerAll'}(event, ${f.id})">
+        <form onsubmit="saveFilmmaker(event, ${f.id})">
           <table class="info-table">
             <tr>
               <td>Name</td>
@@ -400,10 +354,13 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
               <td><textarea name="gear" rows="3" readonly>${f.gear || ''}</textarea></td>
             </tr>
             ${!showApproveButton ? `
-              <tr data-field="status" style="display: none;">
+              <tr data-field="status">
                 <td>Status</td>
                 <td>
-                  <select name="status" disabled>
+                  <span class="status-display">
+                    <span class="status-badge ${f.status}">${f.status}</span>
+                  </span>
+                  <select name="status" style="display: none;">
                     <option value="pending" ${f.status === 'pending' ? 'selected' : ''}>Pending</option>
                     <option value="approved" ${f.status === 'approved' ? 'selected' : ''}>Approved</option>
                     <option value="archived" ${f.status === 'archived' ? 'selected' : ''}>Archived</option>
@@ -435,7 +392,8 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
     const editActionsEl = card.querySelector('.edit-actions') as HTMLElement;
     const viewActionsEl = card.querySelector('.view-actions') as HTMLElement;
     const inputs = formEl?.querySelectorAll('input, textarea');
-    const selectEl = formEl?.querySelector('select');
+    const selectEl = formEl?.querySelector('select[name="status"]') as HTMLSelectElement;
+    const statusDisplay = formEl?.querySelector('.status-display') as HTMLElement;
     const allRows = formEl?.querySelectorAll('tr[data-field]');
     const statusRow = formEl?.querySelector('tr[data-field="status"]') as HTMLElement;
 
@@ -451,11 +409,14 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
       inputs.forEach(input => {
         (input as HTMLInputElement).setAttribute('readonly', '');
       });
-      if (selectEl) selectEl.setAttribute('disabled', '');
+      // Toggle status: show badge, hide select
+      if (selectEl && statusDisplay) {
+        selectEl.style.display = 'none';
+        statusDisplay.style.display = 'inline';
+      }
       editActionsEl.style.setProperty('display', 'none');
       viewActionsEl.style.setProperty('display', 'flex');
-      // Hide status row and empty rows in display mode
-      if (statusRow) statusRow.style.display = 'none';
+      // Hide empty rows in display mode (but keep status row visible)
       allRows?.forEach(row => {
         if (row.classList.contains('empty-row')) {
           (row as HTMLElement).style.display = 'none';
@@ -467,7 +428,11 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
       inputs.forEach(input => {
         (input as HTMLInputElement).removeAttribute('readonly');
       });
-      if (selectEl) selectEl.removeAttribute('disabled');
+      // Toggle status: show select, hide badge
+      if (selectEl && statusDisplay) {
+        selectEl.style.display = 'block';
+        statusDisplay.style.display = 'none';
+      }
       editActionsEl.style.setProperty('display', 'flex');
       viewActionsEl.style.setProperty('display', 'none');
       // Show all rows in edit mode, including status and empty ones
@@ -522,10 +487,6 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
     await updateFilmmaker(id, { status: 'archived' });
   }
 
-  async function updateStatus(id: number, status: FilmmakerStatus) {
-    await updateFilmmaker(id, { status });
-  }
-
   async function updateFilmmaker(id: number, data: Partial<Filmmaker>) {
     try {
       const response = await fetch('/api/approve-filmmaker', {
@@ -558,15 +519,7 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
     if (card) toggleEditMode(card);
   }
 
-  async function saveFilmmakerAll(event: Event, id: number) {
-    event.preventDefault();
-    const form = event.target as HTMLFormElement;
-    const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
-    await updateFilmmaker(id, data);
-  }
-
-  async function saveFilmmakerPending(event: Event, id: number) {
+  async function saveFilmmaker(event: Event, id: number) {
     event.preventDefault();
     const form = event.target as HTMLFormElement;
     const formData = new FormData(form);
@@ -576,11 +529,9 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
 
   (window as any).approveFilmmaker = approveFilmmaker;
   (window as any).archiveFilmmaker = archiveFilmmaker;
-  (window as any).updateStatus = updateStatus;
   (window as any).toggleEditAll = toggleEditAll;
-  (window as any).saveFilmmakerAll = saveFilmmakerAll;
   (window as any).toggleEditPending = toggleEditPending;
-  (window as any).saveFilmmakerPending = saveFilmmakerPending;
+  (window as any).saveFilmmaker = saveFilmmaker;
 
   document.addEventListener('DOMContentLoaded', () => {
     renderPendingFilmmakers();

@@ -100,6 +100,22 @@ When implementing ANY framework-specific feature, API, or pattern:
 
 **When uncertain:** Tell the user: "I should research the current best practice for [X] before implementing. One moment..."
 
+**Self-Improvement Pattern:**
+
+When the user points out an oversight or better approach:
+1. **Acknowledge the gap** - Don't defend the mistake, recognize it
+2. **Apply the fix** - Immediately correct the specific issue
+3. **Generalize the lesson** - Update documentation (CLAUDE.md) so future work avoids it
+4. **Audit for similar issues** - Check if the same problem exists elsewhere in the codebase
+
+**Example from this project:**
+- User caught: Missing CSS cleanup after refactoring
+- Applied fix: Removed orphaned `.admin-nav` class
+- Generalized: Added "CSS Hygiene" section to CLAUDE.md
+- Audited: Found and fixed similar issues across 11 files
+
+This creates a feedback loop where each correction improves future work quality.
+
 ---
 
 ### TypeScript Best Practices
@@ -124,6 +140,17 @@ When TypeScript errors appear, they're often signals of architectural issues. Do
    - ❌ Bad: Defining the same interface in multiple files
    - ✅ Good: Create shared types in `src/types/` directory
    - **Example:** `src/types/filmmaker.ts` defines `Filmmaker` interface once, imported everywhere
+
+4. **Duplicate functions and logic**
+   - ❌ Bad: Copy-pasting the same function in multiple files
+   - ✅ Good: Extract to shared utility in `src/utils/` or `src/lib/`
+   - **Example:** `normalizeUrl()` in `src/utils/url.ts` (not duplicated in components)
+   - **Red flags:** Two functions with identical implementations, only different names
+
+5. **Redundant CSS**
+   - ❌ Bad: Defining identical button styles multiple times (`.btn-approve` and `.btn-save` both green)
+   - ✅ Good: Combine with CSS selector grouping: `:global(.btn-approve), :global(.btn-save) { ... }`
+   - **Also check:** CSS that duplicates what the browser already does (e.g., `text-transform: uppercase` makes JavaScript `.toUpperCase()` redundant)
 
 **Passing Server Data to Client Scripts (Astro):**
 
@@ -375,11 +402,42 @@ await db.update(siteSettings).set({ value: 'x' }).where(eq(siteSettings.key, 'y'
 ```
 
 ### Astro Scoped CSS
+
 **CRITICAL**: Astro scopes CSS by default. Dynamically created elements (via JavaScript) won't receive scoped styles.
 
 **THE RULE**: If HTML is generated via `innerHTML`, template strings, or `document.createElement()`, ALL classes used in that HTML MUST be wrapped in `:global()`.
 
 **Common mistake**: Forgetting that `containerEl.innerHTML = ...` creates dynamic content that needs `:global()` for ALL classes, even basic layout classes like `.filmmaker-actions`, `.view-actions`, etc.
+
+**CSS Hygiene - Before Completing Work:**
+
+When making CSS changes, always audit for unused styles:
+
+1. **Check for orphaned classes** - CSS classes defined but never used in HTML/JS
+2. **Fix broken selectors** - Non-global classes that should be `:global()` for dynamic content
+3. **Remove unused :global() classes** - If you delete dynamic HTML generation, remove the `:global()` wrapper
+
+**Quick audit process:**
+```bash
+# For each CSS class defined, verify it's used:
+# 1. Search for the class name in the HTML portion
+# 2. Search for the class name in <script> tags (for dynamic content)
+# 3. If not found, it's unused and should be removed
+```
+
+**Example cleanup:**
+```astro
+<!-- ❌ Bad - Unused CSS left behind -->
+<style>
+  .admin-nav { /* Never used in HTML */ }
+  .admin-nav-link { /* Actually used */ }
+</style>
+
+<!-- ✅ Good - Only used CSS -->
+<style>
+  .admin-nav-link { /* Used on line 26 */ }
+</style>
+```
 
 ```astro
 <style>
