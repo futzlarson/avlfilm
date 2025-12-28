@@ -1,0 +1,217 @@
+name: Database Backup
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual triggers
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check if backup needed
+        id: check_changes
+        env:
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+        run: |
+          # Create a simple Node script to check for changes
+          cat > check-changes.js << 'EOF'
+          import { db } from './src/db/index.js';
+          import { siteSettings } from './src/db/schema.js';
+          import { eq, sql } from 'drizzle-orm';
+
+          async function checkChanges() {
+            try {
+              const lastBackupResult = await db
+                .select()
+                .from(siteSettings)
+                .where(eq(siteSettings.key, 'last_backup_timestamp'));
+
+              const lastBackupTime = lastBackupResult[0]?.value
+                ? new Date(lastBackupResult[0].value)
+                : new Date(0);
+
+              const lastChangeResult = await db.execute(sql`
+                SELECT MAX(GREATEST(created_at, updated_at)) as last_change
+                FROM filmmakers
+              `);
+
+              const lastChangeTime = lastChangeResult.rows[0]?.last_change
+                ? new Date(lastChangeResult.rows[0].last_change)
+                : new Date();
+
+              if (lastChangeTime <= lastBackupTime) {
+                console.log('SKIP_BACKUP=true');
+                console.log(`No changes since ${lastBackupTime.toISOString()}`);
+                process.exit(0);
+              }
+
+              console.log('SKIP_BACKUP=false');
+              console.log(`Changes detected: ${lastChangeTime.toISOString()}`);
+              process.exit(0);
+            } catch (error) {
+              console.error('Error checking changes:', error);
+              console.log('SKIP_BACKUP=false'); // Backup on error to be safe
+              process.exit(0);
+            }
+          }
+
+          checkChanges();
+          EOF
+
+          # Run the check
+          output=$(node check-changes.js)
+          echo "$output"
+
+          if echo "$output" | grep -q "SKIP_BACKUP=true"; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create database backup
+        if: steps.check_changes.outputs.skip == 'false'
+        env:
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+        run: |
+          timestamp=$(date -u +"%Y-%m-%dT%H-%M-%S")
+          filename="backup-${timestamp}.dump"
+
+          echo "Creating backup: $filename"
+          pg_dump "$POSTGRES_URL" \
+            -n public \
+            -n drizzle \
+            -F c \
+            --compress=9 \
+            -f "$filename"
+
+          echo "Backup created successfully"
+          echo "BACKUP_FILE=$filename" >> $GITHUB_ENV
+
+          # Get file size for logging
+          size=$(du -h "$filename" | cut -f1)
+          echo "Backup size: $size"
+
+      - name: Upload backup artifact
+        if: steps.check_changes.outputs.skip == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: database-backup-${{ env.BACKUP_FILE }}
+          path: ${{ env.BACKUP_FILE }}
+          retention-days: 90 # Keep for 90 days
+
+      - name: Manage backup rotation
+        if: steps.check_changes.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # List all backup artifacts
+          artifacts=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/actions/artifacts \
+            --jq '.artifacts | map(select(.name | startswith("database-backup-"))) | sort_by(.created_at) | reverse')
+
+          # Count total backups
+          total=$(echo "$artifacts" | jq 'length')
+          echo "Total backups: $total"
+
+          # Delete backups beyond the 30th
+          if [ "$total" -gt 30 ]; then
+            echo "Deleting $((total - 30)) old backup(s)"
+            echo "$artifacts" | jq -r '.[30:] | .[].id' | while read artifact_id; do
+              echo "Deleting artifact ID: $artifact_id"
+              gh api \
+                --method DELETE \
+                -H "Accept: application/vnd.github+json" \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
+                /repos/${{ github.repository }}/actions/artifacts/$artifact_id
+            done
+          fi
+
+      - name: Update last backup timestamp
+        if: steps.check_changes.outputs.skip == 'false'
+        env:
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+        run: |
+          cat > update-timestamp.js << 'EOF'
+          import { db } from './src/db/index.js';
+          import { siteSettings } from './src/db/schema.js';
+
+          async function updateTimestamp() {
+            try {
+              await db
+                .insert(siteSettings)
+                .values({
+                  key: 'last_backup_timestamp',
+                  value: new Date().toISOString()
+                })
+                .onConflictDoUpdate({
+                  target: siteSettings.key,
+                  set: {
+                    value: new Date().toISOString(),
+                    updatedAt: new Date()
+                  }
+                });
+              console.log('Backup timestamp updated');
+            } catch (error) {
+              console.error('Failed to update timestamp:', error);
+              process.exit(1);
+            }
+            process.exit(0);
+          }
+
+          updateTimestamp();
+          EOF
+
+          node update-timestamp.js
+
+      - name: Send failure notification
+        if: failure()
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_FROM_EMAIL: ${{ secrets.RESEND_FROM_EMAIL }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+        run: |
+          cat > send-alert.js << 'EOF'
+          import { Resend } from 'resend';
+
+          const resend = new Resend(process.env.RESEND_API_KEY);
+
+          async function sendAlert() {
+            try {
+              await resend.emails.send({
+                from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+                to: process.env.ADMIN_EMAIL || 'admin@example.com',
+                subject: 'Database Backup Failed - AVL Film',
+                text: `The automated database backup failed at ${new Date().toISOString()}.\n\nPlease check the GitHub Actions logs for more details:\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}`
+              });
+              console.log('Failure notification sent');
+            } catch (error) {
+              console.error('Failed to send notification:', error);
+            }
+          }
+
+          sendAlert();
+          EOF
+
+          node send-alert.js || true # Don't fail workflow if email fails
+
+      - name: Log skip message
+        if: steps.check_changes.outputs.skip == 'true'
+        run: |
+          echo "✓ No database changes detected, backup skipped"
+          echo "This saves compute time and storage space"
