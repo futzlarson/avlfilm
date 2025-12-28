@@ -1,43 +1,36 @@
 import { db } from '../../db/index';
 import { siteSettings, filmmakers } from '../../db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql, desc } from 'drizzle-orm';
 
 async function checkChanges() {
   try {
-    const lastBackupResult = await db
+    const backupLogResult = await db
       .select()
       .from(siteSettings)
-      .where(eq(siteSettings.key, 'last_backup_timestamp'));
+      .where(eq(siteSettings.key, 'database_backups'));
 
-    const lastBackupTime = lastBackupResult[0]?.value
-      ? new Date(lastBackupResult[0].value)
+    // Use updated_at as the last backup timestamp (simpler and more reliable)
+    const lastBackupTime = backupLogResult[0]?.updatedAt
+      ? new Date(backupLogResult[0].updatedAt)
       : new Date(0);
 
-    // Get the most recent change from filmmakers table
-    // Sort by the later of created_at or updated_at
-    const allFilmmakers = await db
+    // Get the most recent change from filmmakers table using a single efficient query
+    // Use GREATEST to find the most recent timestamp between created_at and updated_at
+    const mostRecentFilmmaker = await db
       .select({
-        createdAt: filmmakers.createdAt,
-        updatedAt: filmmakers.updatedAt,
+        mostRecentChange: sql<Date>`GREATEST(${filmmakers.createdAt}, ${filmmakers.updatedAt})`,
       })
-      .from(filmmakers);
+      .from(filmmakers)
+      .orderBy(desc(sql`GREATEST(${filmmakers.createdAt}, ${filmmakers.updatedAt})`))
+      .limit(1);
 
-    if (allFilmmakers.length === 0) {
+    if (mostRecentFilmmaker.length === 0) {
       console.log('SKIP_BACKUP=true');
       console.log('No filmmakers in database');
       process.exit(0);
     }
 
-    // Find the most recent timestamp
-    let lastChangeTime = new Date(0);
-    for (const filmmaker of allFilmmakers) {
-      const created = filmmaker.createdAt ? new Date(filmmaker.createdAt) : new Date(0);
-      const updated = filmmaker.updatedAt ? new Date(filmmaker.updatedAt) : new Date(0);
-      const mostRecent = created > updated ? created : updated;
-      if (mostRecent > lastChangeTime) {
-        lastChangeTime = mostRecent;
-      }
-    }
+    const lastChangeTime = new Date(mostRecentFilmmaker[0].mostRecentChange);
 
     if (lastChangeTime <= lastBackupTime) {
       console.log('SKIP_BACKUP=true');

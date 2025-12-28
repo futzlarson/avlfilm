@@ -70,6 +70,7 @@ jobs:
 
           # Get file size for logging
           size=$(du -h "$filename" | cut -f1)
+          echo "BACKUP_SIZE=$size" >> $GITHUB_ENV
           echo "Backup size: $size"
 
       - name: Upload backup artifact
@@ -109,11 +110,11 @@ jobs:
             done
           fi
 
-      - name: Update last backup timestamp
+      - name: Update backup log
         if: steps.check_changes.outputs.skip == 'false'
         env:
           POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
-        run: npx tsx src/scripts/backup/update-timestamp.ts
+        run: npx tsx src/scripts/backup/update-log.ts
 
       - name: Send failure notification
         if: failure()
