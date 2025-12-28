@@ -308,7 +308,7 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
 <script is:inline id="all-data" type="application/json" set:html={JSON.stringify(allFilmmakers)}></script>
 
 <script>
-  import type { Filmmaker, FilmmakerStatus } from '../../types/filmmaker';
+  import type { Filmmaker } from '../../types/filmmaker';
 
   // Load filmmakers from JSON script tags
   const pendingFilmmakers: Filmmaker[] = JSON.parse(document.getElementById('pending-data')!.textContent || '[]');
