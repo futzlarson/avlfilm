@@ -95,11 +95,19 @@ npm run db:migrate       # Run migration
 ---
 
 ## Database Workflow
+
+**Schema changes:**
 1. Edit `src/db/schema.ts`
 2. `npm run db:generate` - creates migration
 3. Review SQL in `drizzle/XXXX_name.sql`
 4. `npm run db:migrate` - runs migration
 5. Commit schema + migration
+
+**Quick queries (for Claude):**
+```bash
+# Load env and query database
+source .env.local && /opt/homebrew/opt/postgresql@17/bin/psql "$POSTGRES_URL" -c "SELECT * FROM filmmakers LIMIT 5;"
+```
 
 ---
 
