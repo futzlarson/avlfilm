@@ -3,6 +3,7 @@ import { createClient } from 'redis';
 import { db } from '../../db';
 import { filmmakers } from '../../db/schema';
 import { eq } from 'drizzle-orm';
+import { errorResponse, jsonResponse } from '../../lib/api';
 
 // Rate limit: 20 reveals per IP per hour
 const RATE_LIMIT_MAX = 20;
@@ -31,10 +32,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     const { filmmakerId } = await request.json();
 
     if (!filmmakerId) {
-      return new Response(JSON.stringify({ error: 'Filmmaker ID required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return errorResponse('Filmmaker ID required');
     }
 
     // Get client IP (use forwarded IP if behind proxy, fallback to clientAddress)
@@ -47,18 +45,12 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     const currentCount = currentCountStr ? parseInt(currentCountStr, 10) : 0;
 
     if (currentCount >= RATE_LIMIT_MAX) {
-      return new Response(
-        JSON.stringify({
+      return jsonResponse(
+        {
           error: 'Rate limit exceeded. Please try again later.',
           retryAfter: RATE_LIMIT_WINDOW
-        }),
-        {
-          status: 429,
-          headers: {
-            'Content-Type': 'application/json',
-            'Retry-After': RATE_LIMIT_WINDOW.toString()
-          },
-        }
+        },
+        429
       );
     }
 
@@ -79,30 +71,15 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       .limit(1);
 
     if (!filmmaker || filmmaker.length === 0) {
-      return new Response(JSON.stringify({ error: 'Filmmaker not found' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return errorResponse('Filmmaker not found', 404);
     }
 
-    return new Response(
-      JSON.stringify({
-        email: filmmaker[0].email,
-        phone: filmmaker[0].phone,
-      }),
-      {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
+    return jsonResponse({
+      email: filmmaker[0].email,
+      phone: filmmaker[0].phone,
+    });
   } catch (error) {
     console.error('Error revealing contact:', error);
-    return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
+    return errorResponse('Internal server error', 500);
   }
 };

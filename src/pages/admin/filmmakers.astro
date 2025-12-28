@@ -8,7 +8,7 @@ import type { Filmmaker } from '../../types/filmmaker';
 let allFilmmakers: Filmmaker[] = [];
 
 try {
-  allFilmmakers = await db.select().from(filmmakers);
+  allFilmmakers = await db.select().from(filmmakers) as Filmmaker[];
 } catch (error) {
   console.error('Failed to load filmmakers:', error);
 }
@@ -25,7 +25,7 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
 
   <div class="admin-section">
     <h2>Pending Submissions (<span id="pending-count">{pendingFilmmakers.length}</span>)</h2>
-    <div id="pending-filmmakers" data-filmmakers={JSON.stringify(pendingFilmmakers)}>
+    <div id="pending-filmmakers">
       {pendingFilmmakers.length === 0 ? (
         <div class="empty-state">No pending submissions</div>
       ) : null}
@@ -42,7 +42,7 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
         autocomplete="off"
       />
     </div>
-    <div id="all-filmmakers" data-filmmakers={JSON.stringify(allFilmmakers)}></div>
+    <div id="all-filmmakers"></div>
   </div>
 </BaseLayout>
 
@@ -350,15 +350,15 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
   }
 </style>
 
+<script is:inline id="pending-data" type="application/json" set:html={JSON.stringify(pendingFilmmakers)}></script>
+<script is:inline id="all-data" type="application/json" set:html={JSON.stringify(allFilmmakers)}></script>
+
 <script>
-  import type { Filmmaker } from '../../types/filmmaker';
+  import type { Filmmaker, FilmmakerStatus } from '../../types/filmmaker';
 
-  // Load data from data attributes
-  const pendingContainer = document.getElementById('pending-filmmakers')!;
-  const allContainer = document.getElementById('all-filmmakers')!;
-
-  const pendingFilmmakers: Filmmaker[] = JSON.parse(pendingContainer.dataset.filmmakers || '[]');
-  const allFilmmakers: Filmmaker[] = JSON.parse(allContainer.dataset.filmmakers || '[]');
+  // Load filmmakers from JSON script tags
+  const pendingFilmmakers: Filmmaker[] = JSON.parse(document.getElementById('pending-data')!.textContent || '[]');
+  const allFilmmakers: Filmmaker[] = JSON.parse(document.getElementById('all-data')!.textContent || '[]');
 
   function renderFilmmakerCard(f: Filmmaker, showApproveButton: boolean = false) {
     return `
@@ -522,11 +522,11 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
     await updateFilmmaker(id, { status: 'archived' });
   }
 
-  async function updateStatus(id: number, status: string) {
+  async function updateStatus(id: number, status: FilmmakerStatus) {
     await updateFilmmaker(id, { status });
   }
 
-  async function updateFilmmaker(id: number, data: any) {
+  async function updateFilmmaker(id: number, data: Partial<Filmmaker>) {
     try {
       const response = await fetch('/api/approve-filmmaker', {
         method: 'POST',

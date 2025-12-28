@@ -1,7 +1,9 @@
 import type { APIRoute } from 'astro';
 import { db } from '../../db';
 import { siteSettings } from '../../db/schema';
+import { sql } from 'drizzle-orm';
 import { isAuthenticated, unauthorizedResponse } from '../../lib/auth';
+import { errorResponse, successResponse } from '../../lib/api';
 
 export const POST: APIRoute = async ({ request }) => {
   // Require authentication for updating banner settings
@@ -14,56 +16,31 @@ export const POST: APIRoute = async ({ request }) => {
     const { banner_html, banner_enabled } = body;
 
     if (typeof banner_html !== 'string') {
-      return new Response(
-        JSON.stringify({ error: 'banner_html must be a string' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return errorResponse('banner_html must be a string');
     }
 
     if (typeof banner_enabled !== 'boolean') {
-      return new Response(
-        JSON.stringify({ error: 'banner_enabled must be a boolean' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return errorResponse('banner_enabled must be a boolean');
     }
 
-    // Update banner_html
+    // Update both settings in a single query
     await db
       .insert(siteSettings)
-      .values({ key: 'banner_html', value: banner_html })
+      .values([
+        { key: 'banner_html', value: banner_html },
+        { key: 'banner_enabled', value: banner_enabled.toString() }
+      ])
       .onConflictDoUpdate({
         target: siteSettings.key,
-        set: { value: banner_html, updatedAt: new Date() },
-      });
-
-    // Update banner_enabled
-    await db
-      .insert(siteSettings)
-      .values({ key: 'banner_enabled', value: banner_enabled.toString() })
-      .onConflictDoUpdate({
-        target: siteSettings.key,
-        set: { value: banner_enabled.toString(), updatedAt: new Date() },
-      });
-
-    return new Response(
-      JSON.stringify({ success: true }),
-      {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
+        set: {
+          value: sql`excluded.value`,
+          updatedAt: new Date()
         },
-      }
-    );
+      });
+
+    return successResponse({ success: true });
   } catch (error) {
     console.error('Failed to update banner settings:', error);
-    return new Response(
-      JSON.stringify({ error: 'Failed to update banner settings' }),
-      {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    return errorResponse('Failed to update banner settings', 500);
   }
 };

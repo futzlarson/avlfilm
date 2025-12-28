@@ -18,7 +18,7 @@ try {
     .where(eq(filmmakersTable.status, 'approved'));
 
   // Remove email and phone from results
-  filmmakers = results.map(({ email, phone, ...filmmaker }) => filmmaker);
+  filmmakers = results.map(({ email, phone, ...filmmaker }) => filmmaker) as PublicFilmmaker[];
 } catch (e) {
   console.error('Error fetching filmmakers:', e);
   error = 'Failed to load filmmakers';

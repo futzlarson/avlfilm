@@ -271,12 +271,19 @@ const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj =>
   }
 </style>
 
-<script is:inline define:vars={{ roles: canonicalRoles, roleMap: roleAliasMap }}>
-  const selectedRoles = new Set();
+<script is:inline id="roles-data" type="application/json" set:html={JSON.stringify(canonicalRoles)}></script>
+<script is:inline id="role-map-data" type="application/json" set:html={JSON.stringify(roleAliasMap)}></script>
+
+<script>
+  // Load roles data from JSON script tags
+  const roles: string[] = JSON.parse(document.getElementById('roles-data')!.textContent || '[]');
+  const roleMap: Record<string, string> = JSON.parse(document.getElementById('role-map-data')!.textContent || '{}');
+
+  const selectedRoles = new Set<string>();
 
   function updateSelectedRoles() {
     const container = document.getElementById('selected-roles');
-    const hiddenInput = document.getElementById('roles');
+    const hiddenInput = document.getElementById('roles') as HTMLInputElement;
 
     if (!container || !hiddenInput) return;
 
@@ -303,13 +310,13 @@ const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj =>
   }
 
   function setupAutocomplete() {
-    const input = document.getElementById('roles-input');
+    const input = document.getElementById('roles-input') as HTMLInputElement;
     const dropdown = document.getElementById('roles-dropdown');
 
     if (!input || !dropdown) return;
 
     input.addEventListener('input', (e) => {
-      const value = e.target.value.toLowerCase();
+      const value = (e.target as HTMLInputElement).value.toLowerCase();
 
       if (!value) {
         dropdown.classList.remove('active');
@@ -358,11 +365,11 @@ const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj =>
     });
   }
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: Event) {
     e.preventDefault();
 
-    const form = e.target;
-    const submitBtn = form.querySelector('.submit-btn');
+    const form = e.target as HTMLFormElement;
+    const submitBtn = form.querySelector('.submit-btn') as HTMLButtonElement;
 
     submitBtn.disabled = true;
     submitBtn.textContent = 'Submitting...';
@@ -384,9 +391,9 @@ const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj =>
       }
 
       form.style.display = 'none';
-      document.querySelector('.intro').remove();
-      document.querySelector('h1').remove();
-      document.getElementById('success-message').style.display = 'block';
+      document.querySelector('.intro')?.remove();
+      document.querySelector('h1')?.remove();
+      document.getElementById('success-message')!.style.display = 'block';
     } catch (error) {
       console.error('Error:', error);
       alert('Failed to submit. Please try again.');
@@ -395,7 +402,7 @@ const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj =>
     }
   }
 
-  async function checkEmailExists(email) {
+  async function checkEmailExists(email: string): Promise<boolean> {
     try {
       const response = await fetch(`/api/check-email?email=${encodeURIComponent(email)}`);
       if (!response.ok) return false;
@@ -408,13 +415,13 @@ const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj =>
   }
 
   function setupEmailValidation() {
-    const emailInput = document.getElementById('email');
-    const emailError = document.getElementById('email-error');
-    const submitBtn = document.querySelector('.submit-btn');
+    const emailInput = document.getElementById('email') as HTMLInputElement;
+    const emailError = document.getElementById('email-error') as HTMLElement;
+    const submitBtn = document.querySelector('.submit-btn') as HTMLButtonElement;
 
     if (!emailInput || !emailError || !submitBtn) return;
 
-    let checkTimeout;
+    let checkTimeout: ReturnType<typeof setTimeout>;
 
     emailInput.addEventListener('input', () => {
       clearTimeout(checkTimeout);

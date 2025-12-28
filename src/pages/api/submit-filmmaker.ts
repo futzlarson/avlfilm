@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { db } from '../../db';
 import { filmmakers } from '../../db/schema';
 import { Resend } from 'resend';
+import { errorResponse, jsonResponse } from '../../lib/api';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -11,15 +12,7 @@ export const POST: APIRoute = async ({ request, url }) => {
     const { name, email, phone, roles, company, website, socialMedia, gear } = body;
 
     if (!name || !email || !roles) {
-      return new Response(
-        JSON.stringify({ error: 'Name, email, and roles are required' }),
-        {
-          status: 400,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      return errorResponse('Name, email, and roles are required');
     }
 
     const [filmmaker] = await db.insert(filmmakers).values({
@@ -61,25 +54,9 @@ export const POST: APIRoute = async ({ request, url }) => {
       }
     }
 
-    return new Response(
-      JSON.stringify({ success: true, filmmaker }),
-      {
-        status: 201,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    return jsonResponse({ success: true, filmmaker }, 201);
   } catch (error) {
     console.error('Error submitting filmmaker:', error);
-    return new Response(
-      JSON.stringify({ error: 'Failed to submit filmmaker' }),
-      {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    return errorResponse('Failed to submit filmmaker', 500);
   }
 };

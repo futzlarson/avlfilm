@@ -57,7 +57,7 @@ const { filmmakers } = Astro.props;
     </thead>
     <tbody>
       {filmmakers.map((filmmaker) => (
-        <tr class="filmmaker-row" data-filmmaker={JSON.stringify(filmmaker)}>
+        <tr class="filmmaker-row" data-filmmaker-id={filmmaker.id}>
           <td class="name-cell">{filmmaker.name}</td>
           <td>{filmmaker.roles}</td>
           <td>
@@ -338,7 +338,15 @@ const { filmmakers } = Astro.props;
   }
 </style>
 
+<script is:inline id="filmmaker-data" type="application/json" set:html={JSON.stringify(filmmakers)}></script>
+
 <script>
+  import type { PublicFilmmaker } from '../types/filmmaker';
+
+  // Load filmmakers from JSON script tag
+  const filmmakers: PublicFilmmaker[] = JSON.parse(document.getElementById('filmmaker-data')!.textContent || '[]');
+  const filmmakersMap = new Map(filmmakers.map(f => [f.id, f]));
+
   let currentSort = { column: 'name', direction: 'asc' as 'asc' | 'desc' };
   let selectedRoles: Set<string> = new Set();
 
@@ -434,17 +442,17 @@ const { filmmakers } = Astro.props;
     const rows = table.querySelectorAll('.filmmaker-row');
 
     rows.forEach(row => {
-      const filmmakerData = row.getAttribute('data-filmmaker');
-      if (!filmmakerData) return;
+      const id = parseInt(row.getAttribute('data-filmmaker-id') || '0');
+      const filmmaker = filmmakersMap.get(id);
+      if (!filmmaker) return;
 
-      const filmmaker = JSON.parse(filmmakerData);
-      const filmmakerRoles = filmmaker.roles.split(',').map((r: string) => r.trim());
+      const filmmakerRoles = filmmaker.roles.split(',').map(r => r.trim());
 
       if (selectedRoles.size === 0) {
         (row as HTMLElement).style.display = '';
       } else {
         // Show row if filmmaker has ANY of the selected roles
-        const hasMatchingRole = filmmakerRoles.some((role: string) =>
+        const hasMatchingRole = filmmakerRoles.some(role =>
           selectedRoles.has(role)
         );
         (row as HTMLElement).style.display = hasMatchingRole ? '' : 'none';
@@ -483,9 +491,9 @@ const { filmmakers } = Astro.props;
       row.addEventListener('click', (e) => {
         if ((e.target as HTMLElement).tagName === 'A') return;
 
-        const filmmakerData = row.getAttribute('data-filmmaker');
-        if (filmmakerData) {
-          const filmmaker = JSON.parse(filmmakerData);
+        const id = parseInt(row.getAttribute('data-filmmaker-id') || '0');
+        const filmmaker = filmmakersMap.get(id);
+        if (filmmaker) {
           (window as any).openFilmmakerModal(filmmaker);
         }
       });
@@ -505,11 +513,16 @@ const { filmmakers } = Astro.props;
     const rows = Array.from(tbody.querySelectorAll('tr'));
 
     rows.sort((a, b) => {
-      const aData = JSON.parse(a.getAttribute('data-filmmaker') || '{}');
-      const bData = JSON.parse(b.getAttribute('data-filmmaker') || '{}');
+      const aId = parseInt(a.getAttribute('data-filmmaker-id') || '0');
+      const bId = parseInt(b.getAttribute('data-filmmaker-id') || '0');
 
-      let aVal = aData[column] || '';
-      let bVal = bData[column] || '';
+      const aData = filmmakersMap.get(aId);
+      const bData = filmmakersMap.get(bId);
+
+      if (!aData || !bData) return 0;
+
+      let aVal = aData[column as keyof PublicFilmmaker] || '';
+      let bVal = bData[column as keyof PublicFilmmaker] || '';
 
       if (typeof aVal === 'string') aVal = aVal.toLowerCase();
       if (typeof bVal === 'string') bVal = bVal.toLowerCase();

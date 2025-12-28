@@ -5,23 +5,9 @@ import { filmmakers } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import dotenv from 'dotenv';
 import { normalizeRoles } from '../config/roles';
+import { formatPhone } from '../utils/formatting';
 
 dotenv.config({ path: '.env.local' });
-
-function formatPhone(phone: string): string {
-  if (!phone) return '';
-
-  // Remove all non-digit characters
-  const cleaned = phone.replace(/\D/g, '');
-
-  // Format as ###-###-####
-  if (cleaned.length === 10) {
-    return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
-  }
-
-  // Return original if not 10 digits
-  return phone;
-}
 
 function parseCSVLine(text: string): string[] {
   const result: string[] = [];
