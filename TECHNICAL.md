@@ -10,17 +10,18 @@
 
 ## <a id="table-of-contents"></a> Table of Contents
 1. [Glossary](#glossary)
-2. [Tech Stack & Architecture Decisions](#tech-stack--architecture-decisions)
-3. [File Structure Overview](#file-structure-overview)
-4. [How Pages Are Rendered](#how-pages-are-rendered)
-5. [Database & Schema](#database--schema)
-6. [Anti-Scraping Protection](#anti-scraping-protection)
-7. [Key Features](#key-features)
-8. [SEO Implementation](#seo-implementation)
-9. [Development Workflow](#development-workflow)
-10. [Common Patterns](#common-patterns)
-11. [Troubleshooting](#troubleshooting)
-12. [Code Examples](#code-examples)
+2. [TypeScript & JavaScript Patterns](#typescript--javascript-patterns)
+3. [Tech Stack & Architecture Decisions](#tech-stack--architecture-decisions)
+4. [File Structure Overview](#file-structure-overview)
+5. [How Pages Are Rendered](#how-pages-are-rendered)
+6. [Database & Schema](#database--schema)
+7. [Anti-Scraping Protection](#anti-scraping-protection)
+8. [Key Features](#key-features)
+9. [SEO Implementation](#seo-implementation)
+10. [Development Workflow](#development-workflow)
+11. [Common Patterns](#common-patterns)
+12. [Troubleshooting](#troubleshooting)
+13. [Code Examples](#code-examples)
 
 ---
 
@@ -30,7 +31,7 @@
 
 **Connection Pooling** - Reusing database/service connections across multiple requests instead of creating new connections each time. In serverless environments, connections are reused within the same function instance (warm starts) but not across different instances. See implementation in `src/pages/api/reveal-contact.ts`.
 
-**Destructuring** - JavaScript syntax for extracting values from objects or arrays. Example: `const { email, phone, ...rest } = filmmaker` extracts `email` and `phone` properties while keeping everything else in `rest`. Used for excluding sensitive fields. See [example](#code-server-exclusion).
+**Destructuring** - JavaScript syntax for extracting values from objects or arrays. Example: `const { email, phone, ...rest } = filmmaker` extracts `email` and `phone` properties while keeping everything else in `rest`. Used for excluding sensitive fields. See [Destructuring](#destructuring).
 
 **Frontmatter** - Code between `---` fences at the top of `.astro` files that runs on the server during page rendering, before HTML is generated. Used for imports, database queries, and preparing data for templates.
 
@@ -54,6 +55,219 @@ See [full example](#code-ssr-example).
 **Same Origin** - Requests made from a web page to the same domain, protocol, and port where the page was served from. Browsers automatically include credentials (like Authorization headers) with same-origin requests. Example: Page at `https://example.com/admin` making a request to `https://example.com/api/banner` is same-origin.
 
 **Tree-shaking** - Removing unused code from the final JavaScript bundle. For example, if you import a library but only use one function, tree-shaking removes the rest, resulting in smaller bundles and faster page loads.
+
+---
+
+## TypeScript & JavaScript Patterns
+
+This section explains common TypeScript and JavaScript patterns used throughout the codebase.
+
+**In this section:**
+- [Destructuring](#destructuring)
+- [Non-null Assertion Operator (!)](#non-null-assertion-operator-)
+- [Optional Chaining (?.)](#optional-chaining-)
+- [TypeScript Utility Types: Omit](#typescript-utility-types-omit)
+- [TypeScript Generics: Map<K, V>](#typescript-generics-mapk-v)
+- [Astro Global CSS Escape](#astro-global-css-escape)
+- [Data URI for SVG Favicon](#data-uri-for-svg-favicon)
+
+### Destructuring
+
+JavaScript syntax for extracting values from objects. We use two main patterns:
+
+#### 1. Destructuring with Rest Operator
+
+**Pattern**: `const { email, phone, ...filmmaker } = result`
+
+**What it does**: Extracts specific properties while collecting the rest into a new object.
+
+```typescript
+const result = { id: 1, name: "Alice", email: "alice@example.com", phone: "555-1234" };
+const { email, phone, ...filmmaker } = result;
+// email = "alice@example.com"
+// phone = "555-1234"
+// filmmaker = { id: 1, name: "Alice" }
+```
+
+**Where we use it**: Removing sensitive fields (email/phone) from filmmaker objects before sending to the client.
+
+```typescript
+// src/pages/directory.astro
+const results = await db.select().from(filmmakersTable);
+const filmmakers = results.map(({ email, phone, ...filmmaker }) => filmmaker) as PublicFilmmaker[];
+```
+
+#### 2. Astro Props Destructuring
+
+**Pattern**: `const { filmmakers } = Astro.props`
+
+**What it does**: Extracts typed props passed to an Astro component.
+
+```astro
+---
+// Define the props interface
+interface Props {
+  filmmakers: PublicFilmmaker[];
+}
+
+// Destructure props from Astro.props
+const { filmmakers } = Astro.props;
+---
+
+<!-- Use the props in template -->
+<div>Found {filmmakers.length} filmmakers</div>
+```
+
+**How it works**:
+1. Parent component passes props: `<FilmmakerTable filmmakers={data} />`
+2. Child component defines Props interface for type safety
+3. Child accesses props via `Astro.props` (typed automatically)
+
+**Where we use it**: All Astro components that accept props (FilmmakerTable, FilmmakerModal, BaseLayout).
+
+### Non-null Assertion Operator (!)
+
+**Pattern**: `document.getElementById('filmmaker-data')!.textContent`
+
+**What it does**: Tells TypeScript "I'm certain this value is not null/undefined, trust me."
+
+```typescript
+// Without !: TypeScript error because getElementById might return null
+const element = document.getElementById('data'); // HTMLElement | null
+element.textContent; // Error: Object is possibly 'null'
+
+// With !: We assert the element exists
+const element = document.getElementById('data')!; // HTMLElement
+element.textContent; // OK
+```
+
+**When to use it**: When you know for certain an element exists (like when you just rendered it in the HTML).
+
+**Where we use it**: Reading data from JSON script tags that we control.
+
+```typescript
+// src/components/FilmmakerTable.astro
+const filmmakers = JSON.parse(document.getElementById('filmmaker-data')!.textContent || '[]');
+```
+
+### Optional Chaining (?.)
+
+**Pattern**: `document.getElementById('search')?.addEventListener('input', handler)`
+
+**What it does**: Safely accesses properties or calls methods, returning `undefined` if the value is null/undefined instead of throwing an error.
+
+```typescript
+// Without ?.: Throws error if element is null
+const element = document.getElementById('search'); // might be null
+element.addEventListener('input', handler); // Error if null
+
+// With ?.: Returns undefined instead of throwing
+document.getElementById('search')?.addEventListener('input', handler); // Safe
+```
+
+**When to use it**: When you're not sure if an element exists and it's okay if it doesn't.
+
+**Where we use it**: Adding event listeners to elements that might not be on every page.
+
+### Astro Global CSS Escape
+
+**Pattern**: `:global(.role-filter-tag)`
+
+**What it does**: Prevents Astro from scoping a CSS class, making it available globally across the page.
+
+**Why it's needed**: Astro normally scopes CSS to prevent conflicts. But when HTML is generated via `innerHTML` (like our role filter tags), Astro can't add its scoping attributes to those elements.
+
+```css
+/* Scoped (default) - only works on elements in this component's template */
+.role-filter-tag {
+  background: blue;
+}
+
+/* Global - works on any element with this class, including dynamically created ones */
+:global(.role-filter-tag) {
+  background: blue;
+}
+```
+
+**Where we use it**: Styling dynamically generated HTML created in client-side JavaScript.
+
+```typescript
+// src/components/FilmmakerTable.astro
+<style>
+  /* These elements are created via innerHTML in JavaScript, so need :global() */
+  :global(.role-filter-tag) {
+    background: #e3f2fd;
+    /* ... */
+  }
+</style>
+```
+
+### TypeScript Utility Types: Omit
+
+**Pattern**: `export type PublicFilmmaker = Omit<Filmmaker, 'email' | 'phone'>`
+
+**What it does**: Creates a new type by removing specific properties from an existing type.
+
+```typescript
+type Filmmaker = {
+  id: number;
+  name: string;
+  email: string;
+  phone: string | null;
+  roles: string;
+};
+
+// Creates a type without email and phone
+type PublicFilmmaker = Omit<Filmmaker, 'email' | 'phone'>;
+// Result: { id: number; name: string; roles: string; }
+```
+
+**Why we use it**: Type-safe way to define public-facing data structures that exclude sensitive fields.
+
+**Where we use it**: `src/db/schema.ts` - Creating `PublicFilmmaker` type for directory listings.
+
+### TypeScript Generics: Map<K, V>
+
+**Pattern**: `const contactCache = new Map<number, { email: string | null; phone: string | null }>()`
+
+**What it does**: Creates a type-safe key-value store where TypeScript knows what types the keys and values should be.
+
+```typescript
+// Without types (not type-safe)
+const cache = new Map();
+cache.set(1, { email: "test@example.com", phone: "555-1234" });
+cache.get(1).emai; // Typo! No error caught
+
+// With types (type-safe)
+const cache = new Map<number, { email: string | null; phone: string | null }>();
+cache.set(1, { email: "test@example.com", phone: "555-1234" });
+cache.get(1)?.emai; // TypeScript error: Property 'emai' does not exist
+```
+
+**Where we use it**: `src/components/FilmmakerModal.astro` - Caching revealed contact info to prevent duplicate API calls.
+
+### Data URI for SVG Favicon
+
+**Pattern**: `href="data:image/svg+xml,<svg...>"`
+
+**What it does**: Embeds an SVG image directly in the HTML using a data URI instead of linking to a separate file.
+
+```html
+<!-- Traditional approach - separate file -->
+<link rel="icon" href="/favicon.svg" />
+
+<!-- Data URI approach - embedded -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22>...</svg>" />
+```
+
+**Benefits**:
+- One less HTTP request (faster page load)
+- No need for a separate favicon file
+- Easy to update (just change the HTML)
+
+**Note**: Special characters like quotes must be URL-encoded (`%22` for `"`).
+
+**Where we use it**: `src/layouts/BaseLayout.astro` - The 🎬 emoji favicon.
 
 ---
 
@@ -213,7 +427,7 @@ In Astro, these "islands" are `<script>` tags that add interactivity to otherwis
 
 JavaScript runs in `<script>` tags for dynamic features. See [Islands Architecture example](#code-islands-example).
 
-**Important - Astro Scoped CSS Gotcha:** Astro scopes CSS by default, but NOT JavaScript-generated HTML. Any classes used in `innerHTML` or `createElement` MUST use `:global()` in CSS. See [CSS scoping example](#code-css-scoping).
+**Important - Astro Scoped CSS Gotcha:** Astro scopes CSS by default, but NOT JavaScript-generated HTML. Any classes used in `innerHTML` or `createElement` MUST use `:global()` in CSS. See [Astro Global CSS Escape](#astro-global-css-escape).
 
 ### 3. Passing Server Data to Client Scripts
 
@@ -606,7 +820,7 @@ const filmmakers: PublicFilmmaker[] = await fetchFilmmakers();
 
 **Problem**: JavaScript-generated HTML doesn't get scoped styles.
 
-**Solution**: Wrap classes in `:global()`. See [CSS scoping example](#code-css-scoping).
+**Solution**: Wrap classes in `:global()`. See [Astro Global CSS Escape](#astro-global-css-escape).
 
 ### Migration Issues
 
@@ -668,41 +882,6 @@ const filmmakers = results.map(({ email, phone, ...filmmaker }) => filmmaker) as
     const target = e.target as HTMLInputElement;
     filterResults(target.value);
   });
-</script>
-```
-
----
-
-### <a id="code-css-scoping"></a> Astro CSS Scoping Example
-
-**File:** `src/components/FilmmakerTable.astro`
-
-```astro
-<style>
-  /* Works for static HTML in the template */
-  .my-button { color: red; }
-
-  /* Required for innerHTML-generated elements */
-  :global(.dynamic-button) { color: blue; }
-
-  /* Role filter tags created via JavaScript need :global() */
-  :global(.role-filter-tag) {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 16px;
-    padding: 0.25rem 0.75rem;
-  }
-</style>
-
-<script>
-  // Creates HTML dynamically - classes MUST have :global() in CSS
-  const tagContainer = document.getElementById('selected-roles-container')!;
-  tagContainer.innerHTML = `
-    <span class="role-filter-tag">
-      ${role}
-      <button class="dynamic-button">×</button>
-    </span>
-  `;
 </script>
 ```
 
