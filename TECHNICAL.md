@@ -69,7 +69,6 @@ This section explains common TypeScript and JavaScript patterns used throughout 
 - [TypeScript Utility Types: Omit](#typescript-utility-types-omit)
 - [TypeScript Generics: Map<K, V>](#typescript-generics-mapk-v)
 - [Astro Global CSS Escape](#astro-global-css-escape)
-- [Data URI for SVG Favicon](#data-uri-for-svg-favicon)
 
 ### Destructuring
 
@@ -101,7 +100,7 @@ const filmmakers = results.map(({ email, phone, ...filmmaker }) => filmmaker) as
 
 **Pattern**: `const { filmmakers } = Astro.props`
 
-**What it does**: Extracts typed props passed to an Astro component.
+**What it does**: Extracts typed props passed to an Astro component into variables for individual properties. 
 
 ```astro
 ---
@@ -129,7 +128,7 @@ const { filmmakers } = Astro.props;
 
 **Pattern**: `document.getElementById('filmmaker-data')!.textContent`
 
-**What it does**: Tells TypeScript "I'm certain this value is not null/undefined, trust me."
+**What it does**: Tells TypeScript "I guarantee this value isn't null/undefined, stop warning me."
 
 ```typescript
 // Without !: TypeScript error because getElementById might return null
@@ -189,24 +188,13 @@ document.getElementById('search')?.addEventListener('input', handler); // Safe
 }
 ```
 
-**Where we use it**: Styling dynamically generated HTML created in client-side JavaScript.
-
-```typescript
-// src/components/FilmmakerTable.astro
-<style>
-  /* These elements are created via innerHTML in JavaScript, so need :global() */
-  :global(.role-filter-tag) {
-    background: #e3f2fd;
-    /* ... */
-  }
-</style>
-```
+**Where we use it**: Styling dynamically generated HTML created in client-side JavaScript (like role filter tags in `FilmmakerTable.astro`).
 
 ### TypeScript Utility Types: Omit
 
 **Pattern**: `export type PublicFilmmaker = Omit<Filmmaker, 'email' | 'phone'>`
 
-**What it does**: Creates a new type by removing specific properties from an existing type.
+**What it does**: Creates a new type (via TypeScript utility type) by removing specific properties from an existing type.
 
 ```typescript
 type Filmmaker = {
@@ -245,29 +233,6 @@ cache.get(1)?.emai; // TypeScript error: Property 'emai' does not exist
 ```
 
 **Where we use it**: `src/components/FilmmakerModal.astro` - Caching revealed contact info to prevent duplicate API calls.
-
-### Data URI for SVG Favicon
-
-**Pattern**: `href="data:image/svg+xml,<svg...>"`
-
-**What it does**: Embeds an SVG image directly in the HTML using a data URI instead of linking to a separate file.
-
-```html
-<!-- Traditional approach - separate file -->
-<link rel="icon" href="/favicon.svg" />
-
-<!-- Data URI approach - embedded -->
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22>...</svg>" />
-```
-
-**Benefits**:
-- One less HTTP request (faster page load)
-- No need for a separate favicon file
-- Easy to update (just change the HTML)
-
-**Note**: Special characters like quotes must be URL-encoded (`%22` for `"`).
-
-**Where we use it**: `src/layouts/BaseLayout.astro` - The 🎬 emoji favicon.
 
 ---
 
