@@ -91,6 +91,14 @@ npm run db:migrate       # Run migration
 - ❌ Adding `dotenv.config()` to every script
 - ✅ Check if shared modules already load env vars (e.g., `src/db/index.ts` loads dotenv)
 - Only add dotenv where actually needed (e.g., scripts that use env vars directly, not through shared modules)
+- ❌ Using `process.env` in Astro API routes
+- ✅ Use `import.meta.env` in Astro server-side code (API routes, pages)
+
+### 10. Dev Server Management
+- ❌ Starting `npm run dev` when a dev server is already running
+- ✅ Check for existing dev server first: `lsof -i:4321` or `lsof -i:4322`
+- Only start new server if none exists
+- Reuse existing server for testing
 
 ---
 

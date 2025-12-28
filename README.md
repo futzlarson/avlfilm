@@ -4,7 +4,7 @@
 >
 > **Purpose:** Quick start guide, setup instructions, and basic project overview.
 
-Website for avlfilm.com - built with Astro, TypeScript, and PostgreSQL.
+Website for avlfilm.com.
 
 ## Quick Start
 
@@ -19,8 +19,10 @@ Visit http://localhost:4321
 
 ## Tech Stack
 - Astro 5 + TypeScript
-- PostgreSQL + Drizzle ORM
-- Vercel hosting
+- PostgreSQL (Supabase) + Drizzle ORM
+- Redis (API rate limiting)
+- Resend (email notifications)
+- Vercel (hosting)
 
 ## Commands
 - `npm run dev` - Dev server
@@ -43,10 +45,14 @@ src/
 ```
 
 ## Features
-- Dynamic banner system (admin editable)
-- Event calendar with mobile/desktop views
-- Admin dashboard (HTTP Basic Auth)
-- Responsive design
+- **Filmmaker directory** - Browse and search local filmmakers by role
+  - **Submission system** - Public form for filmmakers to join the directory
+- **Admin dashboard** - Review, approve, and manage filmmaker submissions (HTTP Basic Auth)
+- **Event calendar** - Mobile/desktop views for film community events
+- **Newsletter signup** - EmailOctopus integration
+- **Rate limiting** - Redis-based protection for contact reveals (20/hour per IP)
+- **Automated backups** - GitHub Actions nightly backups with change detection
+  - Required GitHub secrets: `POSTGRES_URL`, `ADMIN_EMAIL`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`
 
 ## Database Workflow
 1. Edit `src/db/schema.ts`
@@ -63,10 +69,37 @@ src/
 5. Deploy
 
 ## Environment Variables
+
 Create `.env.local`:
+```bash
+# Required
+POSTGRES_URL="postgresql://..."           # Supabase connection string
+REDIS_URL="redis://..."                   # Redis for rate limiting
+ADMIN_PASSWORD=""                         # Admin dashboard password
+
+# Email notifications (filmmaker submissions, backup alerts)
+RESEND_API_KEY=""
+RESEND_FROM_EMAIL="noreply@yourdomain.com"
+ADMIN_EMAIL="admin@yourdomain.com"
+
+# Newsletter signup
+EMAILOCTOPUS_API_KEY=""
+EMAILOCTOPUS_LIST_ID=""
+
+# GitHub Secrets (for automated backups) - add to repo Settings → Secrets → Actions
+POSTGRES_URL=""
+ADMIN_EMAIL=""
+RESEND_API_KEY=""
 ```
-POSTGRES_URL="postgresql://..."
-```
+
+## Restoring a Database Backup
+
+1. Download backup from GitHub repo → Actions → Database Backup → [run] → Artifacts
+2. Unzip to get `.dump` file
+3. Restore:
+   ```bash
+   pg_restore -d "$POSTGRES_URL" backup-file.dump
+   ```
 
 ## Documentation
 
