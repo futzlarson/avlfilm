@@ -27,53 +27,7 @@ jobs:
         env:
           POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
         run: |
-          # Create a simple Node script to check for changes
-          cat > check-changes.js << 'EOF'
-          import { db } from './src/db/index.js';
-          import { siteSettings } from './src/db/schema.js';
-          import { eq, sql } from 'drizzle-orm';
-
-          async function checkChanges() {
-            try {
-              const lastBackupResult = await db
-                .select()
-                .from(siteSettings)
-                .where(eq(siteSettings.key, 'last_backup_timestamp'));
-
-              const lastBackupTime = lastBackupResult[0]?.value
-                ? new Date(lastBackupResult[0].value)
-                : new Date(0);
-
-              const lastChangeResult = await db.execute(sql`
-                SELECT MAX(GREATEST(created_at, updated_at)) as last_change
-                FROM filmmakers
-              `);
-
-              const lastChangeTime = lastChangeResult.rows[0]?.last_change
-                ? new Date(lastChangeResult.rows[0].last_change)
-                : new Date();
-
-              if (lastChangeTime <= lastBackupTime) {
-                console.log('SKIP_BACKUP=true');
-                console.log(`No changes since ${lastBackupTime.toISOString()}`);
-                process.exit(0);
-              }
-
-              console.log('SKIP_BACKUP=false');
-              console.log(`Changes detected: ${lastChangeTime.toISOString()}`);
-              process.exit(0);
-            } catch (error) {
-              console.error('Error checking changes:', error);
-              console.log('SKIP_BACKUP=false'); // Backup on error to be safe
-              process.exit(0);
-            }
-          }
-
-          checkChanges();
-          EOF
-
-          # Run the check
-          output=$(node check-changes.js)
+          output=$(npx tsx src/scripts/backup/check-changes.ts)
           echo "$output"
 
           if echo "$output" | grep -q "SKIP_BACKUP=true"; then
@@ -146,38 +100,7 @@ jobs:
         if: steps.check_changes.outputs.skip == 'false'
         env:
           POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
-        run: |
-          cat > update-timestamp.js << 'EOF'
-          import { db } from './src/db/index.js';
-          import { siteSettings } from './src/db/schema.js';
-
-          async function updateTimestamp() {
-            try {
-              await db
-                .insert(siteSettings)
-                .values({
-                  key: 'last_backup_timestamp',
-                  value: new Date().toISOString()
-                })
-                .onConflictDoUpdate({
-                  target: siteSettings.key,
-                  set: {
-                    value: new Date().toISOString(),
-                    updatedAt: new Date()
-                  }
-                });
-              console.log('Backup timestamp updated');
-            } catch (error) {
-              console.error('Failed to update timestamp:', error);
-              process.exit(1);
-            }
-            process.exit(0);
-          }
-
-          updateTimestamp();
-          EOF
-
-          node update-timestamp.js
+        run: npx tsx src/scripts/backup/update-timestamp.ts
 
       - name: Send failure notification
         if: failure()
@@ -185,30 +108,8 @@ jobs:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           RESEND_FROM_EMAIL: ${{ secrets.RESEND_FROM_EMAIL }}
           ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
-        run: |
-          cat > send-alert.js << 'EOF'
-          import { Resend } from 'resend';
-
-          const resend = new Resend(process.env.RESEND_API_KEY);
-
-          async function sendAlert() {
-            try {
-              await resend.emails.send({
-                from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
-                to: process.env.ADMIN_EMAIL || 'admin@example.com',
-                subject: 'Database Backup Failed - AVL Film',
-                text: `The automated database backup failed at ${new Date().toISOString()}.\n\nPlease check the GitHub Actions logs for more details:\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}`
-              });
-              console.log('Failure notification sent');
-            } catch (error) {
-              console.error('Failed to send notification:', error);
-            }
-          }
-
-          sendAlert();
-          EOF
-
-          node send-alert.js || true # Don't fail workflow if email fails
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: npx tsx src/scripts/backup/send-alert.ts || true
 
       - name: Log skip message
         if: steps.check_changes.outputs.skip == 'true'
