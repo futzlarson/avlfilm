@@ -82,6 +82,16 @@ npm run db:migrate       # Run migration
 - ❌ Two functions with same implementation
 - ✅ One shared utility function
 
+### 8. CI/CD Best Practices
+- ❌ Creating inline files in workflows (`cat > script.ts << 'EOF'`)
+- ✅ Create version-controlled script files in `src/scripts/` that can be tested locally
+- **Benefits:** Git tracking, local testing, type checking, easier debugging
+
+### 9. Environment Variables
+- ❌ Adding `dotenv.config()` to every script
+- ✅ Check if shared modules already load env vars (e.g., `src/db/index.ts` loads dotenv)
+- Only add dotenv where actually needed (e.g., scripts that use env vars directly, not through shared modules)
+
 ---
 
 ## Database Workflow
