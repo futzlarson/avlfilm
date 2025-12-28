@@ -1,4 +1,5 @@
 import { pgTable, serial, varchar, text, timestamp } from 'drizzle-orm/pg-core';
+import type { InferSelectModel } from 'drizzle-orm';
 
 export const siteSettings = pgTable('site_settings', {
   id: serial('id').primaryKey(),
@@ -21,3 +22,8 @@ export const filmmakers = pgTable('filmmakers', {
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
+
+// Type definitions - single source of truth derived from schema
+export type Filmmaker = InferSelectModel<typeof filmmakers>;
+export type FilmmakerStatus = Filmmaker['status'];
+export type PublicFilmmaker = Omit<Filmmaker, 'email' | 'phone'>;

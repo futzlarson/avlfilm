@@ -5,7 +5,7 @@ import FilmmakerModal from '../components/FilmmakerModal.astro';
 import { db } from '../db';
 import { filmmakers as filmmakersTable } from '../db/schema';
 import { eq } from 'drizzle-orm';
-import type { PublicFilmmaker } from '../types/filmmaker';
+import type { PublicFilmmaker } from '../db/schema';
 
 let filmmakers: PublicFilmmaker[] = [];
 let error = null;
