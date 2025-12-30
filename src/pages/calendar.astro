@@ -33,8 +33,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
                            parseInt(window.getComputedStyle(main).paddingBottom);
 
         // Get the height of content before the container (including all margins)
-        const h1 = main.querySelector('h1');
-        const intro = main.querySelector('.intro');
+        const h1 = main.querySelector('h1') as HTMLElement | null;
+        const intro = main.querySelector('.intro') as HTMLElement | null;
 
         const h1Styles = h1 ? window.getComputedStyle(h1) : null;
         const h1Height = h1 ? h1.offsetHeight +
