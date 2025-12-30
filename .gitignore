@@ -33,3 +33,6 @@ drizzle/meta
 
 # Metadata
 meta/
+
+# Spec files
+docs/specs/

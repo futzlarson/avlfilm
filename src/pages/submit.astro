@@ -16,7 +16,10 @@ for (const rolesObj of Object.values(FILM_ROLES_BY_CATEGORY)) {
 const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj => Object.keys(rolesObj));
 ---
 
-<BaseLayout title="Submit to Directory">
+<BaseLayout
+  title="Submit to Filmmaker Directory"
+  description="Join the AVL Film filmmaker directory. Add your profile to connect with the film community in Asheville and Western North Carolina."
+>
   <h1>Add Yourself to the Filmmaker Directory</h1>
   <p class="intro">Join the AVL Film community! Fill out the form below to be listed in our filmmaker directory.</p>
 
@@ -72,7 +75,7 @@ const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj =>
       <textarea id="gear" name="gear" rows="4" placeholder="List your equipment and gear..."></textarea>
     </div>
 
-    <button type="submit" class="submit-btn">Submit</button>
+    <button type="submit" class="btn-primary btn-large">Submit</button>
   </form>
 
   <div id="success-message" class="success-message" style="display: none;">
@@ -96,36 +99,6 @@ const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj =>
     margin-bottom: 0.75rem;
   }
 
-  label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: #333;
-  }
-
-  .required {
-    color: #dc2626;
-  }
-
-  input[type="text"],
-  input[type="email"],
-  input[type="tel"],
-  input[type="url"],
-  textarea {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #d1d5db;
-    border-radius: 4px;
-    font-size: 1rem;
-    font-family: inherit;
-  }
-
-  input:focus,
-  textarea:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  }
 
   .autocomplete-container {
     position: relative;
@@ -211,27 +184,6 @@ const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj =>
     transform: scale(1.1);
   }
 
-  .submit-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    padding: 1rem 2rem;
-    font-size: 1.1rem;
-    font-weight: 600;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: transform 0.15s;
-  }
-
-  .submit-btn:hover {
-    transform: translateY(-2px);
-  }
-
-  .submit-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-  }
 
   .success-message {
     max-width: 600px;
@@ -369,7 +321,7 @@ const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj =>
     e.preventDefault();
 
     const form = e.target as HTMLFormElement;
-    const submitBtn = form.querySelector('.submit-btn') as HTMLButtonElement;
+    const submitBtn = form.querySelector('.btn-primary') as HTMLButtonElement;
 
     submitBtn.disabled = true;
     submitBtn.textContent = 'Submitting...';
@@ -417,7 +369,7 @@ const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj =>
   function setupEmailValidation() {
     const emailInput = document.getElementById('email') as HTMLInputElement;
     const emailError = document.getElementById('email-error') as HTMLElement;
-    const submitBtn = document.querySelector('.submit-btn') as HTMLButtonElement;
+    const submitBtn = document.querySelector('.btn-primary') as HTMLButtonElement;
 
     if (!emailInput || !emailError || !submitBtn) return;
 
