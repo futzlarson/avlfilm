@@ -200,14 +200,36 @@ const { id } = Astro.props;
     .modal-content {
       width: 95%;
       max-height: 90vh;
+      margin: 0 auto;
     }
 
     .modal-body {
-      padding: 1.5rem;
+      padding: 1.5rem 1rem;
     }
 
     .filmmaker-name {
       font-size: 1.5rem;
+      padding-right: 2rem;
+      word-wrap: break-word;
+    }
+
+    .filmmaker-details th,
+    .filmmaker-details td {
+      padding: 0.625rem;
+      font-size: 0.875rem;
+      word-wrap: break-word;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      max-width: 0; /* Force table cell to respect word-break */
+    }
+
+    .filmmaker-details th {
+      width: 35%;
+      min-width: 100px;
+    }
+
+    .filmmaker-details td {
+      width: 65%;
     }
   }
 </style>
