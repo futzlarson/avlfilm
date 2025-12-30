@@ -155,17 +155,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   }
 
   .message {
+    display: none;
     padding: 0.65rem;
     font-size: 0.85rem;
-    display: none;
     text-align: left;
   }
 
-  .message.success {
-    display: block;
-  }
-
-  .message.error {
+  .message.alert-success,
+  .message.alert-error {
     display: block;
   }
 
