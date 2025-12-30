@@ -152,6 +152,24 @@ h1 {
   font-size: 1.1rem;
 }
 
+/* Gradient button (simpler variant without transform) */
+.btn-gradient {
+  padding: 0.625rem 1.25rem;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btn-gradient:hover {
+  opacity: 0.9;
+}
+
 /* ==========================================================================
    5. CARDS
    ========================================================================== */
@@ -501,5 +519,181 @@ footer {
 
   .card h4 {
     font-size: 1.1rem;
+  }
+}
+
+/* ==========================================================================
+   13. MODALS
+   ========================================================================== */
+
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal.active {
+  display: flex;
+}
+
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  position: relative;
+  background: white;
+  border-radius: var(--radius-lg);
+  max-width: 600px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+}
+
+.modal-close {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  background: none;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  color: var(--color-text-light);
+  line-height: 1;
+  padding: 0;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.modal-close:hover {
+  color: var(--color-text-primary);
+}
+
+.modal-body {
+  padding: var(--spacing-xl);
+}
+
+.modal-body h2 {
+  margin: 0 0 var(--spacing-xs);
+  color: var(--color-text-primary);
+  font-size: 1.75rem;
+}
+
+.modal-intro {
+  margin: 0 0 var(--spacing-lg);
+  color: var(--color-text-light);
+  font-size: 0.9375rem;
+}
+
+/* Modal form utilities */
+.optional {
+  color: var(--color-text-muted);
+  font-weight: 400;
+  font-size: 0.875rem;
+}
+
+.char-count {
+  margin-top: 0.25rem;
+  text-align: right;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: flex-end;
+  margin-top: var(--spacing-lg);
+}
+
+.btn-cancel,
+.btn-submit {
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.btn-cancel {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn-cancel:hover {
+  background: #e5e7eb;
+}
+
+.btn-submit {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: white;
+}
+
+.btn-submit:hover {
+  opacity: 0.9;
+}
+
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.success-message {
+  text-align: center;
+}
+
+.success-message h3 {
+  color: #059669;
+  margin: 0 0 var(--spacing-sm);
+  font-size: 1.5rem;
+}
+
+.success-message p {
+  color: #374151;
+  margin: 0 0 var(--spacing-lg);
+  font-size: 1rem;
+}
+
+.btn-close-success {
+  padding: 0.625rem 1.5rem;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.btn-close-success:hover {
+  opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    max-height: 95vh;
+  }
+
+  .modal-body {
+    padding: var(--spacing-lg) var(--spacing-md);
+  }
+
+  .modal-body h2 {
+    font-size: 1.5rem;
+    padding-right: 2rem;
   }
 }

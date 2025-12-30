@@ -13,7 +13,7 @@ const { id } = Astro.props;
     <div class="modal-body">
       <h2 class="filmmaker-name"></h2>
       <div class="reveal-contact-section">
-        <button class="reveal-contact-btn" id="reveal-contact-btn">
+        <button class="btn-gradient reveal-contact-btn" id="reveal-contact-btn">
           Reveal contact information
         </button>
       </div>
@@ -54,62 +54,6 @@ const { id } = Astro.props;
 </div>
 
 <style>
-  .modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .modal.active {
-    display: flex;
-  }
-
-  .modal-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-  }
-
-  .modal-content {
-    position: relative;
-    background: white;
-    border-radius: 8px;
-    max-width: 600px;
-    width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
-  }
-
-  .modal-close {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: none;
-    border: none;
-    font-size: 2rem;
-    cursor: pointer;
-    color: #666;
-    line-height: 1;
-    padding: 0;
-    width: 2rem;
-    height: 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .modal-close:hover {
-    color: #000;
-  }
-
-  .modal-body {
-    padding: 2rem;
-  }
-
   .filmmaker-name {
     margin: 0 0 1rem;
     color: #1a1a1a;
@@ -118,27 +62,6 @@ const { id } = Astro.props;
 
   .reveal-contact-section {
     margin-bottom: 1.5rem;
-  }
-
-  .reveal-contact-btn {
-    padding: 0.625rem 1.25rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 0.9375rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: opacity 0.15s;
-  }
-
-  .reveal-contact-btn:hover {
-    opacity: 0.9;
-  }
-
-  .reveal-contact-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
   }
 
   .reveal-contact-btn.hidden {
@@ -197,16 +120,6 @@ const { id } = Astro.props;
   }
 
   @media (max-width: 768px) {
-    .modal-content {
-      width: 95%;
-      max-height: 90vh;
-      margin: 0 auto;
-    }
-
-    .modal-body {
-      padding: 1.5rem 1rem;
-    }
-
     .filmmaker-name {
       font-size: 1.5rem;
       padding-right: 2rem;
