@@ -64,6 +64,9 @@
   --shadow-md: 0 4px 12px rgba(102, 126, 234, 0.35);
   --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.1);
 
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+
   /* Breakpoints (for reference in comments) */
   /* --breakpoint-mobile: 768px; */
 }

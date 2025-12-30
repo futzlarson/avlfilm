@@ -92,7 +92,7 @@ const { filmmakers } = Astro.props;
     padding: 0.5rem 1rem;
     background: white;
     border: 1px solid #d1d5db;
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     cursor: pointer;
     font-size: 0.875rem;
     font-weight: 500;
@@ -101,8 +101,8 @@ const { filmmakers } = Astro.props;
   }
 
   .filter-toggle:hover {
-    border-color: #667eea;
-    color: #667eea;
+    border-color: var(--color-primary);
+    color: var(--color-primary);
   }
 
   .filter-toggle-icon {
@@ -133,7 +133,7 @@ const { filmmakers } = Astro.props;
     align-items: center;
     gap: 0.5rem;
     padding: 0.25rem 0.75rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--gradient-primary);
     color: white;
     border-radius: 16px;
     font-size: 0.875rem;
@@ -183,8 +183,8 @@ const { filmmakers } = Astro.props;
     gap: 1.5rem 2rem;
     padding: 1.5rem;
     background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
     opacity: 0;
     transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -219,7 +219,7 @@ const { filmmakers } = Astro.props;
   }
 
   .filter-section label:hover {
-    color: #667eea;
+    color: var(--color-primary);
   }
 
   .filter-section input[type="checkbox"] {
@@ -228,7 +228,7 @@ const { filmmakers } = Astro.props;
 
   .table-container {
     overflow-x: auto;
-    border-radius: 8px;
+    border-radius: var(--radius-lg);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
@@ -245,7 +245,7 @@ const { filmmakers } = Astro.props;
     text-align: left;
     font-weight: 600;
     white-space: nowrap;
-    border-bottom: 2px solid #e5e7eb;
+    border-bottom: 2px solid var(--color-border);
   }
 
   .filmmaker-table th.sortable {
@@ -256,7 +256,7 @@ const { filmmakers } = Astro.props;
   }
 
   .filmmaker-table th.sortable:hover {
-    background: #e5e7eb;
+    background: var(--color-border);
   }
 
   .sort-indicator {
@@ -297,11 +297,11 @@ const { filmmakers } = Astro.props;
   }
 
   .filmmaker-row:hover {
-    background-color: #f9fafb;
+    background-color: var(--color-bg-subtle);
   }
 
   .filmmaker-table a {
-    color: #667eea;
+    color: var(--color-primary);
     text-decoration: none;
   }
 

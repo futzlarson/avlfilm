@@ -141,7 +141,7 @@ const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj =>
   }
 
   :global(.role-tag) {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--gradient-primary);
     color: white;
     padding: 0.625rem 1.125rem;
     border-radius: 50px;
@@ -190,7 +190,7 @@ const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj =>
     padding: 2rem;
     background: #f0fdf4;
     border: 2px solid #86efac;
-    border-radius: 8px;
+    border-radius: var(--radius-lg);
     text-align: center;
   }
 
@@ -206,7 +206,7 @@ const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj =>
 
   .back-link {
     display: inline-block;
-    color: #667eea;
+    color: var(--color-primary);
     text-decoration: none;
     font-weight: 600;
   }

@@ -243,9 +243,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 <style>
   /* Table of Contents */
   .toc {
-    background: linear-gradient(135deg, #667eea20 0%, #764ba240 100%);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.125) 0%, rgba(118, 75, 162, 0.25) 100%);
     border: 1px solid #93c5fd;
-    border-radius: 8px;
+    border-radius: var(--radius-lg);
     padding: 1.5rem;
     margin: 2rem 0 3rem;
     display: inline-block;
@@ -282,14 +282,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   }
 
   .toc-section a {
-    color: #667eea;
+    color: var(--color-primary);
     text-decoration: none;
     font-weight: 500;
     transition: color 0.2s;
   }
 
   .toc-section a:hover {
-    color: #764ba2;
+    color: var(--color-primary-dark);
     text-decoration: underline;
   }
 
@@ -300,7 +300,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   .content-section h2 {
     color: #1f2937;
-    border-bottom: 3px solid #667eea;
+    border-bottom: 3px solid var(--color-primary);
     padding-bottom: 0.75rem;
     margin-bottom: 2rem;
     margin-top: 3rem;
@@ -338,13 +338,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   }
 
   .simple-answer a {
-    color: #667eea;
+    color: var(--color-primary);
     text-decoration: none;
     transition: color 0.2s;
   }
 
   .simple-answer a:hover {
-    color: #764ba2;
+    color: var(--color-primary-dark);
     text-decoration: underline;
   }
 
@@ -359,7 +359,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   .address {
     font-size: 0.95rem;
-    color: #667eea !important;
+    color: var(--color-primary) !important;
     margin-top: 0.5rem;
   }
 
@@ -400,7 +400,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   }
 
   .fb-group-item a:hover {
-    color: #667eea;
+    color: var(--color-primary);
   }
 
   .fb-group-item p {
