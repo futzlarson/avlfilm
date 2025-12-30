@@ -4,7 +4,7 @@ import { filmmakers } from '../../db/schema';
 import { Resend } from 'resend';
 import { errorResponse, jsonResponse } from '../../lib/api';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(import.meta.env.RESEND_API_KEY);
 
 export const POST: APIRoute = async ({ request, url }) => {
   try {
@@ -27,14 +27,14 @@ export const POST: APIRoute = async ({ request, url }) => {
       status: 'pending',
     }).returning();
 
-    if (process.env.RESEND_API_KEY && process.env.ADMIN_EMAIL) {
+    if (import.meta.env.RESEND_API_KEY && import.meta.env.ADMIN_EMAIL) {
       try {
         const adminUrl = `${url.origin}/admin/filmmakers`;
 
         await resend.emails.send({
           from: 'AVL Film <onboarding@resend.dev>',
-          replyTo: process.env.ADMIN_EMAIL,
-          to: process.env.ADMIN_EMAIL,
+          replyTo: import.meta.env.ADMIN_EMAIL,
+          to: import.meta.env.ADMIN_EMAIL,
           subject: 'New Filmmaker Directory Submission',
           html: `
             <h2>New Filmmaker Directory Submission</h2>

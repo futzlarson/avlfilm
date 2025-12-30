@@ -11,7 +11,7 @@ const RATE_LIMIT_WINDOW = 60 * 60; // 1 hour in seconds
 
 // Initialize Redis client
 const redis = createClient({
-  url: import.meta.env.REDIS_URL || process.env.REDIS_URL || ''
+  url: import.meta.env.REDIS_URL || ''
 });
 
 redis.on('error', (err) => console.error('Redis Client Error', err));
