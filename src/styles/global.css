@@ -1,0 +1,505 @@
+/* ==========================================================================
+   AVL FILM GLOBAL STYLES
+   ========================================================================== */
+
+/* ==========================================================================
+   1. CSS CUSTOM PROPERTIES (VARIABLES)
+   ========================================================================== */
+
+:root {
+  /* Colors - Brand */
+  --color-primary: #667eea;
+  --color-primary-dark: #764ba2;
+  --color-primary-light: #64b5f6;
+
+  /* Colors - Neutrals */
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #1f2937;
+  --color-text-medium: #4b5563;
+  --color-text-light: #666;
+  --color-text-muted: #6b7280;
+
+  /* Colors - UI */
+  --color-border: #e5e7eb;
+  --color-border-light: #d1d5db;
+  --color-bg-card: #ffffff;
+  --color-bg-subtle: #f9fafb;
+  --color-bg-light: #f5f5f5;
+
+  /* Colors - Status */
+  --color-success-bg: #d4edda;
+  --color-success-text: #155724;
+  --color-success-border: #c3e6cb;
+  --color-error-bg: #f8d7da;
+  --color-error-text: #721c24;
+  --color-error-border: #f5c6cb;
+  --color-info-bg: #fef3c7;
+  --color-info-text: #92400e;
+  --color-info-border: #fbbf24;
+  --color-required: #dc2626;
+
+  /* Spacing */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 0.75rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 2.5rem;
+  --spacing-3xl: 3rem;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-full: 50px;
+
+  /* Transitions */
+  --transition-fast: 0.15s;
+  --transition-base: 0.2s;
+  --transition-slow: 0.3s;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(102, 126, 234, 0.25);
+  --shadow-md: 0 4px 12px rgba(102, 126, 234, 0.35);
+  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  /* Breakpoints (for reference in comments) */
+  /* --breakpoint-mobile: 768px; */
+}
+
+/* ==========================================================================
+   2. CSS RESET & BASE STYLES
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
+  color: var(--color-text-light);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==========================================================================
+   3. TYPOGRAPHY
+   ========================================================================== */
+
+h1 {
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+.intro {
+  margin-bottom: var(--spacing-xl);
+  color: var(--color-text-light);
+  font-size: 1.1rem;
+}
+
+/* Section headings - standardized across pages */
+.section-heading {
+  margin-top: var(--spacing-3xl);
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-xs);
+  border-bottom: 2px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+/* ==========================================================================
+   4. BUTTONS
+   ========================================================================== */
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: white;
+  border: none;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-base);
+  text-decoration: none;
+  display: inline-block;
+  font-size: 1rem;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Large button variant */
+.btn-large {
+  padding: var(--spacing-md) var(--spacing-xl);
+  font-size: 1.1rem;
+}
+
+/* ==========================================================================
+   5. CARDS
+   ========================================================================== */
+
+.card {
+  background: var(--color-bg-card);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-primary);
+  transition: box-shadow var(--transition-base), transform var(--transition-base), border-left-color var(--transition-base);
+}
+
+.card:hover {
+  border-left-color: var(--color-primary-dark);
+  box-shadow: var(--shadow-card);
+  transform: translateY(-2px);
+}
+
+.card h2,
+.card h3,
+.card h4 {
+  margin-top: 0;
+  color: var(--color-text-secondary);
+}
+
+.card h2 {
+  margin-bottom: var(--spacing-sm);
+  font-size: 1.5rem;
+}
+
+.card h3 {
+  margin-bottom: var(--spacing-sm);
+  font-size: 1.3rem;
+}
+
+.card h4 {
+  margin-bottom: var(--spacing-sm);
+  font-size: 1.2rem;
+}
+
+.card h2 a,
+.card h3 a,
+.card h4 a {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: color var(--transition-base);
+}
+
+.card h2 a:hover,
+.card h3 a:hover,
+.card h4 a:hover {
+  color: var(--color-primary);
+}
+
+.card h5 {
+  margin-top: var(--spacing-md);
+  margin-bottom: var(--spacing-xs);
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+}
+
+.card p {
+  margin: 0 0 var(--spacing-xs) 0;
+  color: var(--color-text-medium);
+  line-height: 1.6;
+}
+
+.card p:last-child {
+  margin-bottom: 0;
+}
+
+.card ul {
+  margin: var(--spacing-xs) 0 0 0;
+  padding-left: var(--spacing-lg);
+  color: var(--color-text-medium);
+}
+
+.card li {
+  margin: 0.4rem 0;
+  line-height: 1.6;
+}
+
+.card a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition-base);
+}
+
+.card a:hover {
+  color: var(--color-primary-dark);
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   6. GRID UTILITIES
+   ========================================================================== */
+
+/* Two-column grid that collapses to single column on mobile */
+.grid-2col {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-2xl);
+}
+
+/* Full-width element in grid */
+.grid-full {
+  grid-column: 1 / -1;
+}
+
+/* ==========================================================================
+   7. FORMS
+   ========================================================================== */
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="url"],
+textarea {
+  width: 100%;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group {
+  margin-bottom: var(--spacing-lg);
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: var(--spacing-xs);
+  font-weight: 600;
+  color: var(--color-text-light);
+}
+
+.required {
+  color: var(--color-required);
+}
+
+/* ==========================================================================
+   8. ALERTS & MESSAGES
+   ========================================================================== */
+
+.alert {
+  padding: 0.875rem var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  margin-bottom: var(--spacing-md);
+}
+
+.alert-success {
+  background-color: var(--color-success-bg);
+  color: var(--color-success-text);
+  border: 1px solid var(--color-success-border);
+}
+
+.alert-error {
+  background-color: var(--color-error-bg);
+  color: var(--color-error-text);
+  border: 1px solid var(--color-error-border);
+}
+
+.alert-info {
+  background-color: var(--color-info-bg);
+  color: var(--color-info-text);
+  border: 1px solid var(--color-info-border);
+}
+
+/* ==========================================================================
+   9. LAYOUT - HEADER
+   ========================================================================== */
+
+header {
+  background-color: var(--color-text-primary);
+  color: white;
+  padding: var(--spacing-md) var(--spacing-xl);
+}
+
+nav {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+  text-decoration: none;
+}
+
+.nav-links {
+  display: flex;
+  gap: var(--spacing-xl);
+  list-style: none;
+}
+
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  transition: color var(--transition-slow);
+}
+
+.nav-links a:hover {
+  color: var(--color-primary-light);
+}
+
+.home-link {
+  display: list-item;
+}
+
+/* ==========================================================================
+   10. LAYOUT - MAIN CONTENT
+   ========================================================================== */
+
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-xl) var(--spacing-xl) var(--spacing-md);
+  width: 100%;
+  flex: 1;
+}
+
+/* ==========================================================================
+   11. LAYOUT - FOOTER
+   ========================================================================== */
+
+footer {
+  background-color: var(--color-bg-light);
+  padding: 1.25rem;
+  text-align: center;
+  margin-top: auto;
+}
+
+.social-links {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-lg);
+}
+
+.social-links a {
+  color: var(--color-text-light);
+  text-decoration: none;
+  font-size: 1.1rem;
+  transition: color var(--transition-slow);
+}
+
+.social-links a:hover {
+  color: var(--color-primary-light);
+}
+
+/* ==========================================================================
+   12. MOBILE RESPONSIVE (max-width: 768px)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  /* Header */
+  header {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  nav {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: var(--spacing-xs);
+  }
+
+  .logo {
+    font-size: 1.25rem;
+  }
+
+  .nav-links {
+    flex-direction: row;
+    gap: var(--spacing-sm);
+    font-size: 0.9rem;
+  }
+
+  .home-link {
+    display: none;
+  }
+
+  /* Main content */
+  main {
+    padding: var(--spacing-md);
+  }
+
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  .intro {
+    font-size: 1rem;
+  }
+
+  /* Section headings */
+  .section-heading {
+    font-size: 1.5rem;
+  }
+
+  /* Footer */
+  footer {
+    padding: var(--spacing-md);
+  }
+
+  .social-links {
+    gap: var(--spacing-lg);
+  }
+
+  .social-links a {
+    font-size: 1rem;
+  }
+
+  /* Grids */
+  .grid-2col {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+
+  /* Cards */
+  .card {
+    padding: var(--spacing-md);
+  }
+
+  .card h2 {
+    font-size: 1.25rem;
+  }
+
+  .card h3 {
+    font-size: 1.15rem;
+  }
+
+  .card h4 {
+    font-size: 1.1rem;
+  }
+}
