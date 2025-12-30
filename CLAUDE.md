@@ -1,7 +1,15 @@
 # Claude Context - AVL Film Website
 
 > **Audience:** AI assistants (primarily Claude).
-> **Purpose:** Critical patterns and workflows. Not a tutorial.
+> **Purpose:** AVL Film-specific patterns, workflows, and lessons learned.
+
+---
+
+## Prerequisites
+
+**Read `BEST_PRACTICES.md` first** for general Node.js, Astro, TypeScript, and Drizzle ORM patterns.
+
+This file documents AVL Film-specific workflows, gotchas, and project conventions.
 
 ---
 
@@ -46,55 +54,32 @@ npm run db:migrate       # Run migration
 
 ---
 
-## Critical Anti-Patterns
+## AVL Film-Specific Anti-Patterns
 
-### 1. TypeScript
-- ❌ Using `any` types → ✅ Create interfaces in `src/types/`
-- ❌ Duplicating type definitions → ✅ Import from shared types
-- ❌ Duplicating functions → ✅ Extract to `src/lib/` or `src/utils/`
+### Environment Variables
+- ❌ Using `process.env` in Astro API routes
+- ✅ Use `import.meta.env` in Astro server-side code (API routes, pages)
+- ❌ Adding `dotenv.config()` to every script
+- ✅ Check if shared modules already load env vars (e.g., `src/db/index.ts` loads dotenv)
 
-### 2. Astro Data Passing
-- ❌ `define:vars` → Disables TypeScript & bundling
-- ✅ JSON script tag: `<script type="application/json" id="data">{...}</script>` + bundled script to read it
-
-### 3. API Helpers
+### API Helpers
 - ❌ Manual `new Response(JSON.stringify(...))` in every endpoint
 - ✅ Use `errorResponse()`, `successResponse()` from `src/lib/api.ts`
 
-### 4. Drizzle ORM
-- ❌ Multiple queries with union
-- ✅ Single query with `inArray()`
-- ❌ Transactions for independent operations
-- ✅ Transactions only when operations must succeed/fail together
-
-### 5. Astro Scoped CSS
+### Astro Scoped CSS
 - **If HTML is generated via `innerHTML`**, ALL classes need `:global()`
 - Before completing work: audit for orphaned/unused CSS classes
 
-### 6. Performance
-- ❌ Client-side API calls in .astro files
-- ✅ Direct DB queries on server (data in initial HTML)
-- API endpoints only for: client mutations, user-initiated fetches, external access
-
-### 7. Code Duplication
+### CSS Code Duplication
 - ❌ Identical button styles in multiple places
 - ✅ CSS selector grouping: `:global(.btn-approve), :global(.btn-save) { ... }`
-- ❌ Two functions with same implementation
-- ✅ One shared utility function
 
-### 8. CI/CD Best Practices
+### CI/CD Best Practices
 - ❌ Creating inline files in workflows (`cat > script.ts << 'EOF'`)
 - ✅ Create version-controlled script files in `src/scripts/` that can be tested locally
 - **Benefits:** Git tracking, local testing, type checking, easier debugging
 
-### 9. Environment Variables
-- ❌ Adding `dotenv.config()` to every script
-- ✅ Check if shared modules already load env vars (e.g., `src/db/index.ts` loads dotenv)
-- Only add dotenv where actually needed (e.g., scripts that use env vars directly, not through shared modules)
-- ❌ Using `process.env` in Astro API routes
-- ✅ Use `import.meta.env` in Astro server-side code (API routes, pages)
-
-### 10. Dev Server Management
+### Dev Server Management
 - ❌ Starting `npm run dev` when a dev server is already running
 - ✅ Check for existing dev server first: `lsof -i:4321` or `lsof -i:4322`
 - Only start new server if none exists
@@ -130,6 +115,8 @@ When user points out oversight:
 ---
 
 ## Important Notes
+
+### Project Conventions
 - Admin: HTTP Basic Auth (Vercel deployment protection)
 - Migrations: Manual, not on deploy
 - Mobile breakpoint: 768px
@@ -137,7 +124,7 @@ When user points out oversight:
 - Keep solutions simple, avoid over-engineering
 - Check `git diff package.json` before committing (npm can silently downgrade packages)
 
-## Database Backups
+### Database Backups
 - Automated via GitHub Actions (nightly 2 AM UTC)
 - Only backs up on changes (checks `filmmakers` table timestamps)
 - Keeps 30 most recent backups (not 30 consecutive days)
