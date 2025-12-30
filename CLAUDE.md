@@ -81,7 +81,7 @@ npm run db:migrate       # Run migration
 
 ### Dev Server Management
 - ❌ Starting `npm run dev` when a dev server is already running
-- ✅ Check for existing dev server first: `lsof -i:4321` or `lsof -i:4322`
+- ✅ Check for existing dev server first: `lsof -i:4321`
 - Only start new server if none exists
 - Reuse existing server for testing
 
