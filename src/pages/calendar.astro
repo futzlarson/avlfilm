@@ -14,33 +14,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <div class="calendar-container">
     <iframe
       id="calendar-iframe"
-      src="">
+      src="https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=America%2FNew_York&showPrint=0&showCalendars=0&mode=AGENDA&src=YXZsZmlsbWdyb3VwQGdtYWlsLmNvbQ&src=ZW4udXNhI2hvbGlkYXlAZ3JvdXAudi5jYWxlbmRhci5nb29nbGUuY29t&color=%23039be5&color=%230b8043">
     </iframe>
   </div>
-
-  <script>
-    const desktopSrc = "https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=America%2FNew_York&showPrint=0&showCalendars=0&showTz=0&mode=MONTH&src=YXZsZmlsbWdyb3VwQGdtYWlsLmNvbQ&src=ZW4udXNhI2hvbGlkYXlAZ3JvdXAudi5jYWxlbmRhci5nb29nbGUuY29t&color=%23039be5&color=%230b8043";
-    const mobileSrc = "https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=America%2FNew_York&showPrint=0&showCalendars=0&mode=AGENDA&src=YXZsZmlsbWdyb3VwQGdtYWlsLmNvbQ&src=ZW4udXNhI2hvbGlkYXlAZ3JvdXAudi5jYWxlbmRhci5nb29nbGUuY29t&color=%23039be5&color=%230b8043";
-
-    const iframe = document.getElementById('calendar-iframe') as HTMLIFrameElement;
-    const isMobile = window.innerWidth <= 768;
-
-    iframe.src = isMobile ? mobileSrc : desktopSrc;
-
-    // Update on resize (debounced)
-    let resizeTimeout: ReturnType<typeof setTimeout>;
-    window.addEventListener('resize', () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(() => {
-        const nowMobile = window.innerWidth <= 768;
-        const currentSrc = iframe.src;
-        const expectedSrc = nowMobile ? mobileSrc : desktopSrc;
-        if (currentSrc !== expectedSrc) {
-          iframe.src = expectedSrc;
-        }
-      }, 250);
-    });
-  </script>
 
   <style>
     .calendar-container {
