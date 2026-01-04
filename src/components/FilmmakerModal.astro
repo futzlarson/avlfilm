@@ -151,7 +151,7 @@ const { id } = Astro.props;
   import type { PublicFilmmaker } from '../db/schema';
   import { formatPhone } from '../utils/formatting';
   import { normalizeUrl } from '../utils/url';
-  import { track } from '@vercel/analytics';
+  import { track } from '../lib/analytics';
 
   function setupModal(modalId: string) {
     const modal = document.getElementById(modalId);

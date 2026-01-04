@@ -342,7 +342,7 @@ const { filmmakers } = Astro.props;
 
 <script>
   import type { PublicFilmmaker } from '../db/schema';
-  import { track } from '@vercel/analytics';
+  import { track } from '../lib/analytics';
 
   // Load filmmakers from JSON script tag
   const filmmakers: PublicFilmmaker[] = JSON.parse(document.getElementById('filmmaker-data')!.textContent || '[]');

@@ -23,7 +23,16 @@ export const filmmakers = pgTable('filmmakers', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+export const events = pgTable('events', {
+  id: serial('id').primaryKey(),
+  eventName: varchar('event_name', { length: 255 }).notNull(),
+  properties: text('properties'), // JSON string
+  userAgent: text('user_agent'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 // Type definitions - single source of truth derived from schema
 export type Filmmaker = InferSelectModel<typeof filmmakers>;
 export type FilmmakerStatus = Filmmaker['status'];
 export type PublicFilmmaker = Omit<Filmmaker, 'email' | 'phone'>;
+export type Event = InferSelectModel<typeof events>;
