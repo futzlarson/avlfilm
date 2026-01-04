@@ -25,11 +25,11 @@ export const filmmakers = pgTable('filmmakers', {
 
 export const events = pgTable('events', {
   id: serial('id').primaryKey(),
+  visitorId: varchar('visitor_id', { length: 12 }), // Persistent visitor tracking
   eventName: varchar('event_name', { length: 255 }).notNull(),
   properties: text('properties'), // JSON string
-  userAgent: text('user_agent'),
-  visitorId: varchar('visitor_id', { length: 12 }), // nanoid format (10 chars, 12 for safety), persistent across sessions
   location: varchar('location', { length: 255 }), // "City, State" or timezone fallback
+  userAgent: text('user_agent'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
