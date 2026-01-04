@@ -13,7 +13,10 @@ const runMigrate = async () => {
   // Handle both postgres:// and postgresql:// protocols
   const connectionString = process.env.POSTGRES_URL.replace(/^postgres:\/\//, 'postgresql://');
 
-  const connection = postgres(connectionString, { max: 1 });
+  const connection = postgres(connectionString, {
+    max: 1,
+    onnotice: process.env.SILENCE_MIGRATION_WARNINGS === 'true' ? () => {} : undefined,
+  });
   const db = drizzle(connection);
 
   console.log('⏳ Running migrations...');
