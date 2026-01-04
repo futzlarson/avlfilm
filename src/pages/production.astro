@@ -206,6 +206,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 </style>
 
 <script>
+  import { track } from '@vercel/analytics';
+
   document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('production-company-modal');
     const overlay = modal?.querySelector('.modal-overlay');
@@ -285,9 +287,20 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         submitBtn.textContent = originalText || 'Submit';
       }
     });
+
+    // Track company link clicks
+    document.querySelectorAll('.company h2 a').forEach(link => {
+      link.addEventListener('click', () => {
+        track('production_company_link_click', {
+          company_name: (link.textContent || '').substring(0, 255),
+          website: (link as HTMLAnchorElement).href.substring(0, 255)
+        });
+      });
+    });
   });
 
   function openProductionModal() {
+    track('production_add_company_button_click');
     const modal = document.getElementById('production-company-modal');
     if (!modal) return;
     modal.classList.add('active');

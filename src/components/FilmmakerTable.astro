@@ -342,6 +342,7 @@ const { filmmakers } = Astro.props;
 
 <script>
   import type { PublicFilmmaker } from '../db/schema';
+  import { track } from '@vercel/analytics';
 
   // Load filmmakers from JSON script tag
   const filmmakers: PublicFilmmaker[] = JSON.parse(document.getElementById('filmmaker-data')!.textContent || '[]');
@@ -494,7 +495,30 @@ const { filmmakers } = Astro.props;
         const id = parseInt(row.getAttribute('data-filmmaker-id') || '0');
         const filmmaker = filmmakersMap.get(id);
         if (filmmaker) {
+          track('directory_table_row_click', {
+            filmmaker_name: filmmaker.name.substring(0, 255),
+            filmmaker_id: filmmaker.id.toString()
+          });
           (window as any).openFilmmakerModal(filmmaker);
+        }
+      });
+    });
+
+    // Track company link clicks separately
+    const companyLinks = table.querySelectorAll('td a');
+    companyLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        const row = (e.target as HTMLElement).closest('.filmmaker-row');
+        if (row) {
+          const id = parseInt(row.getAttribute('data-filmmaker-id') || '0');
+          const filmmaker = filmmakersMap.get(id);
+          if (filmmaker && filmmaker.company && filmmaker.website) {
+            track('directory_company_link_click', {
+              company_name: filmmaker.company.substring(0, 255),
+              website: filmmaker.website.substring(0, 255),
+              filmmaker_name: filmmaker.name.substring(0, 255)
+            });
+          }
         }
       });
     });

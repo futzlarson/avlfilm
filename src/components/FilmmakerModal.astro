@@ -151,6 +151,7 @@ const { id } = Astro.props;
   import type { PublicFilmmaker } from '../db/schema';
   import { formatPhone } from '../utils/formatting';
   import { normalizeUrl } from '../utils/url';
+  import { track } from '@vercel/analytics';
 
   function setupModal(modalId: string) {
     const modal = document.getElementById(modalId);
@@ -338,6 +339,12 @@ const { id } = Astro.props;
   async function handleRevealContact() {
     const modal = document.getElementById('filmmaker-modal');
     if (!modal || !currentFilmmaker) return;
+
+    // Track reveal event
+    track('directory_reveal_contact_click', {
+      filmmaker_name: currentFilmmaker.name.substring(0, 255),
+      filmmaker_id: currentFilmmaker.id.toString()
+    });
 
     const revealBtn = document.getElementById('reveal-contact-btn') as HTMLButtonElement;
     if (!revealBtn) return;

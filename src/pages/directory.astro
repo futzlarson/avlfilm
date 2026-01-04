@@ -110,3 +110,14 @@ try {
     }
   }
 </style>
+
+<script>
+  import { track } from '@vercel/analytics';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const addYourselfBtn = document.querySelector('.btn-primary');
+    addYourselfBtn?.addEventListener('click', () => {
+      track('directory_add_yourself_button_click');
+    });
+  });
+</script>
