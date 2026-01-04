@@ -28,10 +28,12 @@ async function getLocationFromIP(ip: string): Promise<string | null> {
     clearTimeout(timeoutId);
 
     if (!response.ok) {
+      console.error('[Analytics] IP API returned error:', response.status, response.statusText);
       return null;
     }
 
     const data = await response.json();
+    console.log('[Analytics] IP API response:', { ip, city: data.city, region_code: data.region_code, country_name: data.country_name });
 
     // Format: "City, State" or "City, Country"
     if (data.city && data.region_code) {
@@ -40,10 +42,10 @@ async function getLocationFromIP(ip: string): Promise<string | null> {
       return `${data.city}, ${data.country_name}`;
     }
 
+    console.log('[Analytics] No valid location data in response');
     return null;
   } catch (error) {
-    // Silently fail - geolocation shouldn't break analytics
-    console.error('IP geolocation failed:', error);
+    console.error('[Analytics] IP geolocation failed for IP:', ip, error);
     return null;
   }
 }
@@ -59,13 +61,24 @@ export const POST: APIRoute = async ({ request }) => {
 
     const userAgent = request.headers.get('user-agent');
 
-    // Extract IP address from headers
+    // Extract IP address from headers (check Vercel-specific headers first)
+    const vercelIp = request.headers.get('x-vercel-forwarded-for');
     const forwardedFor = request.headers.get('x-forwarded-for');
     const realIp = request.headers.get('x-real-ip');
-    const ip = forwardedFor?.split(',')[0].trim() || realIp || '';
+    const ip = vercelIp || forwardedFor?.split(',')[0].trim() || realIp || '';
+
+    // Debug logging for IP extraction
+    console.log('[Analytics] IP extraction:', {
+      vercelIp,
+      forwardedFor,
+      realIp,
+      extractedIp: ip
+    });
 
     // Get location from IP, fallback to timezone if IP lookup fails
     let location = await getLocationFromIP(ip);
+    console.log('[Analytics] Location result:', { ip, location, fallbackTimezone: timezone });
+
     if (!location && timezone) {
       location = timezone; // Use timezone as fallback location indicator
     }
