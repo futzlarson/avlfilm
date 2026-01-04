@@ -28,6 +28,8 @@ export const events = pgTable('events', {
   eventName: varchar('event_name', { length: 255 }).notNull(),
   properties: text('properties'), // JSON string
   userAgent: text('user_agent'),
+  visitorId: varchar('visitor_id', { length: 12 }), // nanoid format (10 chars, 12 for safety), persistent across sessions
+  location: varchar('location', { length: 255 }), // "City, State" or timezone fallback
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
