@@ -226,6 +226,8 @@ const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj =>
 <script is:inline id="role-map-data" type="application/json" set:html={JSON.stringify(roleAliasMap)}></script>
 
 <script>
+  import { track } from '../lib/analytics';
+
   // Load roles data from JSON script tags
   const roles: string[] = JSON.parse(document.getElementById('roles-data')!.textContent || '[]');
   const roleMap: Record<string, string> = JSON.parse(document.getElementById('role-map-data')!.textContent || '{}');
@@ -327,6 +329,8 @@ const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj =>
 
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
+
+    track('directory_submit', { filmmaker: data });
 
     try {
       const response = await fetch('/api/submit-filmmaker', {
