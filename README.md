@@ -34,14 +34,14 @@ Visit http://localhost:4321
 ## Structure
 ```
 src/
-├── components/      # Reusable components
-├── layouts/        # Page layouts
-├── pages/          # File-based routing
-│   ├── admin/     # Password-protected admin
-│   └── api/       # API routes
+├── components/       # Reusable components
+├── layouts/          # Page layouts
+├── pages/            # File-based routing
+│   ├── admin/        # Password-protected admin
+│   └── api/          # API routes
 └── db/
-    ├── schema.ts  # Database schema
-    └── migrate.ts # Migration runner
+    ├── schema.ts     # Database schema
+    └── migrate.ts    # Migration runner
 ```
 
 ## Features
@@ -53,6 +53,20 @@ src/
 - **Rate limiting** - Redis-based protection for contact reveals (20/hour per IP)
 - **Automated backups** - GitHub Actions nightly backups with change detection
   - Required GitHub secrets: `POSTGRES_URL`, `ADMIN_EMAIL`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`
+- **Webhooks** - Email Octopus -> Slack
+- **Event tracking** - For later analysis
+
+## Tracking events
+```
+production_company_link_click
+production_add_company_button_click
+
+directory_add_yourself_button_click
+directory_company_link_click
+directory_reveal_contact_click
+directory_submit
+directory_table_row_click
+```
 
 ## Database Workflow
 1. Edit `src/db/schema.ts`
@@ -61,15 +75,7 @@ src/
 4. `npm run db:migrate`
 5. Commit both files
 
-## Deployment (Vercel)
-1. Push to GitHub
-2. Import to Vercel
-3. Add `POSTGRES_URL` env var
-4. Run migrations manually
-5. Deploy
-
 ## Environment Variables
-
 Create `.env.local`:
 ```bash
 # Required
