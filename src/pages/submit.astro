@@ -46,7 +46,7 @@ const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj =>
         <input
           type="text"
           id="roles-input"
-          placeholder="Start typing to select roles..."
+          placeholder="Start typing to select roles"
           autocomplete="off"
         />
         <div id="roles-dropdown" class="autocomplete-dropdown"></div>
@@ -72,7 +72,19 @@ const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj =>
 
     <div class="form-group">
       <label for="gear">Equipment/Gear</label>
-      <textarea id="gear" name="gear" rows="4" placeholder="List your equipment and gear..."></textarea>
+      <textarea id="gear" name="gear" rows="4" placeholder="List your equipment and gear"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="notes">Notes for AVL Film</label>
+      <textarea id="notes" name="notes" rows="3" placeholder="Any additional information you'd like to share with us"></textarea>
+    </div>
+
+    <div class="form-group checkbox-group">
+      <label class="checkbox-label">
+        <input type="checkbox" id="newsletter" name="newsletter" checked />
+        <span>Sign me up for the AVL Film newsletter</span>
+      </label>
     </div>
 
     <button type="submit" class="btn-primary btn-large">Submit</button>
@@ -220,6 +232,28 @@ const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj =>
     font-size: 0.875rem;
     margin-top: 0.5rem;
   }
+
+  .checkbox-group {
+    margin-bottom: 2rem;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+
+  .checkbox-label input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
+    cursor: pointer;
+  }
+
+  .checkbox-label span {
+    user-select: none;
+  }
 </style>
 
 <script is:inline id="roles-data" type="application/json" set:html={JSON.stringify(canonicalRoles)}></script>
@@ -330,7 +364,14 @@ const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj =>
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
 
-    track('directory_submit', { filmmaker: data });
+    // Explicitly handle checkbox value as boolean
+    const newsletterCheckbox = document.getElementById('newsletter') as HTMLInputElement;
+    const submissionData = {
+      ...data,
+      newsletter: newsletterCheckbox.checked,
+    };
+
+    track('directory_submit', { filmmaker: submissionData });
 
     try {
       const response = await fetch('/api/submit-filmmaker', {
@@ -338,7 +379,7 @@ const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj =>
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(submissionData),
       });
 
       if (!response.ok) {
