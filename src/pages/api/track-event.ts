@@ -1,7 +1,6 @@
 import type { APIRoute } from 'astro';
-import { db } from '../../db';
-import { events } from '../../db/schema';
 import { errorResponse, successResponse } from '../../lib/api';
+import { trackEvent } from '../../lib/analytics-server';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -14,20 +13,20 @@ export const POST: APIRoute = async ({ request }) => {
 
     const userAgent = request.headers.get('user-agent');
 
-    // 1. Extract location directly from Vercel Edge headers
+    // Extract location directly from Vercel Edge headers
     const city = request.headers.get('x-vercel-ip-city');
     const region = request.headers.get('x-vercel-ip-country-region');
     const country = request.headers.get('x-vercel-ip-country');
 
     let location = null;
 
-    // 2. Format: "City, State" or "City, Country"
+    // Format: "City, State" or "City, Country"
     if (city && region) {
       location = `${city}, ${region}`;
     } else if (city && country) {
       location = `${city}, ${country}`;
-    } 
-    
+    }
+
     // Diagnostic log for backend visibility
     if (location) {
       console.log(`[Analytics] Resolved location: ${location}`);
@@ -36,12 +35,12 @@ export const POST: APIRoute = async ({ request }) => {
       console.log(`[Analytics] Geolocation missing, falling back to timezone: ${timezone}`);
     }
 
-    await db.insert(events).values({
+    await trackEvent({
       eventName,
-      properties: properties ? JSON.stringify(properties) : null,
+      properties,
+      visitorId,
       userAgent,
-      visitorId: visitorId || null,
-      location: location || null,
+      location,
     });
 
     return successResponse();
