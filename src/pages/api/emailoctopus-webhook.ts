@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { errorResponse, successResponse } from '../../lib/api';
 import { trackEvent } from '../../lib/analytics-server';
+import { sendSlackNotification } from '../../lib/slack';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -8,11 +9,6 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!Array.isArray(webhookEvents)) {
       return errorResponse('Invalid payload: expected an array', 400);
-    }
-
-    const slackWebhookUrl = import.meta.env.SLACK_WEBHOOK_URL;
-    if (!slackWebhookUrl) {
-      return errorResponse('Slack webhook URL not configured', 500);
     }
 
     // Track events and send to Slack
@@ -32,12 +28,7 @@ export const POST: APIRoute = async ({ request }) => {
 
         // Send to Slack
         const text = `${e.contact_email_address}: \`${e.type}\``;
-
-        await fetch(slackWebhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text }),
-        });
+        await sendSlackNotification(text);
       })
     );
 

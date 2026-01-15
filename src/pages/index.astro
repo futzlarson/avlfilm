@@ -55,6 +55,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           required
           autocomplete="email"
         />
+        <input
+          type="text"
+          name="website"
+          id="website"
+          autocomplete="off"
+          tabindex="-1"
+          aria-hidden="true"
+        />
         <button type="submit" class="btn-primary subscribe-btn">Subscribe</button>
         <div id="message" class="alert message"></div>
       </form>
@@ -138,6 +146,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     border-radius: var(--radius-lg);
   }
 
+  .newsletter-form input[name="website"] {
+    position: absolute;
+    left: -9999px;
+    width: 0;
+    height: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
   .subscribe-btn {
     width: 100%;
     padding: 0.6rem 1.25rem;
@@ -217,12 +234,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     submitBtn.textContent = 'Subscribing...';
 
     try {
+      const websiteInput = document.getElementById('website') as HTMLInputElement;
       const response = await fetch('/api/newsletter/subscribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({
+          email,
+          website: websiteInput.value
+        }),
       });
 
       const data = await response.json();
