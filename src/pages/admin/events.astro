@@ -1,0 +1,715 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getAddedEventIds } from '../../lib/redis-calendar';
+import type { AvlGoEvent } from '../../types/avlgo-event';
+
+// Fetch all events from AVL GO API
+const API_URL = 'https://www.avlgo.com/api/export/json?search=film,movie';
+let events: AvlGoEvent[] = [];
+let error: string | null = null;
+
+try {
+  const response = await fetch(API_URL);
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+  const data = await response.json();
+  events = Array.isArray(data) ? data : data.events || [];
+} catch (e) {
+  console.error('Failed to fetch AVL GO events:', e);
+  error = e instanceof Error ? e.message : 'Unknown error';
+}
+
+// Fetch added event IDs directly from Redis
+let addedEventIds: Set<string> = new Set();
+try {
+  const eventIds = await getAddedEventIds();
+  addedEventIds = new Set(eventIds);
+} catch (e) {
+  console.error('Failed to fetch calendar status:', e);
+}
+---
+
+<BaseLayout title="Admin - AVL GO Events">
+  <div class="admin-header">
+    <h1>AVL GO Film & Movie Events</h1>
+    <a href="/admin" class="back-link">← Back to Admin</a>
+  </div>
+
+  <div class="admin-section">
+    {error ? (
+      <div class="alert-error">
+        <strong>Error:</strong> Unable to fetch events from AVL GO API. {error}
+      </div>
+    ) : events.length === 0 ? (
+      <div class="empty-state">
+        No film/movie events found at this time.
+      </div>
+    ) : (
+      <>
+        <div class="events-header">
+          <h2 style="margin: 0">Upcoming Events - <span id="event-period">Next 7 Days</span> (<span id="event-count">{events.length}</span>)</h2>
+          <label class="toggle-label">
+            <input type="checkbox" id="show-all-toggle" />
+            <span>Show all events</span>
+          </label>
+        </div>
+
+        <div id="events-grid" class="events-grid">
+          {/* Rendered client-side from JSON data */}
+        </div>
+      </>
+    )}
+  </div>
+</BaseLayout>
+
+{/* Pass data to client */}
+<script is:inline id="events-data" type="application/json" set:html={JSON.stringify(events)}></script>
+<script is:inline id="added-events-data" type="application/json" set:html={JSON.stringify(Array.from(addedEventIds))}></script>
+
+<script>
+  import { marked } from 'marked';
+  import type { AvlGoEvent } from '../../types/avlgo-event';
+
+  const events: AvlGoEvent[] = JSON.parse(
+    document.getElementById('events-data')?.textContent || '[]'
+  );
+
+  // Load added event IDs
+  const addedEventIds: Set<string> = new Set(JSON.parse(
+    document.getElementById('added-events-data')?.textContent || '[]'
+  ));
+
+  // Create a Map for quick event lookup by ID
+  const eventsMap = new Map<string, AvlGoEvent>();
+  events.forEach(event => eventsMap.set(event.id, event));
+
+  function formatDate(dateString: string): string {
+    try {
+      const date = new Date(dateString);
+      const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'short' });
+      const month = date.toLocaleDateString('en-US', { month: 'short' });
+      const day = date.getDate();
+      const time = date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+      return `${dayOfWeek}, ${month} ${day} @ ${time}`;
+    } catch {
+      return dateString;
+    }
+  }
+
+  function truncateText(text: string, maxLength: number): string {
+    if (!text || text.length <= maxLength) return text || '';
+    return text.substring(0, maxLength).trim() + '...';
+  }
+
+  function getSourceColor(source?: string): string {
+    const colorMap: Record<string, string> = {
+      'AVL_TODAY': '#3b82f6',
+      'MOUNTAIN_X': '#10b981',
+      'MEETUP': '#8b5cf6',
+      'EXPLORE_ASHEVILLE': '#f59e0b',
+      'GREY_EAGLE': '#ef4444',
+      'EVENTBRITE': '#ec4899',
+      'FACEBOOK': '#14b8a6',
+    };
+    return colorMap[source || ''] || '#6b7280';
+  }
+
+  function renderImage(event: AvlGoEvent): string {
+    if (event.imageUrl) {
+      // Handle asheville-default.jpg from avlgo.com
+      const imageUrl = event.imageUrl === '/asheville-default.jpg'
+        ? 'https://www.avlgo.com/asheville-default.jpg'
+        : event.imageUrl;
+      return `<img src="${imageUrl}" alt="${event.title}" loading="lazy" />`;
+    }
+    return '<div class="placeholder-icon">🎬</div>';
+  }
+
+  function renderTitle(event: AvlGoEvent): string {
+    if (event.url) {
+      return `<a href="${event.url}" target="_blank" rel="noopener">${event.title}</a>`;
+    }
+    return event.title;
+  }
+
+  function renderTags(tags?: string[]): string {
+    if (!tags || tags.length === 0) return '';
+
+    const html = tags.map(tag =>
+      `<span class="tag-pill">${tag}</span>`
+    ).join('');
+
+    return `<div class="tags-container">${html}</div>`;
+  }
+
+  function shouldTruncateDescription(description: string): boolean {
+    return !!description && description.length > 1000;
+  }
+
+  // Parse markdown using marked library
+  function parseMarkdown(text: string): string {
+    if (!text) return '';
+
+    // Remove escape characters before slashes
+    const cleaned = text.replace(/\\(.)/g, '$1');
+
+    // Configure marked to open links in new tabs
+    marked.setOptions({
+      breaks: true,
+      gfm: true,
+    });
+
+    // Parse markdown and ensure links open in new tabs
+    const html = marked.parse(cleaned) as string;
+    return html.replace(/<a href=/g, '<a target="_blank" rel="noopener" href=');
+  }
+
+  // Highlight keywords in HTML
+  function highlightKeywords(html: string): string {
+    if (!html) return '';
+
+    // Highlight 'film' and 'movie' (case-insensitive)
+    // Use word boundaries to avoid matching partial words
+    return html
+      .replace(/\b(film|films)\b/gi, '<span class="highlight">$1</span>')
+      .replace(/\b(movie|movies)\b/gi, '<span class="highlight">$1</span>');
+  }
+
+  function renderEventCard(event: AvlGoEvent): string {
+    const date = formatDate(event.startDate);
+    const location = event.location || '<span class="text-muted">Location TBA</span>';
+    const description = event.description || 'No description available';
+    const source = event.source || 'Unknown';
+    const sourceColor = getSourceColor(event.source);
+    const isTruncated = shouldTruncateDescription(description);
+    const truncatedDesc = isTruncated ? truncateText(description, 1000) : description;
+    const descriptionHtml = highlightKeywords(parseMarkdown(isTruncated ? truncatedDesc : description));
+    const eventId = event.id.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+    return `
+      <div class="event-card">
+        <div class="event-image">${renderImage(event)}</div>
+        <div class="event-content">
+          <h3>${renderTitle(event)}</h3>
+          <div class="event-meta">
+            <div class="meta-item">
+              <svg class="meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span>${date}</span>
+            </div>
+            <div class="meta-item">
+              <svg class="meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span>${location}</span>
+            </div>
+            <div class="meta-item">
+              <span class="source-badge" style="background-color: ${sourceColor}">
+                ${source.replace(/_/g, ' ')}
+              </span>
+            </div>
+          </div>
+          ${isTruncated ? `
+            <div class="event-description-wrapper">
+              <div class="event-description" id="desc-${eventId}" data-full="${description.replace(/"/g, '&quot;')}">${descriptionHtml}</div>
+              <button class="show-more-btn" onclick="toggleDescription('${eventId}')">Show more</button>
+            </div>
+          ` : `
+            <div class="event-description">${descriptionHtml}</div>
+          `}
+          ${renderTags(event.tags)}
+          <div class="event-actions">
+            ${addedEventIds.has(event.id)
+              ? '<span class="event-added">Added</span>'
+              : `<button class="btn-gradient" onclick="addEventToCalendar('${eventId}')">Add to Calendar</button>`
+            }
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Toggle description expansion
+  (window as any).toggleDescription = function(eventId: string) {
+    const descElement = document.getElementById(`desc-${eventId}`);
+    const btn = descElement?.nextElementSibling as HTMLButtonElement;
+    if (!descElement || !btn) return;
+
+    const fullText = descElement.getAttribute('data-full');
+    const isExpanded = btn.textContent === 'Show less';
+
+    if (isExpanded) {
+      descElement.innerHTML = highlightKeywords(parseMarkdown(truncateText(fullText || '', 1000)));
+      btn.textContent = 'Show more';
+    } else {
+      descElement.innerHTML = highlightKeywords(parseMarkdown(fullText || ''));
+      btn.textContent = 'Show less';
+    }
+  };
+
+  // Add event to Google Calendar
+  (window as any).addEventToCalendar = async function(eventId: string) {
+    const event = eventsMap.get(eventId);
+    if (!event) {
+      console.error('Event not found:', eventId);
+      return;
+    }
+
+    // Find the button for this event
+    const buttons = document.querySelectorAll('.btn-gradient');
+    let button: HTMLButtonElement | null = null;
+    for (const btn of buttons) {
+      if (btn.getAttribute('onclick')?.includes(eventId)) {
+        button = btn as HTMLButtonElement;
+        break;
+      }
+    }
+
+    if (!button) {
+      console.error('Button not found for event:', eventId);
+      return;
+    }
+
+    button.disabled = true;
+    button.textContent = 'Adding...';
+
+    try {
+      const response = await fetch('/api/add-calendar-event', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ event })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to add event');
+      }
+
+      const result = await response.json();
+      console.log('Event added to calendar:', result);
+
+      // Update UI
+      addedEventIds.add(event.id);
+      const actionsDiv = button.parentElement;
+      if (actionsDiv) {
+        actionsDiv.innerHTML = '<span class="event-added">Added</span>';
+      }
+    } catch (error) {
+      console.error('Failed to add event:', error);
+      button.disabled = false;
+      button.textContent = 'Add to Calendar';
+      alert(error instanceof Error ? error.message : 'Failed to add event to calendar');
+    }
+  };
+
+  // Render events to grid
+  function renderEventsToGrid(eventsList: AvlGoEvent[], showingAll: boolean = false) {
+    const grid = document.getElementById('events-grid');
+    if (grid) {
+      grid.innerHTML = eventsList.map(event => renderEventCard(event)).join('');
+    }
+
+    const countElement = document.getElementById('event-count');
+    if (countElement) {
+      countElement.textContent = String(eventsList.length);
+    }
+
+    const periodElement = document.getElementById('event-period');
+    if (periodElement) {
+      periodElement.textContent = showingAll ? 'All' : 'Next 7 Days';
+    }
+  }
+
+  // Filter events by date range
+  const allEvents = [...events];
+
+  function filterEventsByNextWeek(): AvlGoEvent[] {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const nextWeek = new Date();
+    nextWeek.setDate(today.getDate() + 7);
+    nextWeek.setHours(23, 59, 59, 999);
+
+    return allEvents.filter(event => {
+      const eventDate = new Date(event.startDate);
+      return eventDate >= today && eventDate <= nextWeek;
+    });
+  }
+
+  function handleToggle(showAll: boolean) {
+    if (showAll) {
+      renderEventsToGrid(allEvents, true);
+    } else {
+      const nextWeekEvents = filterEventsByNextWeek();
+      renderEventsToGrid(nextWeekEvents, false);
+    }
+  }
+
+  // Render on page load (default to next 7 days)
+  document.addEventListener('DOMContentLoaded', () => {
+    const nextWeekEvents = filterEventsByNextWeek();
+    renderEventsToGrid(nextWeekEvents, false);
+
+    // Add toggle event listener
+    const toggle = document.getElementById('show-all-toggle') as HTMLInputElement;
+    if (toggle) {
+      toggle.addEventListener('change', (e) => {
+        handleToggle((e.target as HTMLInputElement).checked);
+      });
+    }
+  });
+</script>
+
+<style>
+  /* Admin Header - Consistent with filmmakers.astro */
+  .admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .back-link {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .back-link:hover {
+    text-decoration: underline;
+  }
+
+  /* Admin Section */
+  .admin-section {
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  h2 {
+    margin: 0 0 1.5rem;
+    color: #333;
+  }
+
+  /* Events Header */
+  .events-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9375rem;
+    color: #4b5563;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .toggle-label input[type="checkbox"] {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+  }
+
+  .toggle-label span {
+    font-weight: 500;
+  }
+
+  /* Alert Styles */
+  .alert-error {
+    background-color: #fee;
+    color: #c33;
+    border: 1px solid #fcc;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 1rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #9ca3af;
+  }
+
+  /* Events Grid */
+  .events-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1rem;
+  }
+
+  /* Event Card */
+  :global(.event-card) {
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: row;
+  }
+
+  :global(.event-card:hover) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Event Image */
+  :global(.event-image) {
+    flex-shrink: 0;
+    width: 400px;
+    min-height: 250px;
+    background: #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  :global(.event-image img) {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+  }
+
+  :global(.placeholder-icon) {
+    font-size: 4rem;
+    opacity: 0.8;
+  }
+
+  /* Event Content */
+  :global(.event-content) {
+    flex: 1;
+    padding: 1.5rem;
+    min-width: 0; /* Allow content to shrink */
+  }
+
+  :global(.event-card h3) {
+    margin: 0 0 1rem;
+    color: #1f2937;
+    font-size: 1.25rem;
+    line-height: 1.4;
+  }
+
+  :global(.event-card h3 a) {
+    color: #1f2937;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  :global(.event-card h3 a:hover) {
+    color: var(--color-primary);
+  }
+
+  /* Event Meta */
+  :global(.event-meta) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  :global(.meta-item) {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9375rem;
+    color: #6b7280;
+  }
+
+  :global(.meta-icon) {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  /* Source Badge */
+  :global(.source-badge) {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: white;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  /* Event Description */
+  :global(.event-description-wrapper) {
+    margin-bottom: 1rem;
+  }
+
+  :global(.event-description) {
+    margin-bottom: 0.5rem;
+    color: #4b5563;
+    line-height: 1.6;
+    font-size: 0.9375rem;
+  }
+
+  :global(.event-description p) {
+    margin: 0 0 1rem 0;
+  }
+
+  :global(.event-description p:last-child) {
+    margin-bottom: 0;
+  }
+
+  :global(.event-description h1),
+  :global(.event-description h2),
+  :global(.event-description h3) {
+    margin: 1rem 0 0.5rem 0;
+    font-weight: 600;
+  }
+
+  :global(.event-description h1:first-child),
+  :global(.event-description h2:first-child),
+  :global(.event-description h3:first-child) {
+    margin-top: 0;
+  }
+
+  :global(.event-description a) {
+    color: var(--color-primary);
+    text-decoration: underline;
+  }
+
+  :global(.event-description strong) {
+    font-weight: 600;
+  }
+
+  :global(.event-description .highlight) {
+    background-color: #fef08a;
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.125rem;
+    font-weight: 500;
+  }
+
+  :global(.show-more-btn) {
+    background: none;
+    border: none;
+    color: var(--color-primary);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0;
+    text-decoration: underline;
+  }
+
+  :global(.show-more-btn:hover) {
+    color: var(--color-primary-dark);
+  }
+
+  /* Tags */
+  :global(.tags-container) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    margin-top: 1rem;
+  }
+
+  :global(.tag-pill) {
+    display: inline-block;
+    padding: 0.25rem 0.625rem;
+    background: #f3f4f6;
+    color: #374151;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  :global(.tag-more) {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    font-style: italic;
+    padding: 0.25rem 0.625rem;
+  }
+
+  :global(.text-muted) {
+    color: #9ca3af;
+    font-style: italic;
+  }
+
+  /* Event Actions */
+  :global(.event-actions) {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  /* Event Added Status */
+  :global(.event-added) {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.625rem 1.25rem;
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.9375rem;
+  }
+
+  :global(.event-added::before) {
+    content: '✓';
+    margin-right: 0.375rem;
+    font-size: 1.125rem;
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 768px) {
+    .admin-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .admin-section {
+      padding: 1.5rem;
+    }
+
+    .events-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .events-grid {
+      gap: 1rem;
+    }
+
+    :global(.event-card) {
+      flex-direction: column;
+    }
+
+    :global(.event-image) {
+      width: 100%;
+      height: 200px;
+    }
+
+    :global(.event-content) {
+      padding: 1rem;
+    }
+  }
+</style>

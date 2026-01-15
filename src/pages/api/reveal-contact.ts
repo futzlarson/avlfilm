@@ -1,34 +1,16 @@
 import type { APIRoute } from 'astro';
-import { createClient } from 'redis';
 import { db } from '../../db';
 import { filmmakers } from '../../db/schema';
 import { eq } from 'drizzle-orm';
 import { errorResponse, jsonResponse } from '../../lib/api';
+import { checkRateLimit } from '../../lib/redis';
 
 // Rate limit: 20 reveals per IP per hour
 const RATE_LIMIT_MAX = 20;
 const RATE_LIMIT_WINDOW = 60 * 60; // 1 hour in seconds
 
-// Initialize Redis client
-const redis = createClient({
-  url: import.meta.env.REDIS_URL || ''
-});
-
-redis.on('error', (err) => console.error('Redis Client Error', err));
-
-// Connect to Redis (only once)
-let isConnected = false;
-async function ensureRedisConnection() {
-  if (!isConnected) {
-    await redis.connect();
-    isConnected = true;
-  }
-}
-
 export const POST: APIRoute = async ({ request, clientAddress }) => {
   try {
-    await ensureRedisConnection();
-
     const { filmmakerId } = await request.json();
 
     if (!filmmakerId) {
@@ -39,26 +21,22 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     const forwardedFor = request.headers.get('x-forwarded-for');
     const ip = forwardedFor?.split(',')[0].trim() || clientAddress || 'unknown';
 
-    // Rate limiting with Redis
-    const rateLimitKey = `rate-limit:reveal:${ip}`;
-    const currentCountStr = await redis.get(rateLimitKey);
-    const currentCount = currentCountStr ? parseInt(currentCountStr, 10) : 0;
+    // Check rate limit
+    const rateLimitResult = await checkRateLimit(
+      `rate-limit:reveal:${ip}`,
+      RATE_LIMIT_MAX,
+      RATE_LIMIT_WINDOW
+    );
 
-    if (currentCount >= RATE_LIMIT_MAX) {
+    if (!rateLimitResult.allowed) {
       return jsonResponse(
         {
           error: 'Rate limit exceeded. Please try again later.',
-          retryAfter: RATE_LIMIT_WINDOW
+          retryAfter: rateLimitResult.retryAfter
         },
         429
       );
     }
-
-    // Increment rate limit counter
-    const multi = redis.multi();
-    multi.incr(rateLimitKey);
-    multi.expire(rateLimitKey, RATE_LIMIT_WINDOW);
-    await multi.exec();
 
     // Fetch filmmaker contact info from database
     const filmmaker = await db
