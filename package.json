@@ -22,6 +22,7 @@
   "type": "module",
   "dependencies": {
     "@astrojs/check": "^0.9.6",
+    "@astrojs/sitemap": "^3.6.1",
     "@astrojs/vercel": "^9.0.2",
     "@vercel/analytics": "^1.6.1",
     "@vercel/postgres": "^0.10.0",
