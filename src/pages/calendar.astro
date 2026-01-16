@@ -1,5 +1,10 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+
+// Generate time options
+const hours = Array.from({ length: 12 }, (_, i) => i + 1);
+const minutes = ['00', '15', '30', '45'];
+const periods = ['AM', 'PM'];
 ---
 
 <BaseLayout
@@ -7,9 +12,91 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   description="Stay up to date with film events, screenings, meetups, and workshops in Asheville, NC. Join the AVL Film community calendar."
   keywords="Asheville film events, AVL Film calendar, film screenings Asheville, filmmaker meetups, film workshops Asheville, NC film community"
 >
-  <h1>Event Calendar</h1>
+  <div class="calendar-header">
+    <h1>Event Calendar</h1>
+    <button class="btn-primary" id="submit-event-btn">Submit Event</button>
+  </div>
 
-  <p class="intro">Help us populate this with all the known film events in town! If you would like to be a collaborator on this calendar, contact us in the footer.</p>
+  <p class="intro">Partially powered by <a href="https://www.avlgo.com" target="_blank">AVL GO</a>. Help us populate this with all the film events in town!</p>
+
+  <!-- Event Submission Modal -->
+  <div id="event-modal" class="modal">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+      <button class="modal-close">&times;</button>
+      <div class="modal-body">
+        <h2>Submit a Film Event</h2>
+        <p class="modal-intro">Share a film event with the AVL Film community!</p>
+
+        <form id="event-form">
+          <div class="form-group">
+            <label for="event-title">Event Title <span class="required">*</span></label>
+            <input type="text" id="event-title" name="title" required maxlength="200" />
+          </div>
+
+          <div class="form-group">
+            <label for="event-description">Description <span class="required">*</span></label>
+            <textarea id="event-description" name="description" required rows="4" maxlength="1000"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="event-location">Location <span class="required">*</span></label>
+            <input type="text" id="event-location" name="location" required maxlength="200" />
+          </div>
+
+          <div class="form-group">
+            <label>Start Date/Time <span class="required">*</span></label>
+            <div class="datetime-inputs">
+              <input type="date" id="event-start-date" name="startDate" required />
+              <select id="event-start-hour" name="startHour" required>
+                <option value="">Hour</option>
+                {hours.map(h => <option value={h}>{h}</option>)}
+              </select>
+              <select id="event-start-minute" name="startMinute" required>
+                <option value="">Min</option>
+                {minutes.map(m => <option value={m}>{m}</option>)}
+              </select>
+              <select id="event-start-period" name="startPeriod" required>
+                <option value="">AM/PM</option>
+                {periods.map(p => <option value={p}>{p}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>End Date/Time <span class="optional">(optional)</span></label>
+            <div class="datetime-inputs">
+              <input type="date" id="event-end-date" name="endDate" />
+              <select id="event-end-hour" name="endHour">
+                <option value="">Hour</option>
+                {hours.map(h => <option value={h}>{h}</option>)}
+              </select>
+              <select id="event-end-minute" name="endMinute">
+                <option value="">Min</option>
+                {minutes.map(m => <option value={m}>{m}</option>)}
+              </select>
+              <select id="event-end-period" name="endPeriod">
+                <option value="">AM/PM</option>
+                {periods.map(p => <option value={p}>{p}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="event-link">Link for More Info <span class="optional">(optional)</span></label>
+            <input type="url" id="event-link" name="link" placeholder="https://" maxlength="500" />
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-cancel" id="cancel-event-btn">Cancel</button>
+            <button type="submit" class="btn-submit">Submit Event</button>
+          </div>
+
+          <div id="event-form-message" style="display: none;"></div>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <div class="calendar-container" id="calendar-container">
     <iframe
@@ -33,13 +120,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
                            parseInt(window.getComputedStyle(main).paddingBottom);
 
         // Get the height of content before the container (including all margins)
-        const h1 = main.querySelector('h1') as HTMLElement | null;
+        const calendarHeader = main.querySelector('.calendar-header') as HTMLElement | null;
         const intro = main.querySelector('.intro') as HTMLElement | null;
 
-        const h1Styles = h1 ? window.getComputedStyle(h1) : null;
-        const h1Height = h1 ? h1.offsetHeight +
-                             parseInt(h1Styles?.marginTop || '0') +
-                             parseInt(h1Styles?.marginBottom || '0') : 0;
+        const calendarHeaderStyles = calendarHeader ? window.getComputedStyle(calendarHeader) : null;
+        const calendarHeaderHeight = calendarHeader ? calendarHeader.offsetHeight +
+                             parseInt(calendarHeaderStyles?.marginTop || '0') +
+                             parseInt(calendarHeaderStyles?.marginBottom || '0') : 0;
 
         const introStyles = intro ? window.getComputedStyle(intro) : null;
         const introHeight = intro ? intro.offsetHeight +
@@ -55,7 +142,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
                                headerHeight -
                                footerHeight -
                                mainPadding -
-                               h1Height -
+                               calendarHeaderHeight -
                                introHeight -
                                containerMarginTop -
                                buffer;
@@ -76,9 +163,156 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(setCalendarHeight, 250);
     });
+
+    // Event Modal functionality
+    function setupEventModal() {
+      const modal = document.getElementById('event-modal');
+      const openBtn = document.getElementById('submit-event-btn');
+      const closeBtn = modal?.querySelector('.modal-close');
+      const overlay = modal?.querySelector('.modal-overlay');
+      const cancelBtn = document.getElementById('cancel-event-btn');
+      const form = document.getElementById('event-form') as HTMLFormElement;
+      const messageDiv = document.getElementById('event-form-message');
+
+      const openModal = () => {
+        if (modal) {
+          modal.classList.add('active');
+          document.body.style.overflow = 'hidden';
+        }
+      };
+
+      const closeModal = () => {
+        if (modal) {
+          modal.classList.remove('active');
+          document.body.style.overflow = '';
+          form?.reset();
+          if (messageDiv) {
+            messageDiv.style.display = 'none';
+            messageDiv.className = '';
+          }
+        }
+      };
+
+      openBtn?.addEventListener('click', openModal);
+      closeBtn?.addEventListener('click', closeModal);
+      overlay?.addEventListener('click', closeModal);
+      cancelBtn?.addEventListener('click', closeModal);
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal?.classList.contains('active')) {
+          closeModal();
+        }
+      });
+
+      form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        if (!messageDiv) return;
+
+        const formData = new FormData(form);
+
+        // Helper function to convert 12-hour time to 24-hour format
+        function convertTo24Hour(hour: string, minute: string, period: string): string {
+          let hour24 = parseInt(hour);
+
+          if (period === 'PM' && hour24 !== 12) {
+            hour24 += 12;
+          } else if (period === 'AM' && hour24 === 12) {
+            hour24 = 0;
+          }
+
+          return `${hour24.toString().padStart(2, '0')}:${minute}:00`;
+        }
+
+        // Combine start date and time
+        const startDate = formData.get('startDate') as string;
+        const startHour = formData.get('startHour') as string;
+        const startMinute = formData.get('startMinute') as string;
+        const startPeriod = formData.get('startPeriod') as string;
+        const startDateTime = `${startDate}T${convertTo24Hour(startHour, startMinute, startPeriod)}`;
+
+        // Combine end date and time (if all fields provided)
+        const endDate = formData.get('endDate') as string;
+        const endHour = formData.get('endHour') as string;
+        const endMinute = formData.get('endMinute') as string;
+        const endPeriod = formData.get('endPeriod') as string;
+        const endDateTime = (endDate && endHour && endMinute && endPeriod)
+          ? `${endDate}T${convertTo24Hour(endHour, endMinute, endPeriod)}`
+          : null;
+
+        const data = {
+          title: formData.get('title'),
+          description: formData.get('description'),
+          location: formData.get('location'),
+          startDateTime,
+          endDateTime,
+          link: formData.get('link') || null,
+        };
+
+        const submitBtn = form.querySelector('.btn-submit') as HTMLButtonElement;
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Submitting...';
+        }
+
+        try {
+          const response = await fetch('/api/submit-event', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+          });
+
+          const result = await response.json();
+
+          if (response.ok) {
+            messageDiv.textContent = 'Thank you! Your event submission has been sent. We\'ll review it and add it to the calendar.';
+            messageDiv.className = 'success';
+            messageDiv.style.display = 'block';
+            form.reset();
+
+            setTimeout(() => {
+              closeModal();
+            }, 3000);
+          } else {
+            messageDiv.textContent = result.error || 'Failed to submit event. Please try again.';
+            messageDiv.className = 'error';
+            messageDiv.style.display = 'block';
+          }
+        } catch (error) {
+          messageDiv.textContent = 'An error occurred. Please try again.';
+          messageDiv.className = 'error';
+          messageDiv.style.display = 'block';
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Event';
+          }
+        }
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupEventModal);
+    } else {
+      setupEventModal();
+    }
   </script>
 
   <style>
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .calendar-header h1 {
+      margin: 0;
+    }
+
     .calendar-container {
       max-width: 100%;
       margin-top: 1.5rem;
@@ -94,13 +328,78 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       margin: 0 auto;
     }
 
+    #event-form-message {
+      margin-top: 1rem;
+      padding: 0.875rem 1rem;
+      border-radius: var(--radius-md);
+      font-size: 0.95rem;
+    }
+
+    #event-form-message.success {
+      background-color: var(--color-success-bg);
+      color: var(--color-success-text);
+      border: 1px solid var(--color-success-border);
+    }
+
+    #event-form-message.error {
+      background-color: var(--color-error-bg);
+      color: var(--color-error-text);
+      border: 1px solid var(--color-error-border);
+    }
+
+    .datetime-inputs {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1.2fr;
+      gap: 0.5rem;
+    }
+
+    .datetime-inputs input[type="date"],
+    .datetime-inputs select {
+      width: 100%;
+      padding: var(--spacing-sm);
+      border: 1px solid var(--color-border-light);
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      font-family: inherit;
+      transition: border-color var(--transition-base), box-shadow var(--transition-base);
+    }
+
+    .datetime-inputs input[type="date"]:focus,
+    .datetime-inputs select:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .datetime-inputs select {
+      cursor: pointer;
+    }
+
     @media (max-width: 768px) {
+      .calendar-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .calendar-header h1 {
+        font-size: 1.5rem;
+      }
+
       .calendar-container {
         margin-top: 1rem;
       }
 
       #calendar-iframe {
         max-width: 100%;
+      }
+
+      .datetime-inputs {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto;
+      }
+
+      .datetime-inputs input[type="date"] {
+        grid-column: 1 / -1;
       }
     }
   </style>
