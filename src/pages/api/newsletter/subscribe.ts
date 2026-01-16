@@ -33,7 +33,6 @@ export const POST: APIRoute = async ({ request }) => {
 
     return successResponse({ message: 'Successfully subscribed to newsletter!' });
   } catch (error) {
-    console.error('Error subscribing to newsletter:', error);
-    return errorResponse('Failed to subscribe. Please try again later.', 500);
+    return errorResponse('Error subscribing to newsletter', error, request);
   }
 };

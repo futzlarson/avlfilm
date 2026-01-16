@@ -1,5 +1,7 @@
 // Shared Slack notification utility
 
+import { logWarning } from './rollbar';
+
 /**
  * Sends a message to the configured Slack webhook
  * @param text The message text to send
@@ -22,7 +24,8 @@ export async function sendSlackNotification(text: string): Promise<boolean> {
 
     return response.ok;
   } catch (error) {
-    console.error('Failed to send Slack notification:', error);
+    // Log as warning since Slack failures aren't critical
+    logWarning('Failed to send Slack notification', { error, service: 'slack' });
     return false;
   }
 }

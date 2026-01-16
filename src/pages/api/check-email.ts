@@ -16,7 +16,6 @@ export const GET: APIRoute = async ({ url }) => {
 
     return successResponse({ exists: existing.length > 0 });
   } catch (error) {
-    console.error('Error checking email:', error);
-    return errorResponse('Failed to check email', 500);
+    return errorResponse('Failed to check email', error);
   }
 };

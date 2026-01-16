@@ -111,7 +111,6 @@ export const POST: APIRoute = async ({ request, url }) => {
 
     return jsonResponse({ success: true, filmmaker }, 201);
   } catch (error) {
-    console.error('Error submitting filmmaker:', error);
-    return errorResponse('Failed to submit filmmaker', 500);
+    return errorResponse('Failed to submit filmmaker', error, request);
   }
 };

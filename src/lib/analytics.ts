@@ -7,6 +7,7 @@
  */
 
 import { nanoid } from 'nanoid';
+import { logWarning } from './rollbar';
 
 function getOrCreateVisitorId(): string {
   const key = 'analytics_visitor_id';
@@ -57,6 +58,7 @@ export function track(eventName: string, properties?: Record<string, any>): void
     }),
   }).catch(error => {
     // Silently fail - analytics shouldn't break user experience
-    console.error('Analytics tracking failed:', error);
+    // Log as warning since this isn't critical
+    logWarning('Analytics tracking failed', { error, service: 'analytics' });
   });
 }

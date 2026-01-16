@@ -3,6 +3,8 @@
  * Used by both the newsletter API endpoint and filmmaker submission
  */
 
+import { logError, logWarning } from './rollbar';
+
 interface SubscribeResult {
   success: boolean;
   message: string;
@@ -23,7 +25,7 @@ export async function subscribeToNewsletter(email: string): Promise<SubscribeRes
   }
 
   if (!EMAILOCTOPUS_API_KEY || !EMAILOCTOPUS_LIST_ID) {
-    console.error('Missing EmailOctopus configuration');
+    logWarning('Missing EmailOctopus configuration', { service: 'newsletter' });
     return {
       success: false,
       message: 'Newsletter service not configured',
@@ -59,7 +61,7 @@ export async function subscribeToNewsletter(email: string): Promise<SubscribeRes
         };
       }
 
-      console.error('EmailOctopus API error:', data);
+      logWarning('EmailOctopus API error', { service: 'newsletter', response: data });
       return {
         success: false,
         message: 'Failed to subscribe to newsletter',
@@ -71,7 +73,7 @@ export async function subscribeToNewsletter(email: string): Promise<SubscribeRes
       message: 'Successfully subscribed to newsletter',
     };
   } catch (error) {
-    console.error('Error subscribing to newsletter:', error);
+    logError(error, { service: 'newsletter', action: 'subscribe' });
     return {
       success: false,
       message: 'Failed to subscribe to newsletter',

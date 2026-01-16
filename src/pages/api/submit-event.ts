@@ -106,13 +106,12 @@ export const POST: APIRoute = async ({ request }) => {
         });
       } catch (emailError) {
         console.error('Failed to send event submission email:', emailError);
-        return errorResponse('Failed to send event submission', 500);
+        return errorResponse('Failed to send event submission', emailError, request);
       }
     }
 
     return jsonResponse({ success: true }, 200);
   } catch (error) {
-    console.error('Error submitting event:', error);
-    return errorResponse('Failed to submit event', 500);
+    return errorResponse('Failed to submit event', error, request);
   }
 };

@@ -57,7 +57,6 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       phone: filmmaker[0].phone,
     });
   } catch (error) {
-    console.error('Error revealing contact:', error);
-    return errorResponse('Internal server error', 500);
+    return errorResponse('Error revealing contact', error, request);
   }
 };

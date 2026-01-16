@@ -81,7 +81,6 @@ export const POST: APIRoute = async ({ request, url }) => {
 
     return successResponse({ filmmaker });
   } catch (error) {
-    console.error('Error updating filmmaker:', error);
-    return errorResponse('Failed to update filmmaker', 500);
+    return errorResponse('Failed to update filmmaker', error, request);
   }
 };

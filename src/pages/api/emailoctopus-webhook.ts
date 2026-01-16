@@ -34,7 +34,6 @@ export const POST: APIRoute = async ({ request }) => {
 
     return successResponse({ posted: webhookEvents.length });
   } catch (err) {
-    console.error('Error handling webhook:', err);
-    return errorResponse('Failed to process webhook', 500);
+    return errorResponse('Failed to process webhook', err, request);
   }
 };

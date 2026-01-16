@@ -6,6 +6,7 @@ import { db } from '../db';
 import { filmmakers as filmmakersTable } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import type { PublicFilmmaker } from '../db/schema';
+import { logError } from '../lib/rollbar';
 
 let filmmakers: PublicFilmmaker[] = [];
 let error = null;
@@ -20,7 +21,7 @@ try {
   // Remove email and phone from results
   filmmakers = results.map(({ email, phone, ...filmmaker }) => filmmaker) as PublicFilmmaker[];
 } catch (e) {
-  console.error('Error fetching filmmakers:', e);
+  logError(e, { context: 'directory page', action: 'fetch filmmakers' });
   error = 'Failed to load filmmakers';
 }
 ---

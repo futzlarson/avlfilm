@@ -46,7 +46,6 @@ export const POST: APIRoute = async ({ request, url }) => {
       email: adminEmail,
     });
   } catch (error) {
-    console.error('Error sending test email:', error);
-    return errorResponse('Failed to send test email', 500);
+    return errorResponse('Failed to send test email', error, request);
   }
 };

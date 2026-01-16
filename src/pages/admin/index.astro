@@ -3,6 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { db } from '../../db';
 import { siteSettings } from '../../db/schema';
 import { inArray } from 'drizzle-orm';
+import { logError } from '../../lib/rollbar';
 
 let bannerHtml = '<p>Welcome to AVL Film!</p>';
 let bannerEnabled = false;
@@ -16,7 +17,7 @@ try {
   bannerHtml = settings.find(row => row.key === 'banner_html')?.value || '<p>Welcome to AVL Film!</p>';
   bannerEnabled = settings.find(row => row.key === 'banner_enabled')?.value === 'true';
 } catch (error) {
-  console.error('Failed to load banner settings:', error);
+  logError(error, { context: 'admin index', action: 'load banner settings' });
 }
 ---
 

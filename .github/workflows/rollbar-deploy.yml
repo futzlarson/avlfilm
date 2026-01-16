@@ -1,0 +1,20 @@
+name: Rollbar Deploy Notification
+
+on:
+  deployment_status:
+
+jobs:
+  rollbar:
+    name: Notify Rollbar of Deploy
+    runs-on: ubuntu-latest
+    if: github.event.deployment_status.state == 'success'
+
+    steps:
+      - name: Notify Rollbar of deployment
+        uses: rollbar/github-deploy-action@2.1.2
+        with:
+          environment: ${{ github.event.deployment_status.environment }}
+          version: ${{ github.sha }}
+        env:
+          ROLLBAR_ACCESS_TOKEN: ${{ secrets.ROLLBAR_ACCESS_TOKEN }}
+          ROLLBAR_USERNAME: ${{ github.actor }}

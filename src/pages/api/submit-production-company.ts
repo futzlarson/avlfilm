@@ -53,6 +53,6 @@ ${description}
     return successResponse({ message: 'Submission received successfully' });
   } catch (error) {
     console.error('Error submitting production company:', error);
-    return errorResponse('Failed to submit production company', 500);
+    return errorResponse('Failed to submit production company', error, request);
   }
 };

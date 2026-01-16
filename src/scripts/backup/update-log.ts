@@ -1,6 +1,7 @@
 import { db } from '../../db/index';
 import { siteSettings } from '../../db/schema';
 import { eq } from 'drizzle-orm';
+import { logError } from '../../lib/rollbar';
 
 interface BackupEntry {
   timestamp: string;
@@ -58,7 +59,7 @@ async function updateBackupLog(filename: string, size: string) {
 
     console.log('Backup log updated');
   } catch (error) {
-    console.error('Failed to update backup log:', error);
+    logError(error, { context: 'backup script', action: 'update log' });
     process.exit(1);
   }
   process.exit(0);

@@ -1,4 +1,5 @@
 import { createClient } from 'redis';
+import { logError } from './rollbar';
 
 /**
  * Shared Redis client singleton
@@ -8,7 +9,9 @@ export const redis = createClient({
   url: import.meta.env.REDIS_URL || ''
 });
 
-redis.on('error', (err) => console.error('Redis Client Error', err));
+redis.on('error', (err) => {
+  logError(err, { context: 'Redis client', service: 'redis' });
+});
 
 // Connection state
 let isConnected = false;

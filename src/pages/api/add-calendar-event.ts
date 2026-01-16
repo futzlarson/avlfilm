@@ -44,19 +44,19 @@ export const POST: APIRoute = async ({ request }) => {
     if (error instanceof Error) {
       // Google API errors
       if (error.message.includes('authentication failed')) {
-        return errorResponse('Calendar authentication failed', 500);
+        return errorResponse('Calendar authentication failed', error, request);
       }
       if (error.message.includes('quota exceeded')) {
-        return errorResponse('Calendar API quota exceeded. Please try again later.', 429);
+        return errorResponse('Calendar API quota exceeded', 429, error, request, true);
       }
       if (error.message.includes('Calendar not found')) {
-        return errorResponse('Calendar configuration error', 500);
+        return errorResponse('Calendar configuration error', error, request);
       }
 
       // Return the error message for other cases
-      return errorResponse(error.message, 500);
+      return errorResponse(error.message, error, request);
     }
 
-    return errorResponse('Internal server error', 500);
+    return errorResponse('Internal server error', error, request);
   }
 };

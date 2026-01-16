@@ -40,7 +40,6 @@ export const POST: APIRoute = async ({ request }) => {
 
     return successResponse({ success: true });
   } catch (error) {
-    console.error('Failed to update banner settings:', error);
-    return errorResponse('Failed to update banner settings', 500);
+    return errorResponse('Failed to update banner settings', error, request);
   }
 };

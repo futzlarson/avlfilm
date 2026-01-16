@@ -46,6 +46,6 @@ export const POST: APIRoute = async ({ request }) => {
     return successResponse();
   } catch (error) {
     console.error('[Analytics] Error tracking event:', error);
-    return errorResponse('Failed to track event', 500);
+    return errorResponse('Failed to track event', error, request);
   }
 };
