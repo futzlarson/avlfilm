@@ -376,8 +376,6 @@ const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj =>
       newsletter: newsletterCheckbox.checked,
     };
 
-    track('directory_submit', { filmmaker: submissionData });
-
     try {
       const response = await fetch('/api/submit-filmmaker', {
         method: 'POST',
@@ -390,6 +388,8 @@ const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj =>
       if (!response.ok) {
         throw new Error('Failed to submit');
       }
+
+      track('directory_submit', { filmmaker: submissionData });
 
       form.style.display = 'none';
       document.querySelector('.intro')?.remove();
