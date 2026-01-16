@@ -20,7 +20,8 @@ function generateGoogleCalendarUrl(
   description: string,
   location: string,
   startDateTime: string,
-  endDateTime: string | null
+  endDateTime: string | null,
+  link?: string
 ): string {
   const baseUrl = 'https://calendar.google.com/calendar/render';
 
@@ -30,11 +31,16 @@ function generateGoogleCalendarUrl(
     ? formatGoogleCalendarDate(endDateTime)
     : formatGoogleCalendarDate(new Date(new Date(startDateTime).getTime() + 2 * 60 * 60 * 1000).toISOString());
 
+  // Add link to description if provided
+  const fullDescription = link
+    ? `${description}\n\nMore info: ${link}`
+    : description;
+
   const params = new URLSearchParams({
     action: 'TEMPLATE',
     text: title,
     dates: `${start}/${end}`,
-    details: description,
+    details: fullDescription,
     location: location,
     authuser: import.meta.env.GOOGLE_CALENDAR_ID
   });
@@ -58,7 +64,8 @@ export const POST: APIRoute = async ({ request }) => {
           description,
           location,
           startDateTime,
-          endDateTime
+          endDateTime,
+          link
         );
 
         await resend.emails.send({
