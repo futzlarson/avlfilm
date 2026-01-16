@@ -9,7 +9,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 >
   <div class="page-header">
     <h1>Production Companies in Asheville</h1>
-    <button class="btn-gradient" onclick="openProductionModal()">Add Your Company</button>
+    <button class="btn-primary" onclick="openProductionModal()">Add Your Company</button>
+    <!--<a href="/submit" class="btn-primary">Add Yourself</a>-->
   </div>
 
   <h2 class="section-heading">Music & Sound Design</h2>
@@ -202,47 +203,36 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       flex-direction: column;
       align-items: stretch;
     }
-
-    .page-header .btn-gradient {
-      width: 100%;
-      text-align: center;
-    }
   }
 </style>
 
 <script>
   import { track } from '../lib/analytics';
+  import { setupModal } from '../lib/modal';
 
   document.addEventListener('DOMContentLoaded', () => {
-    const modal = document.getElementById('production-company-modal');
-    const overlay = modal?.querySelector('.modal-overlay');
-    const closeBtn = modal?.querySelector('.modal-close');
-    const cancelBtn = modal?.querySelector('.btn-cancel');
-    const closeSuccessBtn = modal?.querySelector('.btn-close-success');
+    const cancelBtn = document.getElementById('production-company-modal')?.querySelector('.btn-cancel');
+    const closeSuccessBtn = document.getElementById('production-company-modal')?.querySelector('.btn-close-success');
     const form = document.getElementById('production-company-form') as HTMLFormElement;
     const successMessage = document.getElementById('success-message');
     const descriptionTextarea = document.getElementById('description') as HTMLTextAreaElement;
     const charCount = document.getElementById('char-count');
 
-    const closeModal = () => {
-      modal?.classList.remove('active');
-      document.body.style.overflow = '';
-      form?.reset();
-      if (form) form.style.display = 'block';
-      if (successMessage) successMessage.style.display = 'none';
-      if (charCount) charCount.textContent = '0';
-    };
-
-    overlay?.addEventListener('click', closeModal);
-    closeBtn?.addEventListener('click', closeModal);
-    cancelBtn?.addEventListener('click', closeModal);
-    closeSuccessBtn?.addEventListener('click', closeModal);
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && modal?.classList.contains('active')) {
-        closeModal();
+    const modalControls = setupModal('production-company-modal', {
+      onClose: () => {
+        form?.reset();
+        if (form) form.style.display = 'block';
+        if (successMessage) successMessage.style.display = 'none';
+        if (charCount) charCount.textContent = '0';
       }
     });
+
+    if (!modalControls) return;
+
+    const { close } = modalControls;
+
+    cancelBtn?.addEventListener('click', close);
+    closeSuccessBtn?.addEventListener('click', close);
 
     // Character count
     descriptionTextarea?.addEventListener('input', () => {
@@ -304,12 +294,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     });
   });
 
+  // Expose openProductionModal to window for inline onclick handler
   function openProductionModal() {
     track('production_add_company_button_click');
     const modal = document.getElementById('production-company-modal');
-    if (!modal) return;
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
+    if (modal) {
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
   }
 
   (window as any).openProductionModal = openProductionModal;

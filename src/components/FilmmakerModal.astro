@@ -156,28 +156,7 @@ const { id } = Astro.props;
   import { formatPhone } from '../utils/formatting';
   import { normalizeUrl } from '../utils/url';
   import { track } from '../lib/analytics';
-
-  function setupModal(modalId: string) {
-    const modal = document.getElementById(modalId);
-    if (!modal) return;
-
-    const overlay = modal.querySelector('.modal-overlay');
-    const closeBtn = modal.querySelector('.modal-close');
-
-    const close = () => {
-      modal.classList.remove('active');
-      document.body.style.overflow = '';
-    };
-
-    overlay?.addEventListener('click', close);
-    closeBtn?.addEventListener('click', close);
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && modal.classList.contains('active')) {
-        close();
-      }
-    });
-  }
+  import { setupModal } from '../lib/modal';
 
   document.addEventListener('DOMContentLoaded', () => {
     setupModal('filmmaker-modal');

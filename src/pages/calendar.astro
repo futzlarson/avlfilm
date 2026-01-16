@@ -165,44 +165,30 @@ const periods = ['AM', 'PM'];
     });
 
     // Event Modal functionality
+    import { setupModal } from '../lib/modal';
+
     function setupEventModal() {
-      const modal = document.getElementById('event-modal');
       const openBtn = document.getElementById('submit-event-btn');
-      const closeBtn = modal?.querySelector('.modal-close');
-      const overlay = modal?.querySelector('.modal-overlay');
       const cancelBtn = document.getElementById('cancel-event-btn');
       const form = document.getElementById('event-form') as HTMLFormElement;
       const messageDiv = document.getElementById('event-form-message');
 
-      const openModal = () => {
-        if (modal) {
-          modal.classList.add('active');
-          document.body.style.overflow = 'hidden';
-        }
-      };
-
-      const closeModal = () => {
-        if (modal) {
-          modal.classList.remove('active');
-          document.body.style.overflow = '';
+      const modalControls = setupModal('event-modal', {
+        onClose: () => {
           form?.reset();
           if (messageDiv) {
             messageDiv.style.display = 'none';
             messageDiv.className = '';
           }
         }
-      };
-
-      openBtn?.addEventListener('click', openModal);
-      closeBtn?.addEventListener('click', closeModal);
-      overlay?.addEventListener('click', closeModal);
-      cancelBtn?.addEventListener('click', closeModal);
-
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal?.classList.contains('active')) {
-          closeModal();
-        }
       });
+
+      if (!modalControls) return;
+
+      const { open, close } = modalControls;
+
+      openBtn?.addEventListener('click', open);
+      cancelBtn?.addEventListener('click', close);
 
       form?.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -273,7 +259,7 @@ const periods = ['AM', 'PM'];
             form.reset();
 
             setTimeout(() => {
-              closeModal();
+              close();
             }, 3000);
           } else {
             messageDiv.textContent = result.error || 'Failed to submit event. Please try again.';
