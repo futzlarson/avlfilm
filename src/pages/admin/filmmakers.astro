@@ -523,10 +523,22 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
   }
 
   async function approveFilmmaker(id: number) {
+    const card = document.querySelector(`[data-id="${id}"]`);
+    const btn = card?.querySelector('.btn-approve') as HTMLButtonElement;
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Approving...';
+    }
     await updateFilmmaker(id, { status: 'approved' });
   }
 
   async function archiveFilmmaker(id: number) {
+    const card = document.querySelector(`[data-id="${id}"]`);
+    const btn = card?.querySelector('.btn-archive') as HTMLButtonElement;
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Archiving...';
+    }
     await updateFilmmaker(id, { status: 'archived' });
   }
 
@@ -544,7 +556,7 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
         throw new Error('Failed to update filmmaker');
       }
 
-      // Reload page to get fresh data from server
+      // Reload page to get fresh data
       window.location.reload();
     } catch (error) {
       console.error('Error updating filmmaker:', error);
@@ -565,6 +577,26 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
   async function saveFilmmaker(event: Event, id: number) {
     event.preventDefault();
     const form = event.target as HTMLFormElement;
+    const btn = form.querySelector('.btn-save') as HTMLButtonElement;
+    const card = form.closest('.filmmaker-card');
+    const isInSearch = card?.closest('#all-filmmakers') !== null;
+
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+    }
+
+    // If in search section, preserve search term in URL
+    if (isInSearch) {
+      const searchInput = document.getElementById('search-input') as HTMLInputElement;
+      const searchTerm = searchInput?.value || '';
+      if (searchTerm) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('search', searchTerm);
+        window.history.replaceState({}, '', url);
+      }
+    }
+
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
     await updateFilmmaker(id, data);
@@ -616,8 +648,16 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
   document.addEventListener('DOMContentLoaded', () => {
     renderPendingFilmmakers();
 
-    const searchInput = document.getElementById('search-input');
+    const searchInput = document.getElementById('search-input') as HTMLInputElement;
     searchInput?.addEventListener('input', renderAllFilmmakers);
+
+    // Restore search term from URL if present
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchTerm = urlParams.get('search');
+    if (searchTerm && searchInput) {
+      searchInput.value = searchTerm;
+      renderAllFilmmakers();
+    }
 
     const testEmailBtn = document.getElementById('test-email-btn');
     testEmailBtn?.addEventListener('click', sendTestEmail);

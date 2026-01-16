@@ -149,6 +149,12 @@ h1 {
   transform: none;
 }
 
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 /* Large button variant */
 .btn-large {
   padding: var(--spacing-md) var(--spacing-xl);
