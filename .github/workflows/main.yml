@@ -1,0 +1,4 @@
+- name: Debug GitHub context
+  run: |
+    echo "Actor: ${{ github.actor }}"
+    echo "Creator: ${{ github.event.deployment_status.creator.login }}"
