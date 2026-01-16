@@ -1,4 +1,17 @@
-- name: Debug GitHub context
-  run: |
-    echo "Actor: ${{ github.actor }}"
-    echo "Creator: ${{ github.event.deployment_status.creator.login }}"
+name: Debug GitHub Context
+
+on:
+  deployment_status:
+
+jobs:
+  debug:
+    name: Debug Context
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Debug GitHub context
+        run: |
+          echo "Actor: ${{ github.actor }}"
+          echo "Creator: ${{ github.event.deployment_status.creator.login }}"
+          echo "Environment: ${{ github.event.deployment_status.environment }}"
+          echo "SHA: ${{ github.sha }}"
