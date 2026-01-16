@@ -7,7 +7,7 @@
 // Only enable in production
 const isProduction = import.meta.env.MODE === 'production';
 const rollbarToken = import.meta.env.ROLLBAR_CLIENT_ACCESS_TOKEN || import.meta.env.ROLLBAR_ACCESS_TOKEN;
-const codeVersion = import.meta.env.PUBLIC_VERCEL_GIT_COMMIT_SHA;
+const codeVersion = import.meta.env.PUBLIC_VERCEL_GIT_COMMIT_SHA || 'development';
 ---
 
 {isProduction && rollbarToken && (
