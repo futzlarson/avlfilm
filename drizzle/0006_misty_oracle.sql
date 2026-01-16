@@ -1,0 +1,1 @@
+ALTER TABLE "filmmakers" ADD COLUMN "bio" text;

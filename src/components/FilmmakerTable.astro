@@ -67,7 +67,7 @@ const { filmmakers } = Astro.props;
               filmmaker.company || ''
             )}
           </td>
-          <td class="gear-cell">{filmmaker.gear || ''}</td>
+          <td class="gear-cell" {...(filmmaker.gear ? { 'data-tippy-content': filmmaker.gear } : {})}>{filmmaker.gear || ''}</td>
         </tr>
       ))}
     </tbody>
@@ -314,6 +314,7 @@ const { filmmakers } = Astro.props;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    cursor: help;
   }
 
   @media (max-width: 768px) {
@@ -343,6 +344,8 @@ const { filmmakers } = Astro.props;
 <script>
   import type { PublicFilmmaker } from '../db/schema';
   import { track } from '../lib/analytics';
+  import tippy from 'tippy.js';
+  import 'tippy.js/dist/tippy.css';
 
   // Load filmmakers from JSON script tag
   const filmmakers: PublicFilmmaker[] = JSON.parse(document.getElementById('filmmaker-data')!.textContent || '[]');
@@ -563,5 +566,12 @@ const { filmmakers } = Astro.props;
     setupRoleFilter();
     setupTable();
     updateCount();
+
+    // Initialize tooltips for gear cells
+    tippy('.gear-cell[data-tippy-content]', {
+      placement: 'top',
+      maxWidth: 350,
+      theme: 'dark',
+    });
   });
 </script>

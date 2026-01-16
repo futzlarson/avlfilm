@@ -10,7 +10,7 @@ const resend = new Resend(import.meta.env.RESEND_API_KEY);
 export const POST: APIRoute = async ({ request, url }) => {
   try {
     const body = await request.json();
-    const { name, email, phone, roles, company, website, socialMedia, gear, notes, newsletter } = body;
+    const { name, email, phone, roles, company, website, socialMedia, gear, bio, notes, newsletter } = body;
 
     if (!name || !email || !roles) {
       return errorResponse('Name, email, and roles are required');
@@ -28,6 +28,7 @@ export const POST: APIRoute = async ({ request, url }) => {
       website: website || null,
       socialMedia: socialMedia || null,
       gear: gear || null,
+      bio: bio || null,
       status: 'pending',
     }).returning();
 
@@ -52,17 +53,55 @@ export const POST: APIRoute = async ({ request, url }) => {
           subject: 'New Filmmaker Directory Submission',
           html: `
             <h2>New Filmmaker Directory Submission</h2>
-            <p><strong>Name:</strong> ${name}</p>
-            <p><strong>Email:</strong> ${email}</p>
-            <p><strong>Phone:</strong> ${phone || 'N/A'}</p>
-            <p><strong>Roles:</strong> ${roles}</p>
-            <p><strong>Company:</strong> ${company || 'N/A'}</p>
-            <p><strong>Website:</strong> ${website || 'N/A'}</p>
-            <p><strong>Social Media:</strong> ${socialMedia || 'N/A'}</p>
-            <p><strong>Gear:</strong> ${gear || 'N/A'}</p>
-            ${notes ? `<p><strong>Notes:</strong> ${notes}</p>` : ''}
-            <p><strong>Newsletter:</strong> ${subscribeToNewsletterRequested ? 'Yes' : 'No'}</p>
-            <p><a href="${adminUrl}">Review in Admin</a></p>
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+              <tr>
+                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db; width: 150px;">NAME</td>
+                <td style="padding: 10px; border: 1px solid #d1d5db;">${name}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">EMAIL</td>
+                <td style="padding: 10px; border: 1px solid #d1d5db;">${email}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">PHONE</td>
+                <td style="padding: 10px; border: 1px solid #d1d5db;">${phone || 'N/A'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">ROLES</td>
+                <td style="padding: 10px; border: 1px solid #d1d5db;">${roles}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">COMPANY</td>
+                <td style="padding: 10px; border: 1px solid #d1d5db;">${company || 'N/A'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">WEBSITE</td>
+                <td style="padding: 10px; border: 1px solid #d1d5db;">${website || 'N/A'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">SOCIAL MEDIA</td>
+                <td style="padding: 10px; border: 1px solid #d1d5db;">${socialMedia || 'N/A'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">GEAR</td>
+                <td style="padding: 10px; border: 1px solid #d1d5db; white-space: pre-wrap;">${gear || 'N/A'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">BIO</td>
+                <td style="padding: 10px; border: 1px solid #d1d5db; white-space: pre-wrap;">${bio || 'N/A'}</td>
+              </tr>
+              ${notes ? `
+              <tr>
+                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">NOTES</td>
+                <td style="padding: 10px; border: 1px solid #d1d5db; white-space: pre-wrap;">${notes}</td>
+              </tr>
+              ` : ''}
+              <tr>
+                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">NEWSLETTER</td>
+                <td style="padding: 10px; border: 1px solid #d1d5db;">${subscribeToNewsletterRequested ? 'Yes' : 'No'}</td>
+              </tr>
+            </table>
+            <p><a href="${adminUrl}" style="color: #667eea; font-weight: 600;">Review in Admin</a></p>
           `,
         });
       } catch (emailError) {

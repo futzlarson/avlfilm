@@ -392,6 +392,10 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
               <td>Gear</td>
               <td><textarea name="gear" rows="3" readonly>${f.gear || ''}</textarea></td>
             </tr>
+            <tr class="${!f.bio ? 'empty-row' : ''}" data-field="bio">
+              <td>Bio</td>
+              <td><textarea name="bio" rows="3" readonly>${f.bio || ''}</textarea></td>
+            </tr>
             ${!showApproveButton ? `
               <tr data-field="status">
                 <td>Status</td>

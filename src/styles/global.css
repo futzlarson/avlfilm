@@ -552,7 +552,7 @@ footer {
   position: relative;
   background: white;
   border-radius: var(--radius-lg);
-  max-width: 600px;
+  max-width: 800px;
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
@@ -699,4 +699,22 @@ footer {
     font-size: 1.5rem;
     padding-right: 2rem;
   }
+}
+
+/* ==========================================================================
+   14. TOOLTIPS (TIPPY.JS)
+   ========================================================================== */
+
+.tippy-box[data-theme~='dark'] {
+  background-color: #1a1a1a;
+  font-size: 0.875rem;
+  border-radius: 6px;
+}
+
+.tippy-box[data-theme~='dark'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: #1a1a1a;
+}
+
+.tippy-content {
+  padding: 0.5rem 0.75rem;
 }

@@ -76,8 +76,13 @@ const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj =>
     </div>
 
     <div class="form-group">
-      <label for="notes">Notes for AVL Film</label>
-      <textarea id="notes" name="notes" rows="3" placeholder="Any additional information you'd like to share with us"></textarea>
+      <label for="bio">Bio</label>
+      <textarea id="bio" name="bio" rows="4" placeholder="Tell us about yourself and your work"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="notes">Notes to AVL Film (won't be public)</label>
+      <textarea id="notes" name="notes" rows="3" placeholder="Any feedback? Roles missing?"></textarea>
     </div>
 
     <div class="form-group checkbox-group">

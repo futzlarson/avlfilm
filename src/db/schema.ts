@@ -18,6 +18,7 @@ export const filmmakers = pgTable('filmmakers', {
   website: varchar('website', { length: 500 }),
   socialMedia: varchar('social_media', { length: 500 }),
   gear: text('gear'),
+  bio: text('bio'),
   status: varchar('status', { length: 20 }).notNull().default('pending'), // 'pending' | 'approved' | 'archived'
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),

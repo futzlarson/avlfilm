@@ -47,6 +47,10 @@ const { id } = Astro.props;
             <th>Equipment/Gear</th>
             <td><span class="filmmaker-gear"></span></td>
           </tr>
+          <tr class="bio-row">
+            <th>Bio</th>
+            <td><span class="filmmaker-bio"></span></td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -273,6 +277,15 @@ const { id } = Astro.props;
       gearRow.style.display = 'table-row';
     } else {
       gearRow.style.display = 'none';
+    }
+
+    const bioRow = modal.querySelector('.bio-row') as HTMLElement;
+    const bioSpan = modal.querySelector('.filmmaker-bio')!;
+    if (filmmaker.bio) {
+      bioSpan.textContent = filmmaker.bio;
+      bioRow.style.display = 'table-row';
+    } else {
+      bioRow.style.display = 'none';
     }
 
     modal.classList.add('active');
