@@ -1,4 +1,4 @@
-import { google } from 'googleapis';
+import { calendar } from '@googleapis/calendar';
 import { JWT } from 'google-auth-library';
 import type { AvlGoEvent } from '../types/avlgo-event';
 
@@ -20,7 +20,7 @@ export function getGoogleCalendarClient() {
     scopes: ['https://www.googleapis.com/auth/calendar'],
   });
 
-  return google.calendar({ version: 'v3', auth });
+  return calendar({ version: 'v3', auth });
 }
 
 /**
