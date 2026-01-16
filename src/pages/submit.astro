@@ -345,6 +345,7 @@ const canonicalRoles = Object.values(FILM_ROLES_BY_CATEGORY).flatMap(rolesObj =>
             updateSelectedRoles();
             input.value = '';
             dropdown.classList.remove('active');
+            input.focus();
           }
         });
       });
