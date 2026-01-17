@@ -1,9 +1,12 @@
+// Internal imports
+import { db } from '@db';
+import { filmmakers } from '@db/schema';
+import { errorResponse, jsonResponse } from '@lib/api';
+import { checkRateLimit } from '@lib/redis';
+// Astro types
 import type { APIRoute } from 'astro';
-import { db } from '../../db';
-import { filmmakers } from '../../db/schema';
+// External packages
 import { eq } from 'drizzle-orm';
-import { errorResponse, jsonResponse } from '../../lib/api';
-import { checkRateLimit } from '../../lib/redis';
 
 // Rate limit: 20 reveals per IP per hour
 const RATE_LIMIT_MAX = 20;

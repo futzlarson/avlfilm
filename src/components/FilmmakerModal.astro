@@ -152,11 +152,11 @@ const { id } = Astro.props;
 </style>
 
 <script>
-  import type { PublicFilmmaker } from '../db/schema';
-  import { formatPhone } from '../utils/formatting';
-  import { normalizeUrl } from '../utils/url';
-  import { track } from '../lib/analytics';
-  import { setupModal } from '../lib/modal';
+  import type { PublicFilmmaker } from '@db/schema';
+  import { formatPhone } from '@utils/formatting';
+  import { normalizeUrl } from '@utils/url';
+  import { track } from '@lib/analytics';
+  import { setupModal } from '@lib/modal';
 
   document.addEventListener('DOMContentLoaded', () => {
     setupModal('filmmaker-modal');

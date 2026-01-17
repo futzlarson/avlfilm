@@ -1,6 +1,9 @@
 ---
-import { db } from '../db';
-import { siteSettings } from '../db/schema';
+// Internal imports
+import { db } from '@db';
+import { siteSettings } from '@db/schema';
+
+// External packages
 import { inArray } from 'drizzle-orm';
 
 let bannerHtml = '<p>Welcome to AVL Film!</p>';

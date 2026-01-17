@@ -1,5 +1,5 @@
-import { pgTable, serial, varchar, text, timestamp } from 'drizzle-orm/pg-core';
 import type { InferSelectModel } from 'drizzle-orm';
+import { pgTable, serial, text, timestamp,varchar } from 'drizzle-orm/pg-core';
 
 export const siteSettings = pgTable('site_settings', {
   id: serial('id').primaryKey(),

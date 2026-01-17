@@ -1,5 +1,6 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
+// Internal imports
+import BaseLayout from '@layouts/BaseLayout.astro';
 ---
 
 <BaseLayout
@@ -207,8 +208,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 </style>
 
 <script>
-  import { track } from '../lib/analytics';
-  import { setupModal } from '../lib/modal';
+  import { track } from '@lib/analytics';
+  import { setupModal } from '@lib/modal';
 
   document.addEventListener('DOMContentLoaded', () => {
     const cancelBtn = document.getElementById('production-company-modal')?.querySelector('.btn-cancel');

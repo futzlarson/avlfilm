@@ -1,7 +1,20 @@
 {
   "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "baseUrl": ".",
+    "paths": {
+      "@lib": ["src/lib/index"],
+      "@lib/*": ["src/lib/*"],
+      "@db": ["src/db/index"],
+      "@db/*": ["src/db/*"],
+      "@app-types/*": ["src/types/*"],
+      "@config/*": ["src/config/*"],
+      "@utils/*": ["src/utils/*"],
+      "@layouts/*": ["src/layouts/*"],
+      "@components/*": ["src/components/*"],
+      "@styles/*": ["src/styles/*"]
+    }
   },
   "include": [".astro/types.d.ts", "src/**/*"],
   "exclude": ["dist", ".vercel", "node_modules", "metadata", "drizzle"]

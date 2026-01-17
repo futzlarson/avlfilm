@@ -1,9 +1,12 @@
+// Internal imports
+import { db } from '@db';
+import { siteSettings } from '@db/schema';
+import { errorResponse, successResponse } from '@lib/api';
+import { isAuthenticated, unauthorizedResponse } from '@lib/auth';
+// Astro types
 import type { APIRoute } from 'astro';
-import { db } from '../../db';
-import { siteSettings } from '../../db/schema';
+// External packages
 import { sql } from 'drizzle-orm';
-import { isAuthenticated, unauthorizedResponse } from '../../lib/auth';
-import { errorResponse, successResponse } from '../../lib/api';
 
 export const POST: APIRoute = async ({ request }) => {
   // Require authentication for updating banner settings

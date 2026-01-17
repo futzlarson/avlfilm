@@ -1,6 +1,8 @@
+// Internal imports
+import { trackEvent } from '@lib/analytics-server';
+import { errorResponse, successResponse } from '@lib/api';
+// Astro types
 import type { APIRoute } from 'astro';
-import { errorResponse, successResponse } from '../../lib/api';
-import { trackEvent } from '../../lib/analytics-server';
 
 export const POST: APIRoute = async ({ request }) => {
   try {

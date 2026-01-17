@@ -1,4 +1,5 @@
 import { createClient } from 'redis';
+
 import { logError } from './rollbar';
 
 /**

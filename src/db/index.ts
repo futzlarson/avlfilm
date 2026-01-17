@@ -1,7 +1,8 @@
+import dotenv from 'dotenv';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
+
 import * as schema from './schema';
-import dotenv from 'dotenv';
 
 // Load .env.local if we're in Node.js (not Astro)
 if (typeof process !== 'undefined' && !process.env.POSTGRES_URL) {

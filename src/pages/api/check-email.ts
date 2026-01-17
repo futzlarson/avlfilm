@@ -1,8 +1,11 @@
+// Internal imports
+import { db } from '@db';
+import { filmmakers } from '@db/schema';
+import { errorResponse, successResponse } from '@lib/api';
+// Astro types
 import type { APIRoute } from 'astro';
-import { db } from '../../db';
-import { filmmakers } from '../../db/schema';
+// External packages
 import { eq } from 'drizzle-orm';
-import { errorResponse, successResponse } from '../../lib/api';
 
 export const GET: APIRoute = async ({ url }) => {
   try {

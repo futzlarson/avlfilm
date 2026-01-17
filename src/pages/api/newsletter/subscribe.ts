@@ -1,7 +1,9 @@
+// Internal imports
+import { errorResponse, successResponse } from '@lib/api';
+import { subscribeToNewsletter } from '@lib/newsletter';
+import { sendSlackNotification } from '@lib/slack';
+// Astro types
 import type { APIRoute } from 'astro';
-import { errorResponse, successResponse } from '../../../lib/api';
-import { subscribeToNewsletter } from '../../../lib/newsletter';
-import { sendSlackNotification } from '../../../lib/slack';
 
 export const POST: APIRoute = async ({ request }) => {
   try {

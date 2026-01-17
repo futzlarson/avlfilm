@@ -1,5 +1,7 @@
+// Internal imports
+import { logError } from '@lib/rollbar';
+// Astro built-ins
 import { defineMiddleware } from 'astro:middleware';
-import { logError } from '../lib/rollbar';
 
 export const onRequest = defineMiddleware(async (context, next) => {
   try {

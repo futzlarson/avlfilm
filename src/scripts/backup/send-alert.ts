@@ -1,5 +1,5 @@
-import { Resend } from 'resend';
 import dotenv from 'dotenv';
+import { Resend } from 'resend';
 
 dotenv.config({ path: '.env.local' });
 

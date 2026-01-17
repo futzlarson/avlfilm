@@ -7,6 +7,7 @@
  */
 
 import { nanoid } from 'nanoid';
+
 import { logWarning } from './rollbar';
 
 function getOrCreateVisitorId(): string {

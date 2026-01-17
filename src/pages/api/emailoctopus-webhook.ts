@@ -1,7 +1,9 @@
+// Internal imports
+import { trackEvent } from "@lib/analytics-server";
+import { errorResponse, successResponse } from "@lib/api";
+import { sendSlackNotification } from "@lib/slack";
+// Astro types
 import type { APIRoute } from "astro";
-import { errorResponse, successResponse } from "../../lib/api";
-import { trackEvent } from "../../lib/analytics-server";
-import { sendSlackNotification } from "../../lib/slack";
 
 interface EmailOctopusEvent {
   type: string;

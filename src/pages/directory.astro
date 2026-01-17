@@ -1,12 +1,15 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import FilmmakerTable from '../components/FilmmakerTable.astro';
-import FilmmakerModal from '../components/FilmmakerModal.astro';
-import { db } from '../db';
-import { filmmakers as filmmakersTable } from '../db/schema';
+// Internal imports
+import { db } from '@db';
+import { filmmakers as filmmakersTable } from '@db/schema';
+import type { PublicFilmmaker } from '@db/schema';
+import { logError } from '@lib/rollbar';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import FilmmakerTable from '@components/FilmmakerTable.astro';
+import FilmmakerModal from '@components/FilmmakerModal.astro';
+
+// External packages
 import { eq } from 'drizzle-orm';
-import type { PublicFilmmaker } from '../db/schema';
-import { logError } from '../lib/rollbar';
 
 let filmmakers: PublicFilmmaker[] = [];
 let error = null;
@@ -113,7 +116,7 @@ try {
 </style>
 
 <script>
-  import { track } from '../lib/analytics';
+  import { track } from '@lib/analytics';
 
   document.addEventListener('DOMContentLoaded', () => {
     const addYourselfBtn = document.querySelector('.btn-primary');

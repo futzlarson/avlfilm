@@ -1,7 +1,8 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getAddedEventIds } from '../../lib/redis-calendar';
-import type { AvlGoEvent } from '../../types/avlgo-event';
+// Internal imports
+import { getAddedEventIds } from '@lib/redis-calendar';
+import type { AvlGoEvent } from '@app-types/avlgo-event';
+import BaseLayout from '@layouts/BaseLayout.astro';
 
 // Fetch all events from AVL GO API
 const API_URL = 'https://www.avlgo.com/api/export/json?search=film,movie';
@@ -69,7 +70,7 @@ try {
 
 <script>
   import { marked } from 'marked';
-  import type { AvlGoEvent } from '../../types/avlgo-event';
+  import type { AvlGoEvent } from '@app-types/avlgo-event';
 
   const events: AvlGoEvent[] = JSON.parse(
     document.getElementById('events-data')?.textContent || '[]'

@@ -1,6 +1,8 @@
+// Internal imports
+import type { AvlGoEvent } from '@app-types/avlgo-event';
+// External packages
 import { calendar } from '@googleapis/calendar';
 import { JWT } from 'google-auth-library';
-import type { AvlGoEvent } from '../types/avlgo-event';
 
 /**
  * Initialize and return authenticated Google Calendar client

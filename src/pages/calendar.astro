@@ -1,5 +1,6 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
+// Internal imports
+import BaseLayout from '@layouts/BaseLayout.astro';
 
 // Generate time options
 const hours = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -165,7 +166,7 @@ const periods = ['AM', 'PM'];
     });
 
     // Event Modal functionality
-    import { setupModal } from '../lib/modal';
+    import { setupModal } from '@lib/modal';
 
     function setupEventModal() {
       const openBtn = document.getElementById('submit-event-btn');

@@ -1,6 +1,9 @@
+// Internal imports
+import { errorResponse, successResponse } from '@lib/api';
+// Astro types
 import type { APIRoute } from 'astro';
+// External packages
 import { Resend } from 'resend';
-import { errorResponse, successResponse } from '../../lib/api';
 
 const resend = new Resend(import.meta.env.RESEND_API_KEY);
 

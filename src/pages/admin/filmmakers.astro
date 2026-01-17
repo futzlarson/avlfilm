@@ -1,8 +1,9 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { db } from '../../db';
-import { filmmakers } from '../../db/schema';
-import type { Filmmaker } from '../../db/schema';
+// Internal imports
+import { db } from '@db';
+import { filmmakers } from '@db/schema';
+import type { Filmmaker } from '@db/schema';
+import BaseLayout from '@layouts/BaseLayout.astro';
 
 // Load all filmmakers on server
 let allFilmmakers: Filmmaker[] = [];
@@ -347,7 +348,7 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
 <script is:inline id="all-data" type="application/json" set:html={JSON.stringify(allFilmmakers)}></script>
 
 <script>
-  import type { Filmmaker } from '../../db/schema';
+  import type { Filmmaker } from '@db/schema';
 
   // Load filmmakers from JSON script tags
   const pendingFilmmakers: Filmmaker[] = JSON.parse(document.getElementById('pending-data')!.textContent || '[]');

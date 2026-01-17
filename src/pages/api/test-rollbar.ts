@@ -1,6 +1,8 @@
+// Internal imports
+import { jsonResponse } from '@lib/api';
+import { logError, logInfo,logWarning } from '@lib/rollbar';
+// Astro types
 import type { APIRoute } from 'astro';
-import { logError, logWarning, logInfo } from '../../lib/rollbar';
-import { jsonResponse } from '../../lib/api';
 
 /**
  * Test endpoint for Rollbar integration

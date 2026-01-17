@@ -1,11 +1,14 @@
+// Internal imports
+import { db } from '@db';
+import { filmmakers } from '@db/schema';
+import { errorResponse, successResponse } from '@lib/api';
+import { generateApprovalEmailHtml } from '@lib/approval-email';
+import { isAuthenticated, unauthorizedResponse } from '@lib/auth';
+// Astro types
 import type { APIRoute } from 'astro';
-import { db } from '../../db';
-import { filmmakers } from '../../db/schema';
+// External packages
 import { eq } from 'drizzle-orm';
-import { isAuthenticated, unauthorizedResponse } from '../../lib/auth';
-import { errorResponse, successResponse } from '../../lib/api';
 import { Resend } from 'resend';
-import { generateApprovalEmailHtml } from '../../lib/approval-email';
 
 const resend = new Resend(import.meta.env.RESEND_API_KEY);
 

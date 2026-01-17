@@ -1,7 +1,12 @@
 ---
-import '../styles/global.css';
-import Banner from '../components/Banner.astro';
-import RollbarClient from '../components/RollbarClient.astro';
+// Side effect imports
+import '@styles/global.css';
+
+// Internal imports
+import Banner from '@components/Banner.astro';
+import RollbarClient from '@components/RollbarClient.astro';
+
+// External packages
 import Analytics from '@vercel/analytics/astro';
 
 interface Props {

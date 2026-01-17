@@ -1,8 +1,11 @@
+// Internal imports
+import { errorResponse, successResponse } from '@lib/api';
+import { generateApprovalEmailHtml } from '@lib/approval-email';
+import { isAuthenticated, unauthorizedResponse } from '@lib/auth';
+// Astro types
 import type { APIRoute } from 'astro';
-import { isAuthenticated, unauthorizedResponse } from '../../lib/auth';
-import { errorResponse, successResponse } from '../../lib/api';
+// External packages
 import { Resend } from 'resend';
-import { generateApprovalEmailHtml } from '../../lib/approval-email';
 
 const resend = new Resend(import.meta.env.RESEND_API_KEY);
 

@@ -1,7 +1,8 @@
 ---
-import { normalizeUrl } from '../utils/url';
-import { FILM_ROLES_BY_CATEGORY } from '../config/roles';
-import type { PublicFilmmaker } from '../db/schema';
+// Internal imports
+import { normalizeUrl } from '@utils/url';
+import { FILM_ROLES_BY_CATEGORY } from '@config/roles';
+import type { PublicFilmmaker } from '@db/schema';
 
 interface Props {
   filmmakers: PublicFilmmaker[];
@@ -342,8 +343,8 @@ const { filmmakers } = Astro.props;
 <script is:inline id="filmmaker-data" type="application/json" set:html={JSON.stringify(filmmakers)}></script>
 
 <script>
-  import type { PublicFilmmaker } from '../db/schema';
-  import { track } from '../lib/analytics';
+  import type { PublicFilmmaker } from '@db/schema';
+  import { track } from '@lib/analytics';
   import tippy from 'tippy.js';
   import 'tippy.js/dist/tippy.css';
 

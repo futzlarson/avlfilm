@@ -1,9 +1,11 @@
+// Internal imports
+import type { AvlGoEvent } from '@app-types/avlgo-event';
+import { errorResponse, successResponse } from '@lib/api';
+import { isAuthenticated, unauthorizedResponse } from '@lib/auth';
+import { createCalendarEvent } from '@lib/google-calendar';
+import { isEventAdded, markEventAdded } from '@lib/redis-calendar';
+// Astro types
 import type { APIRoute } from 'astro';
-import { isAuthenticated, unauthorizedResponse } from '../../lib/auth';
-import { errorResponse, successResponse } from '../../lib/api';
-import { createCalendarEvent } from '../../lib/google-calendar';
-import { isEventAdded, markEventAdded } from '../../lib/redis-calendar';
-import type { AvlGoEvent } from '../../types/avlgo-event';
 
 export const POST: APIRoute = async ({ request }) => {
   // Check authentication

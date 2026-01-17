@@ -1,5 +1,7 @@
-import { db } from '../../db/index';
-import { siteSettings } from '../../db/schema';
+// Internal imports
+import { db } from '@db/index';
+import { siteSettings } from '@db/schema';
+// External packages
 import { eq } from 'drizzle-orm';
 
 interface BackupEntry {

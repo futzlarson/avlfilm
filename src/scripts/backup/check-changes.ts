@@ -1,6 +1,8 @@
-import { db } from '../../db/index';
-import { siteSettings, filmmakers } from '../../db/schema';
-import { eq, sql, desc } from 'drizzle-orm';
+// Internal imports
+import { db } from '@db/index';
+import { filmmakers,siteSettings } from '@db/schema';
+// External packages
+import { desc,eq, sql } from 'drizzle-orm';
 
 async function checkChanges() {
   try {

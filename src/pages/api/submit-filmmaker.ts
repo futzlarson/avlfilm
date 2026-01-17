@@ -1,9 +1,12 @@
+// Internal imports
+import { db } from '@db';
+import { filmmakers } from '@db/schema';
+import { errorResponse, jsonResponse } from '@lib/api';
+import { subscribeToNewsletter } from '@lib/newsletter';
+// Astro types
 import type { APIRoute } from 'astro';
-import { db } from '../../db';
-import { filmmakers } from '../../db/schema';
+// External packages
 import { Resend } from 'resend';
-import { errorResponse, jsonResponse } from '../../lib/api';
-import { subscribeToNewsletter } from '../../lib/newsletter';
 
 const resend = new Resend(import.meta.env.RESEND_API_KEY);
 
