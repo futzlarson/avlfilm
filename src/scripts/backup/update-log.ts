@@ -25,7 +25,7 @@ async function updateBackupLog(filename: string, size: string) {
       try {
         backups = JSON.parse(existing[0].value);
       } catch (e) {
-        console.warn('Failed to parse existing backups, starting fresh');
+        console.warn('Failed to parse existing backups, starting fresh', e);
       }
     }
 

@@ -22,7 +22,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Website validation (if provided)
     if (website) {
-      const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+      const urlRegex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
       if (!urlRegex.test(website)) {
         return errorResponse('Invalid website URL', 400);
       }

@@ -29,7 +29,7 @@ pnpm-debug.log*
 .vercel
 
 # Metadata
-meta/
+metadata/
 
 # Spec files
 docs/specs/

@@ -3,12 +3,12 @@
  * Reusable function for logging events from API routes and server contexts
  */
 
-import { db } from '../db';
-import { events } from '../db/schema';
+import { db } from "../db";
+import { events } from "../db/schema";
 
 interface TrackEventOptions {
   eventName: string;
-  properties?: Record<string, any>;
+  properties?: Record<string, unknown>;
   visitorId?: string | null;
   userAgent?: string | null;
   location?: string | null;

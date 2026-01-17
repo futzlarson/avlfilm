@@ -29,7 +29,7 @@ function getTimezone(): string | null {
   }
 }
 
-export function track(eventName: string, properties?: Record<string, any>): void {
+export function track(eventName: string, properties?: Record<string, unknown>): void {
   const isDev = import.meta.env.DEV;
   const visitorId = getOrCreateVisitorId();
   const timezone = getTimezone();
