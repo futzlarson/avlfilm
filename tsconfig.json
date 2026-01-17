@@ -4,11 +4,5 @@
     "strictNullChecks": true
   },
   "include": [".astro/types.d.ts", "src/**/*"],
-  "exclude": [
-    "dist",
-    ".vercel",
-    "node_modules",
-    "metadata",
-    "drizzle"
-  ]
+  "exclude": ["dist", ".vercel", "node_modules", "metadata", "drizzle"]
 }
