@@ -21,10 +21,11 @@ import BaseLayout from '@layouts/BaseLayout.astro';
     <div class="toc-section">
       <h3>The Local Community</h3>
       <ul>
-        <li><a href="#schools">What film schools are in North Carolina?</a></li>
+        <li><a href="#events">What film events are in town?</a></li>
         <li><a href="#festivals">What film festivals are around?</a></li>
-        <li><a href="#theaters">What indie movie theaters are in town?</a></li>
         <li><a href="#production">What production companies are in town?</a></li>
+        <li><a href="#schools">What film schools are in North Carolina?</a></li>
+        <li><a href="#theaters">What indie movie theaters are in town?</a></li>
         <li><a href="#intown">What other resources are in town?</a></li>
         <li><a href="#online">What resources are there online?</a></li>
       </ul>
@@ -42,6 +43,15 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 
   <section class="content-section">
     <h2>The Local Community</h2>
+
+    <h3 class="section-question" id="events">What film events are in town?</h3>
+    <a href="/calendar" class="btn-primary">View our Event Calendar</a>
+
+    <h3 class="section-question" id="festivals">What film festivals are around?</h3>
+    <a href="/festivals" class="btn-primary">View Film Festivals</a>
+
+    <h3 class="section-question" id="production">What production companies are in town?</h3>
+    <a href="/production" class="btn-primary">View Production Companies</a>
 
     <h3 class="section-question" id="schools">What film schools are in North Carolina?</h3>
 
@@ -67,9 +77,6 @@ import BaseLayout from '@layouts/BaseLayout.astro';
       </div>
     </div>
 
-    <h3 class="section-question" id="festivals">What film festivals are around?</h3>
-    <a href="/festivals" class="btn-primary">View Film Festivals</a>
-
     <h3 class="section-question" id="theaters">What <em>independent</em> movie theaters are in town?</h3>
 
     <div class="grid-2col card-grid">
@@ -90,9 +97,6 @@ import BaseLayout from '@layouts/BaseLayout.astro';
         <p><strong>Currently closed due to Hurricane Helene damage.</strong> The locally owned three-screen cinema is working to relocate and reopen as Grail 3.0. Sign up for their newsletter at their website for updates on reopening plans.</p>
       </div>
     </div>
-
-    <h3 class="section-question" id="production">What production companies are in town?</h3>
-    <a href="/production" class="btn-primary">View Production Companies</a>
 
     <h3 class="section-question" id="intown">What other resources are in town?</h3>
 
@@ -190,7 +194,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
     <p class="simple-answer">Say you have an idea but you don't yet know people in the film community. Where does one begin? With a producer. Check out the <a href="/directory">Filmmaker Directory</a> and reach out to anyone listed as a producer. That will help you get the ball rolling!</p>
 
     <h3 class="section-question" id="actors">Where can I find cast and crew?</h3>
-    <a href="/directory" class="btn-primary">Browse Filmmaker Directory</a>
+    <a href="/directory" class="btn-primary">View our Filmmaker Directory</a>
 
     <div class="grid-2col card-grid">
       <div class="card">

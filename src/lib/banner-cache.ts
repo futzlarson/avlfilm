@@ -63,7 +63,7 @@ export async function getBannerSettings(): Promise<BannerSettings> {
     // Return safe defaults if database fails
     return {
       html: '<p>Welcome to AVL Film!</p>',
-      enabled: true
+      enabled: false
     };
   }
 }
