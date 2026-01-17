@@ -3,6 +3,7 @@ import { db } from '@db';
 import { siteSettings } from '@db/schema';
 import { errorResponse, successResponse } from '@lib/api';
 import { isAuthenticated, unauthorizedResponse } from '@lib/auth';
+import { invalidateBannerCache } from '@lib/banner-cache';
 // Astro types
 import type { APIRoute } from 'astro';
 // External packages
@@ -40,6 +41,9 @@ export const POST: APIRoute = async ({ request }) => {
           updatedAt: new Date()
         },
       });
+
+    // Invalidate cache so next page load gets fresh data
+    await invalidateBannerCache();
 
     return successResponse({ success: true });
   } catch (error) {

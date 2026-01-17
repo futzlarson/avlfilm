@@ -1,25 +1,8 @@
 ---
 // Internal imports
-import { db } from '@db';
-import { siteSettings } from '@db/schema';
+import { getBannerSettings } from '@lib/banner-cache';
 
-// External packages
-import { inArray } from 'drizzle-orm';
-
-let bannerHtml = '<p>Welcome to AVL Film!</p>';
-let bannerEnabled = false;
-
-try {
-  const settings = await db
-    .select()
-    .from(siteSettings)
-    .where(inArray(siteSettings.key, ['banner_html', 'banner_enabled']));
-
-  bannerHtml = settings.find(row => row.key === 'banner_html')?.value || '<p>Welcome to AVL Film!</p>';
-  bannerEnabled = settings.find(row => row.key === 'banner_enabled')?.value === 'true';
-} catch (error) {
-  console.error('Failed to fetch banner settings:', error);
-}
+const { html: bannerHtml, enabled: bannerEnabled } = await getBannerSettings();
 ---
 
 {bannerEnabled && (
