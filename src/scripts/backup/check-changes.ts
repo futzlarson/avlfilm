@@ -1,7 +1,6 @@
 import { db } from '../../db/index';
 import { siteSettings, filmmakers } from '../../db/schema';
 import { eq, sql, desc } from 'drizzle-orm';
-import { logError } from '../../lib/rollbar';
 
 async function checkChanges() {
   try {
@@ -43,7 +42,7 @@ async function checkChanges() {
     console.log(`Changes detected: ${lastChangeTime.toISOString()}`);
     process.exit(0);
   } catch (error) {
-    logError(error, { context: 'backup script', action: 'check changes' });
+    console.error('Error checking changes:', error);
     console.log('SKIP_BACKUP=false'); // Backup on error to be safe
     process.exit(0);
   }

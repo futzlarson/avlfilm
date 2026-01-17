@@ -1,6 +1,5 @@
 import { Resend } from 'resend';
 import dotenv from 'dotenv';
-import { logError } from '../../lib/rollbar';
 
 dotenv.config({ path: '.env.local' });
 
@@ -18,7 +17,7 @@ async function sendAlert() {
     });
     console.log('Failure notification sent');
   } catch (error) {
-    logError(error, { context: 'backup script', action: 'send alert email' });
+    console.error('Failed to send notification:', error);
     process.exit(1);
   }
 }
