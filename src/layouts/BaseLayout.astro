@@ -8,6 +8,7 @@ import RollbarClient from '@components/RollbarClient.astro';
 
 // External packages
 import Analytics from '@vercel/analytics/astro';
+import SpeedInsights from '@vercel/speed-insights/astro';
 
 interface Props {
   title: string;
@@ -86,5 +87,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site || Astro.url.origin)
     </footer>
 
     <Analytics />
+    <SpeedInsights />
   </body>
 </html>
