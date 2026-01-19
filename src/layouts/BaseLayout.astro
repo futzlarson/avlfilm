@@ -34,9 +34,10 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site || Astro.url.origin)
     <link rel="canonical" href={canonicalURL} />
 
     <!-- Open Graph / Facebook -->
+    <meta property="og:site_name" content="AVL Film" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonicalURL} />
-    <meta property="og:title" content={`${title} - AVL Film`} />
+    <meta property="og:title" content={title} />
     <meta property="og:description" content={finalDescription} />
     {ogImage && <meta property="og:image" content={ogImage} />}
 
