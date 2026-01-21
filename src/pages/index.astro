@@ -9,7 +9,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 >
   <h1>Welcome to AVL Film</h1>
 
-  <p class="intro">AVL Film connects filmmakers across Western North Carolina. We're volunteers building one place for everything film in the region—festivals, crew directories, events, production companies, and resources. New to filmmaking? Looking for collaborators? Need to know what's happening this month? You're in the right place. Join us and help grow the film community in Asheville and beyond.</p>
+  <p class="intro">AVL Film exists to nurture the independent film scene in Asheville and throughout Western North Carolina by creating pathways for filmmakers to collaborate, connect, and build community.</p>
 
   <div class="features-grid">
     <a href="/festivals" class="feature-card">
@@ -69,6 +69,10 @@ import BaseLayout from '@layouts/BaseLayout.astro';
       </form>
     </div>
   </div>
+
+  <!-- Elfsight Instagram Feed | AVL Film Instagram Feed -->
+  <script src="https://elfsightcdn.com/platform.js" async is:inline></script>
+  <div class="elfsight-app-71723842-9db1-4448-887f-b380bf96651f" data-elfsight-app-lazy style="margin-bottom: 1rem"></div>
 </BaseLayout>
 
 <style>
@@ -275,4 +279,10 @@ import BaseLayout from '@layouts/BaseLayout.astro';
       }, 5000);
     }
   }
+
+  setTimeout(() => {
+    document.querySelectorAll('a[href^="https://elfsight.com"]').forEach(link => {
+        link.remove();
+    });
+  }, 3000);
 </script>
