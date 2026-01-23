@@ -31,6 +31,17 @@ export default defineConfig([
   // TypeScript: typescript-eslint recommended rules
   tseslint.configs.recommended,
 
+  // Allow underscore-prefixed unused vars (for intentional destructuring omissions)
+  {
+    files: ["**/*.{ts,mts,cts}"],
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+    },
+  },
+
   // CSS: CSS linting rules
   {
     files: ["**/*.css"],
