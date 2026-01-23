@@ -5,10 +5,8 @@ import { errorResponse, successResponse } from '@lib/api';
 import { hashPassword, validatePassword } from '@lib/password';
 import { isTokenExpired } from '@lib/reset-token';
 import { sendSlackNotification } from '@lib/slack';
-
 // Astro types
 import type { APIRoute } from 'astro';
-
 // External packages
 import { eq } from 'drizzle-orm';
 

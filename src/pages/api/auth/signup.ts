@@ -5,7 +5,6 @@ import { errorResponse, successResponse } from '@lib/api';
 import { signToken } from '@lib/jwt';
 import { hashPassword, validatePassword } from '@lib/password';
 import { sendSlackNotification } from '@lib/slack';
-
 // Astro types
 import type { APIRoute } from 'astro';
 // External packages

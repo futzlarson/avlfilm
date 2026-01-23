@@ -3,7 +3,6 @@ import { db } from '@db';
 import { filmmakers } from '@db/schema';
 import { generateResetPasswordEmailHtml } from '@lib/reset-password-email';
 import { generateResetToken, getTokenExpiryDate } from '@lib/reset-token';
-
 // External packages
 import { eq } from 'drizzle-orm';
 import { Resend } from 'resend';
