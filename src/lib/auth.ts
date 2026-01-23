@@ -1,25 +1,50 @@
+// Internal imports
+// Types
+import type { AuthUser } from '@app-types/auth';
+import { verifyToken } from '@lib/jwt';
+export type { AuthUser };
+
+// Astro types
+import type { APIContext } from 'astro';
+
 /**
- * Checks if request has HTTP Basic Auth credentials
- * Vercel deployment protection handles actual validation
- * Returns true if Authorization header is present
+ * Gets the authenticated user from the request cookies
+ * Returns null if not authenticated
  */
-export function isAuthenticated(request: Request): boolean {
-  const authHeader = request.headers.get('authorization');
-  return authHeader !== null && authHeader.startsWith('Basic ');
+export async function getAuthUser(
+  context: APIContext
+): Promise<AuthUser | null> {
+  const token = context.cookies.get('auth_token')?.value;
+  if (!token) return null;
+
+  const payload = await verifyToken(token);
+  if (!payload) return null;
+
+  return {
+    userId: payload.userId,
+    email: payload.email,
+    isAdmin: payload.isAdmin,
+  };
 }
 
 /**
- * Returns a 401 Unauthorized response for failed authentication
+ * Requires authentication - throws if not authenticated
  */
-export function unauthorizedResponse(): Response {
-  return new Response(
-    JSON.stringify({ error: 'Unauthorized' }),
-    {
-      status: 401,
-      headers: {
-        'Content-Type': 'application/json',
-        'WWW-Authenticate': 'Basic realm="Admin Area"',
-      },
-    }
-  );
+export async function requireAuth(context: APIContext): Promise<AuthUser> {
+  const user = await getAuthUser(context);
+  if (!user) {
+    throw new Error('Unauthorized');
+  }
+  return user;
+}
+
+/**
+ * Requires admin authentication - throws if not authenticated or not admin
+ */
+export async function requireAdmin(context: APIContext): Promise<AuthUser> {
+  const user = await requireAuth(context);
+  if (!user.isAdmin) {
+    throw new Error('Forbidden');
+  }
+  return user;
 }

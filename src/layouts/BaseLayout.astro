@@ -21,6 +21,9 @@ const { title, description, keywords, ogImage } = Astro.props;
 const defaultDescription = 'Connecting filmmakers and film enthusiasts across Western North Carolina with festivals, crew directories, events, and resources.';
 const finalDescription = description || defaultDescription;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site || Astro.url.origin);
+
+// Get user from middleware
+const user = Astro.locals.user;
 ---
 
 <!DOCTYPE html>
@@ -64,6 +67,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site || Astro.url.origin)
           <li><a href="/calendar">Calendar</a></li>
           <li><a href="/directory">Directory</a></li>
           <li><a href="/resources">Resources</a></li>
+          {user?.isAdmin && <li><a href="/admin">🦄</a></li>}
         </ul>
       </nav>
     </header>

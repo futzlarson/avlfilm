@@ -1,0 +1,101 @@
+---
+// Internal imports
+import BaseLayout from '@layouts/BaseLayout.astro';
+
+// Redirect if already logged in
+const user = Astro.locals.user;
+if (user) {
+  return Astro.redirect(
+    Astro.url.searchParams.get('redirect') || (user.isAdmin ? '/admin' : '/account/profile')
+  );
+}
+
+const redirectUrl = Astro.url.searchParams.get('redirect') || '';
+---
+
+<BaseLayout
+  title="Login"
+  description="Log in to your AVL Film account to manage your filmmaker profile."
+>
+  <div class="auth-container">
+    <h1>Log In</h1>
+    <p class="intro">Sign in to manage your filmmaker profile.</p>
+
+    <form id="login-form" class="auth-form">
+      <input type="hidden" name="redirect" value={redirectUrl} />
+
+      <div class="form-group">
+        <label for="email">Email <span class="required">*</span></label>
+        <input type="email" id="email" name="email" required autocomplete="email" />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password <span class="required">*</span></label>
+        <input type="password" id="password" name="password" required autocomplete="current-password" />
+      </div>
+
+      <div id="error-message" class="alert alert-error" style="display: none;"></div>
+
+      <button type="submit" class="btn-primary btn-large btn-full">Log In</button>
+    </form>
+
+    <div class="auth-links">
+      <a href="/account/forgot-password">Forgot your password?</a>
+      <span class="separator">|</span>
+      <a href="/account/signup">Create an account</a>
+    </div>
+
+    <div class="claim-profile">
+      <p>Already in our directory?</p>
+      <a href="/account/claim-profile">Claim your profile</a>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  const form = document.getElementById('login-form') as HTMLFormElement;
+  const errorMessage = document.getElementById('error-message') as HTMLElement;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorMessage.style.display = 'none';
+
+    const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Logging in...';
+
+    const formData = new FormData(form);
+    const redirect = formData.get('redirect') as string;
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.get('email'),
+          password: formData.get('password'),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed');
+      }
+
+      // Redirect based on user type
+      if (redirect) {
+        window.location.href = redirect;
+      } else if (data.user?.isAdmin) {
+        window.location.href = '/admin';
+      } else {
+        window.location.href = '/account/profile';
+      }
+    } catch (error) {
+      errorMessage.textContent = error instanceof Error ? error.message : 'Login failed';
+      errorMessage.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Log In';
+    }
+  });
+</script>

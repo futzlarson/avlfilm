@@ -1,0 +1,485 @@
+---
+// Internal imports
+import type { Filmmaker } from '@db/schema';
+import { buildRoleData } from '@lib/roles';
+
+interface Props {
+  mode: 'create' | 'edit';
+  filmmaker?: Filmmaker;
+  existingRoles?: string[];
+}
+
+const { mode, filmmaker, existingRoles = [] } = Astro.props;
+const isEdit = mode === 'edit';
+
+const { roleAliasMap, canonicalRoles } = buildRoleData();
+---
+
+<form id="filmmaker-form" class="filmmaker-form" data-mode={mode}>
+  <div class="form-group">
+    <label for="name">Name <span class="required">*</span></label>
+    <input type="text" id="name" name="name" required value={isEdit ? filmmaker?.name : ''} />
+  </div>
+
+  <div class="form-group">
+    <label for="email">Email {!isEdit && <span class="required">*</span>}</label>
+    {isEdit ? (
+      <>
+        <input type="email" id="email" name="email" disabled value={filmmaker?.email} />
+        <p class="help-text">Email cannot be changed. Contact us if you need to update it.</p>
+      </>
+    ) : (
+      <>
+        <input type="email" id="email" name="email" required />
+        <div id="email-error" class="error-text" style="display: none;"></div>
+      </>
+    )}
+  </div>
+
+  <div class="form-group">
+    <label for="phone">Phone</label>
+    <input type="tel" id="phone" name="phone" placeholder="###-###-####" value={isEdit ? (filmmaker?.phone || '') : ''} />
+  </div>
+
+  <div class="form-group">
+    <label for="roles">Roles <span class="required">*</span></label>
+    <div class="autocomplete-container">
+      <input
+        type="text"
+        id="roles-input"
+        placeholder="Start typing to select roles"
+        autocomplete="off"
+      />
+      <div id="roles-dropdown" class="autocomplete-dropdown"></div>
+    </div>
+    <div id="selected-roles" class="selected-roles"></div>
+    <input type="hidden" id="roles" name="roles" required />
+  </div>
+
+  <div class="form-group">
+    <label for="company">Company</label>
+    <input type="text" id="company" name="company" value={isEdit ? (filmmaker?.company || '') : ''} />
+  </div>
+
+  <div class="form-group">
+    <label for="website">Website</label>
+    <input type="url" id="website" name="website" placeholder="https://example.com" value={isEdit ? (filmmaker?.website || '') : ''} />
+  </div>
+
+  <div class="form-group">
+    <label for="instagram">Instagram</label>
+    <input type="text" id="instagram" name="instagram" placeholder="@username or URL" value={isEdit ? (filmmaker?.instagram || '') : ''} />
+  </div>
+
+  <div class="form-group">
+    <label for="youtube">YouTube</label>
+    <input type="text" id="youtube" name="youtube" placeholder="https://youtube.com/@channel" value={isEdit ? (filmmaker?.youtube || '') : ''} />
+  </div>
+
+  <div class="form-group">
+    <label for="facebook">Facebook</label>
+    <input type="text" id="facebook" name="facebook" placeholder="https://facebook.com/page" value={isEdit ? (filmmaker?.facebook || '') : ''} />
+  </div>
+
+  <div class="form-group">
+    <label for="gear">Equipment/Gear</label>
+    <textarea id="gear" name="gear" rows="4" placeholder="List your equipment and gear">{isEdit ? (filmmaker?.gear || '') : ''}</textarea>
+  </div>
+
+  <div class="form-group">
+    <label for="bio">Bio</label>
+    <textarea id="bio" name="bio" rows="4" placeholder="Tell us about yourself and your work">{isEdit ? (filmmaker?.bio || '') : ''}</textarea>
+  </div>
+
+  {!isEdit && (
+    <>
+      <div class="form-group">
+        <label for="notes">Notes to AVL Film (won't be public)</label>
+        <textarea id="notes" name="notes" rows="3" placeholder="Any feedback? Roles missing?"></textarea>
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="newsletter" name="newsletter" checked />
+          <span>Sign me up for the AVL Film newsletter</span>
+        </label>
+      </div>
+    </>
+  )}
+
+  {isEdit && (
+    <>
+      <div id="error-message" class="alert alert-error" style="display: none;"></div>
+      <div id="success-message" class="alert alert-success" style="display: none;">Profile updated successfully!</div>
+    </>
+  )}
+
+  <div class={isEdit ? 'form-actions-profile' : ''}>
+    <button type="submit" class="btn-primary btn-large">{isEdit ? 'Save Changes' : 'Submit'}</button>
+    {isEdit && (
+      <button type="button" id="logout-btn" class="btn-secondary">Log Out</button>
+    )}
+  </div>
+</form>
+
+{!isEdit && (
+  <div id="success-message" class="submit-success-message" style="display: none;">
+    <h2>Thank you for submitting!</h2>
+    <p>Your submission has been received and will be reviewed by our team. You'll be added to the directory once approved.</p>
+    <a href="/directory" class="back-link">Back to Directory</a>
+  </div>
+)}
+
+<style>
+  .filmmaker-form {
+    max-width: 600px;
+  }
+
+  .form-group:has(#roles-input) {
+    margin-bottom: 0.75rem;
+  }
+
+  input:disabled {
+    background-color: var(--color-bg-subtle);
+    cursor: not-allowed;
+  }
+
+  .submit-success-message {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #f0fdf4;
+    border: 2px solid #86efac;
+    border-radius: var(--radius-lg);
+    text-align: center;
+  }
+
+  .submit-success-message h2 {
+    color: #166534;
+    margin-bottom: 1rem;
+  }
+
+  .submit-success-message p {
+    color: #166534;
+    margin-bottom: 1.5rem;
+  }
+
+  .back-link {
+    display: inline-block;
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .back-link:hover {
+    text-decoration: underline;
+  }
+
+  .error-text {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+  }
+
+  .checkbox-group {
+    margin-bottom: 2rem;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+
+  .checkbox-label input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
+    cursor: pointer;
+  }
+
+  .checkbox-label span {
+    user-select: none;
+  }
+
+  .form-actions-profile {
+    display: flex;
+    gap: var(--spacing-md);
+    align-items: center;
+  }
+
+  .btn-secondary {
+    padding: var(--spacing-md) var(--spacing-xl);
+    font-size: 1.1rem;
+    background: #f3f4f6;
+    color: #374151;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--transition-base);
+  }
+
+  .btn-secondary:hover {
+    background: #e5e7eb;
+  }
+</style>
+
+<script is:inline id="roles-data" type="application/json" set:html={JSON.stringify(canonicalRoles)}></script>
+<script is:inline id="role-map-data" type="application/json" set:html={JSON.stringify(roleAliasMap)}></script>
+<script is:inline id="existing-roles-data" type="application/json" set:html={JSON.stringify(existingRoles)}></script>
+
+<script>
+  import { track } from '@lib/analytics';
+
+  // Load roles data from JSON script tags
+  const roles: string[] = JSON.parse(document.getElementById('roles-data')!.textContent || '[]');
+  const roleMap: Record<string, string> = JSON.parse(document.getElementById('role-map-data')!.textContent || '{}');
+  const existingRolesData: string[] = JSON.parse(document.getElementById('existing-roles-data')!.textContent || '[]');
+
+  const form = document.getElementById('filmmaker-form') as HTMLFormElement;
+  const mode = form?.dataset.mode as 'create' | 'edit';
+  const isEdit = mode === 'edit';
+
+  const selectedRoles = new Set<string>(existingRolesData);
+
+  function updateSelectedRoles() {
+    const container = document.getElementById('selected-roles');
+    const hiddenInput = document.getElementById('roles') as HTMLInputElement;
+
+    if (!container || !hiddenInput) return;
+
+    container.innerHTML = '';
+
+    selectedRoles.forEach(role => {
+      const tag = document.createElement('div');
+      tag.className = 'role-tag';
+      tag.innerHTML = `
+        <span>${role}</span>
+        <button type="button" data-role="${role}">&times;</button>
+      `;
+
+      const btn = tag.querySelector('button');
+      btn?.addEventListener('click', () => {
+        selectedRoles.delete(role);
+        updateSelectedRoles();
+      });
+
+      container.appendChild(tag);
+    });
+
+    hiddenInput.value = Array.from(selectedRoles).join(', ');
+  }
+
+  function setupAutocomplete() {
+    const input = document.getElementById('roles-input') as HTMLInputElement;
+    const dropdown = document.getElementById('roles-dropdown');
+
+    if (!input || !dropdown) return;
+
+    input.addEventListener('input', (e) => {
+      const value = (e.target as HTMLInputElement).value.toLowerCase();
+
+      if (!value) {
+        dropdown.classList.remove('active');
+        return;
+      }
+
+      const matches = roles.filter(role => {
+        if (role.toLowerCase().includes(value) && !selectedRoles.has(role)) {
+          return true;
+        }
+        const aliasMatches = Object.keys(roleMap).some(alias => {
+          return alias.includes(value) && roleMap[alias] === role && !selectedRoles.has(role);
+        });
+        return aliasMatches;
+      });
+
+      if (matches.length === 0) {
+        dropdown.classList.remove('active');
+        return;
+      }
+
+      dropdown.innerHTML = matches.map(role =>
+        `<div class="autocomplete-item" data-role="${role}">${role}</div>`
+      ).join('');
+
+      dropdown.querySelectorAll('.autocomplete-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const role = item.getAttribute('data-role');
+          if (role) {
+            selectedRoles.add(role);
+            updateSelectedRoles();
+            input.value = '';
+            dropdown.classList.remove('active');
+            input.focus();
+          }
+        });
+      });
+
+      dropdown.classList.add('active');
+    });
+
+    input.addEventListener('blur', () => {
+      setTimeout(() => dropdown.classList.remove('active'), 200);
+    });
+  }
+
+  async function handleCreateSubmit(e: Event) {
+    e.preventDefault();
+
+    const submitBtn = form.querySelector('.btn-primary') as HTMLButtonElement;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    const newsletterCheckbox = document.getElementById('newsletter') as HTMLInputElement;
+    const submissionData = {
+      ...data,
+      newsletter: newsletterCheckbox?.checked ?? false,
+    };
+
+    try {
+      const response = await fetch('/api/submit-filmmaker', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(submissionData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit');
+      }
+
+      track('directory_submit', { filmmaker: submissionData });
+
+      form.style.display = 'none';
+      document.querySelector('.intro')?.remove();
+      document.querySelector('h1')?.remove();
+      document.getElementById('success-message')!.style.display = 'block';
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Failed to submit. Please try again.');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit';
+    }
+  }
+
+  async function handleEditSubmit(e: Event) {
+    e.preventDefault();
+
+    const submitBtn = form.querySelector('.btn-primary') as HTMLButtonElement;
+    const errorMessage = document.getElementById('error-message') as HTMLElement;
+    const successMessage = document.getElementById('success-message') as HTMLElement;
+
+    errorMessage.style.display = 'none';
+    successMessage.style.display = 'none';
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving...';
+
+    const formData = new FormData(form);
+    const data = {
+      name: formData.get('name'),
+      phone: formData.get('phone'),
+      roles: formData.get('roles'),
+      company: formData.get('company'),
+      website: formData.get('website'),
+      instagram: formData.get('instagram'),
+      youtube: formData.get('youtube'),
+      facebook: formData.get('facebook'),
+      gear: formData.get('gear'),
+      bio: formData.get('bio'),
+    };
+
+    try {
+      const response = await fetch('/api/update-profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.error || 'Failed to update profile');
+      }
+
+      successMessage.style.display = 'block';
+      setTimeout(() => {
+        successMessage.style.display = 'none';
+      }, 3000);
+    } catch (error) {
+      errorMessage.textContent = error instanceof Error ? error.message : 'Failed to update profile';
+      errorMessage.style.display = 'block';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Save Changes';
+    }
+  }
+
+  async function checkEmailExists(email: string): Promise<boolean> {
+    try {
+      const response = await fetch(`/api/check-email?email=${encodeURIComponent(email)}`);
+      if (!response.ok) return false;
+      const data = await response.json();
+      return data.exists;
+    } catch (error) {
+      console.error('Error checking email:', error);
+      return false;
+    }
+  }
+
+  function setupEmailValidation() {
+    const emailInput = document.getElementById('email') as HTMLInputElement;
+    const emailError = document.getElementById('email-error') as HTMLElement;
+    const submitBtn = document.querySelector('.btn-primary') as HTMLButtonElement;
+
+    if (!emailInput || !emailError || !submitBtn) return;
+
+    let checkTimeout: ReturnType<typeof setTimeout>;
+
+    emailInput.addEventListener('input', () => {
+      clearTimeout(checkTimeout);
+      emailError.style.display = 'none';
+      submitBtn.disabled = false;
+    });
+
+    emailInput.addEventListener('blur', async () => {
+      const email = emailInput.value.trim();
+      if (!email) return;
+
+      clearTimeout(checkTimeout);
+      checkTimeout = setTimeout(async () => {
+        const exists = await checkEmailExists(email);
+        if (exists) {
+          emailError.textContent = 'This email is already registered in our directory.';
+          emailError.style.display = 'block';
+          submitBtn.disabled = true;
+        } else {
+          emailError.style.display = 'none';
+          submitBtn.disabled = false;
+        }
+      }, 300);
+    });
+  }
+
+  async function handleLogout() {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.href = '/';
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    setupAutocomplete();
+
+    if (isEdit) {
+      updateSelectedRoles();
+      form?.addEventListener('submit', handleEditSubmit);
+      document.getElementById('logout-btn')?.addEventListener('click', handleLogout);
+    } else {
+      setupEmailValidation();
+      form?.addEventListener('submit', handleCreateSubmit);
+    }
+  });
+</script>

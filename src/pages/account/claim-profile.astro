@@ -1,0 +1,90 @@
+---
+// Internal imports
+import BaseLayout from '@layouts/BaseLayout.astro';
+
+// Redirect if already logged in
+const user = Astro.locals.user;
+if (user) {
+  return Astro.redirect('/account/profile');
+}
+
+const email = Astro.url.searchParams.get('email') || '';
+---
+
+<BaseLayout
+  title="Claim Your Profile"
+  description="Claim your filmmaker profile in the AVL Film directory."
+>
+  <div class="auth-container">
+    <h1>Claim Your Profile</h1>
+    <p class="intro">If you're already in our filmmaker directory, enter your email to set up your password and manage your profile.</p>
+
+    <form id="claim-form" class="auth-form">
+      <div class="form-group">
+        <label for="email">Email <span class="required">*</span></label>
+        <input type="email" id="email" name="email" required autocomplete="email" value={email} />
+        <p class="help-text">Use the email you registered with in our directory</p>
+      </div>
+
+      <div id="error-message" class="alert alert-error" style="display: none;"></div>
+      <div id="success-message" class="alert alert-success" style="display: none;"></div>
+
+      <button type="submit" class="btn-primary btn-large btn-full">Send Setup Link</button>
+    </form>
+
+    <div class="auth-links">
+      <span>Don't have a profile yet?</span>
+      <a href="/account/signup">Create one</a>
+    </div>
+
+    <div class="auth-links">
+      <a href="/account/login">Back to login</a>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  const form = document.getElementById('claim-form') as HTMLFormElement;
+  const errorMessage = document.getElementById('error-message') as HTMLElement;
+  const successMessage = document.getElementById('success-message') as HTMLElement;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorMessage.style.display = 'none';
+    successMessage.style.display = 'none';
+
+    const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+
+    const formData = new FormData(form);
+    const email = formData.get('email');
+
+    try {
+      const response = await fetch('/api/auth/claim-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to process request');
+      }
+
+      successMessage.textContent = data.message || 'If that email exists in our directory, a link has been sent.';
+      successMessage.style.display = 'block';
+      form.reset();
+      submitBtn.textContent = 'Send Setup Link';
+    } catch (error) {
+      errorMessage.textContent = error instanceof Error ? error.message : 'Failed to process request';
+      errorMessage.style.display = 'block';
+      submitBtn.textContent = 'Send Setup Link';
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+</script>

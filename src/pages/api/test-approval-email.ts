@@ -1,7 +1,7 @@
 // Internal imports
 import { errorResponse, successResponse } from '@lib/api';
 import { generateApprovalEmailHtml } from '@lib/approval-email';
-import { isAuthenticated, unauthorizedResponse } from '@lib/auth';
+import { requireAdmin } from '@lib/auth';
 // Astro types
 import type { APIRoute } from 'astro';
 // External packages
@@ -9,10 +9,14 @@ import { Resend } from 'resend';
 
 const resend = new Resend(import.meta.env.RESEND_API_KEY);
 
-export const POST: APIRoute = async ({ request, url }) => {
-  // Require authentication
-  if (!isAuthenticated(request)) {
-    return unauthorizedResponse();
+export const POST: APIRoute = async (context) => {
+  const { url, request } = context;
+
+  // Require admin authentication
+  try {
+    await requireAdmin(context);
+  } catch {
+    return errorResponse('Unauthorized', 401);
   }
 
   try {

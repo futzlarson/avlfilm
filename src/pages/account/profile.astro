@@ -1,0 +1,58 @@
+---
+// Internal imports
+import { db } from '@db';
+import { filmmakers } from '@db/schema';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import FilmmakerForm from '@components/FilmmakerForm.astro';
+
+// External packages
+import { eq } from 'drizzle-orm';
+
+// Get current user from middleware
+const user = Astro.locals.user;
+
+// This page is protected by middleware, but double-check
+if (!user) {
+  return Astro.redirect('/account/login');
+}
+
+// Fetch full user data
+const [filmmaker] = await db
+  .select()
+  .from(filmmakers)
+  .where(eq(filmmakers.id, user.userId));
+
+if (!filmmaker) {
+  return Astro.redirect('/account/login');
+}
+
+// Parse existing roles
+let existingRoles: string[] = [];
+try {
+  if (filmmaker.roles) {
+    if (filmmaker.roles.startsWith('[')) {
+      existingRoles = JSON.parse(filmmaker.roles);
+    } else {
+      existingRoles = filmmaker.roles.split(',').map(r => r.trim()).filter(Boolean);
+    }
+  }
+} catch {
+  existingRoles = [];
+}
+---
+
+<BaseLayout
+  title="Edit Profile"
+  description="Manage your AVL Film filmmaker profile."
+>
+  <h1>Edit Your Profile</h1>
+  <p class="intro">Update your information in the AVL Film directory.</p>
+
+  {filmmaker.status === 'pending' && (
+    <div class="alert alert-info">
+      Your profile is pending review. Once approved, you'll appear in the directory.
+    </div>
+  )}
+
+  <FilmmakerForm mode="edit" filmmaker={filmmaker} existingRoles={existingRoles} />
+</BaseLayout>

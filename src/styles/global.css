@@ -321,6 +321,7 @@ input[type="text"],
 input[type="email"],
 input[type="tel"],
 input[type="url"],
+input[type="password"],
 textarea {
   width: 100%;
   padding: var(--spacing-sm);
@@ -756,4 +757,155 @@ footer {
 
 .tippy-content {
   padding: 0.5rem 0.75rem;
+}
+
+/* ==========================================================================
+   15. AUTHENTICATION PAGES
+   ========================================================================== */
+
+.auth-container {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.auth-form {
+  margin-bottom: var(--spacing-lg);
+}
+
+.btn-full {
+  width: 100%;
+}
+
+.help-text {
+  margin-top: var(--spacing-xs);
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.auth-links {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+  color: var(--color-text-muted);
+}
+
+.auth-links a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.auth-links a:hover {
+  text-decoration: underline;
+}
+
+.auth-links .separator {
+  margin: 0 var(--spacing-sm);
+}
+
+.claim-profile {
+  text-align: center;
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--color-border);
+}
+
+.claim-profile p {
+  margin-bottom: var(--spacing-xs);
+  color: var(--color-text-muted);
+}
+
+.claim-profile a {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.claim-profile a:hover {
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   16. ROLE AUTOCOMPLETE & TAGS
+   ========================================================================== */
+
+.autocomplete-container {
+  position: relative;
+}
+
+.autocomplete-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  display: none;
+  z-index: 10;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.autocomplete-dropdown.active {
+  display: block;
+}
+
+.autocomplete-item {
+  padding: 0.875rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.autocomplete-item:hover {
+  background-color: #f3f4f6;
+}
+
+.selected-roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+  margin-top: 0.75rem;
+}
+
+.role-tag {
+  background: var(--gradient-primary);
+  color: white;
+  padding: 0.625rem 1.125rem;
+  border-radius: 50px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.25);
+  transition: all 0.2s ease;
+}
+
+.role-tag:hover {
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+  transform: translateY(-1px);
+}
+
+.role-tag button {
+  background: rgba(255, 255, 255, 0.25);
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 1.125rem;
+  line-height: 1;
+  padding: 0.25rem;
+  width: 1.375rem;
+  height: 1.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  font-weight: bold;
+  margin-left: 0.125rem;
+}
+
+.role-tag button:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(1.1);
 }

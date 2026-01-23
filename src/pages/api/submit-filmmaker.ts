@@ -13,7 +13,7 @@ const resend = new Resend(import.meta.env.RESEND_API_KEY);
 export const POST: APIRoute = async ({ request, url }) => {
   try {
     const body = await request.json();
-    const { name, email, phone, roles, company, website, socialMedia, gear, bio, notes, newsletter } = body;
+    const { name, email, phone, roles, company, website, instagram, youtube, facebook, gear, bio, notes, newsletter } = body;
 
     if (!name || !email || !roles) {
       return errorResponse('Name, email, and roles are required');
@@ -29,7 +29,9 @@ export const POST: APIRoute = async ({ request, url }) => {
       roles,
       company: company || null,
       website: website || null,
-      socialMedia: socialMedia || null,
+      instagram: instagram || null,
+      youtube: youtube || null,
+      facebook: facebook || null,
       gear: gear || null,
       bio: bio || null,
       status: 'pending',
@@ -82,8 +84,16 @@ export const POST: APIRoute = async ({ request, url }) => {
                 <td style="padding: 10px; border: 1px solid #d1d5db;">${website || 'N/A'}</td>
               </tr>
               <tr>
-                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">SOCIAL MEDIA</td>
-                <td style="padding: 10px; border: 1px solid #d1d5db;">${socialMedia || 'N/A'}</td>
+                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">INSTAGRAM</td>
+                <td style="padding: 10px; border: 1px solid #d1d5db;">${instagram || 'N/A'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">YOUTUBE</td>
+                <td style="padding: 10px; border: 1px solid #d1d5db;">${youtube || 'N/A'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">FACEBOOK</td>
+                <td style="padding: 10px; border: 1px solid #d1d5db;">${facebook || 'N/A'}</td>
               </tr>
               <tr>
                 <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">GEAR</td>

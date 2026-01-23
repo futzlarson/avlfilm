@@ -1,38 +1,35 @@
 // Internal imports
+import { getAuthUser } from '@lib/auth';
 import { logError } from '@lib/rollbar';
 // Astro built-ins
 import { defineMiddleware } from 'astro:middleware';
 
+const PROTECTED_USER_ROUTES = ['/account/profile'];
+
 export const onRequest = defineMiddleware(async (context, next) => {
   try {
-    // Only protect /admin routes
+    // Attach user to context for use in pages
+    context.locals.user = await getAuthUser(context);
+
+    // Protect /admin routes - require admin auth
     if (context.url.pathname.startsWith('/admin')) {
-      const authHeader = context.request.headers.get('authorization');
-
-      if (!authHeader) {
-        return new Response('Unauthorized', {
-          status: 401,
-          headers: {
-            'WWW-Authenticate': 'Basic realm="Admin Area"',
-          },
-        });
+      if (!context.locals.user?.isAdmin) {
+        return context.redirect(
+          '/account/login?redirect=' + encodeURIComponent(context.url.pathname)
+        );
       }
+    }
 
-      // Parse Basic Auth header
-      const base64Credentials = authHeader.split(' ')[1];
-      const credentials = atob(base64Credentials);
-      const password = credentials.split(":")[1];
-
-      // Check against environment variable
-      const adminPassword = import.meta.env.ADMIN_PASSWORD || 'admin';
-
-      if (password !== adminPassword) {
-        return new Response('Unauthorized', {
-          status: 401,
-          headers: {
-            'WWW-Authenticate': 'Basic realm="Admin Area"',
-          },
-        });
+    // Protect user routes - require any auth
+    if (
+      PROTECTED_USER_ROUTES.some((route) =>
+        context.url.pathname.startsWith(route)
+      )
+    ) {
+      if (!context.locals.user) {
+        return context.redirect(
+          '/account/login?redirect=' + encodeURIComponent(context.url.pathname)
+        );
       }
     }
 

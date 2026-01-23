@@ -39,9 +39,17 @@ const { id } = Astro.props;
             <th>Website</th>
             <td><a class="filmmaker-website" href="" target="_blank" rel="noopener noreferrer"></a></td>
           </tr>
-          <tr class="social-row">
-            <th>Social Media</th>
-            <td><span class="filmmaker-social"></span></td>
+          <tr class="instagram-row">
+            <th>Instagram</th>
+            <td><span class="filmmaker-instagram"></span></td>
+          </tr>
+          <tr class="youtube-row">
+            <th>YouTube</th>
+            <td><span class="filmmaker-youtube"></span></td>
+          </tr>
+          <tr class="facebook-row">
+            <th>Facebook</th>
+            <td><span class="filmmaker-facebook"></span></td>
           </tr>
           <tr class="gear-row">
             <th>Equipment/Gear</th>
@@ -240,13 +248,31 @@ const { id } = Astro.props;
       websiteRow.style.display = 'none';
     }
 
-    const socialRow = modal.querySelector('.social-row') as HTMLElement;
-    const socialSpan = modal.querySelector('.filmmaker-social')!;
-    if (filmmaker.socialMedia) {
-      socialSpan.textContent = filmmaker.socialMedia;
-      socialRow.style.display = 'table-row';
+    const instagramRow = modal.querySelector('.instagram-row') as HTMLElement;
+    const instagramSpan = modal.querySelector('.filmmaker-instagram')!;
+    if (filmmaker.instagram) {
+      instagramSpan.textContent = filmmaker.instagram;
+      instagramRow.style.display = 'table-row';
     } else {
-      socialRow.style.display = 'none';
+      instagramRow.style.display = 'none';
+    }
+
+    const youtubeRow = modal.querySelector('.youtube-row') as HTMLElement;
+    const youtubeSpan = modal.querySelector('.filmmaker-youtube')!;
+    if (filmmaker.youtube) {
+      youtubeSpan.textContent = filmmaker.youtube;
+      youtubeRow.style.display = 'table-row';
+    } else {
+      youtubeRow.style.display = 'none';
+    }
+
+    const facebookRow = modal.querySelector('.facebook-row') as HTMLElement;
+    const facebookSpan = modal.querySelector('.filmmaker-facebook')!;
+    if (filmmaker.facebook) {
+      facebookSpan.textContent = filmmaker.facebook;
+      facebookRow.style.display = 'table-row';
+    } else {
+      facebookRow.style.display = 'none';
     }
 
     const gearRow = modal.querySelector('.gear-row') as HTMLElement;

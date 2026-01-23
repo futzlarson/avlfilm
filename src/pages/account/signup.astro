@@ -1,0 +1,94 @@
+---
+// Internal imports
+import BaseLayout from '@layouts/BaseLayout.astro';
+
+// Redirect if already logged in
+const user = Astro.locals.user;
+if (user) {
+  return Astro.redirect('/account/profile');
+}
+---
+
+<BaseLayout
+  title="Sign Up"
+  description="Create an AVL Film account to join the filmmaker directory."
+>
+  <div class="auth-container">
+    <h1>Create Account</h1>
+    <p class="intro">Join the AVL Film community and get listed in our filmmaker directory.</p>
+
+    <form id="signup-form" class="auth-form">
+      <div class="form-group">
+        <label for="name">Name <span class="required">*</span></label>
+        <input type="text" id="name" name="name" required autocomplete="name" />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email <span class="required">*</span></label>
+        <input type="email" id="email" name="email" required autocomplete="email" />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password <span class="required">*</span></label>
+        <input type="password" id="password" name="password" required minlength="8" autocomplete="new-password" />
+        <p class="help-text">Must be at least 8 characters</p>
+      </div>
+
+      <div id="error-message" class="alert alert-error" style="display: none;"></div>
+
+      <button type="submit" class="btn-primary btn-large btn-full">Create Account</button>
+    </form>
+
+    <div class="auth-links">
+      <span>Already have an account?</span>
+      <a href="/account/login">Log in</a>
+    </div>
+
+    <div class="claim-profile">
+      <p>Already in our directory?</p>
+      <a href="/account/claim-profile">Claim your profile</a>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  const form = document.getElementById('signup-form') as HTMLFormElement;
+  const errorMessage = document.getElementById('error-message') as HTMLElement;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorMessage.style.display = 'none';
+
+    const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creating account...';
+
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.get('name'),
+          email: formData.get('email'),
+          password: formData.get('password'),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Signup failed');
+      }
+
+      // Redirect to profile setup
+      window.location.href = '/account/profile';
+    } catch (error) {
+      errorMessage.textContent = error instanceof Error ? error.message : 'Signup failed';
+      errorMessage.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Create Account';
+    }
+  });
+</script>

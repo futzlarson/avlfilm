@@ -1,0 +1,61 @@
+// Internal imports
+import { db } from '@db';
+import { filmmakers } from '@db/schema';
+import { errorResponse, successResponse } from '@lib/api';
+import { hashPassword, validatePassword } from '@lib/password';
+import { isTokenExpired } from '@lib/reset-token';
+import { sendSlackNotification } from '@lib/slack';
+
+// Astro types
+import type { APIRoute } from 'astro';
+
+// External packages
+import { eq } from 'drizzle-orm';
+
+export const POST: APIRoute = async ({ request }) => {
+  try {
+    const { token, password } = await request.json();
+
+    if (!token || !password) {
+      return errorResponse('Token and password are required', 400);
+    }
+
+    // Validate password
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      return errorResponse(passwordValidation.error!, 400);
+    }
+
+    // Find user by token
+    const [user] = await db
+      .select()
+      .from(filmmakers)
+      .where(eq(filmmakers.resetToken, token));
+
+    if (!user) {
+      return errorResponse('Invalid or expired reset token', 400);
+    }
+
+    // Check expiry
+    if (isTokenExpired(user.resetTokenExpiresAt)) {
+      return errorResponse('Reset token has expired', 400);
+    }
+
+    // Update password and clear token
+    const passwordHash = await hashPassword(password);
+    await db
+      .update(filmmakers)
+      .set({
+        passwordHash,
+        resetToken: null,
+        resetTokenExpiresAt: null,
+      })
+      .where(eq(filmmakers.id, user.id));
+
+    sendSlackNotification(`Password reset for ${user.name} (${user.email})`);
+
+    return successResponse({ message: 'Password reset successful' });
+  } catch (error) {
+    return errorResponse('Failed to reset password', 500, error, request);
+  }
+};

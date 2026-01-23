@@ -385,9 +385,17 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
               <td>Website</td>
               <td><input type="url" name="website" value="${f.website || ''}" readonly></td>
             </tr>
-            <tr class="${!f.socialMedia ? 'empty-row' : ''}" data-field="socialMedia">
-              <td>Social Media</td>
-              <td><input type="text" name="socialMedia" value="${f.socialMedia || ''}" readonly></td>
+            <tr class="${!f.instagram ? 'empty-row' : ''}" data-field="instagram">
+              <td>Instagram</td>
+              <td><input type="text" name="instagram" value="${f.instagram || ''}" readonly></td>
+            </tr>
+            <tr class="${!f.youtube ? 'empty-row' : ''}" data-field="youtube">
+              <td>YouTube</td>
+              <td><input type="text" name="youtube" value="${f.youtube || ''}" readonly></td>
+            </tr>
+            <tr class="${!f.facebook ? 'empty-row' : ''}" data-field="facebook">
+              <td>Facebook</td>
+              <td><input type="text" name="facebook" value="${f.facebook || ''}" readonly></td>
             </tr>
             <tr class="${!f.gear ? 'empty-row' : ''}" data-field="gear">
               <td>Gear</td>

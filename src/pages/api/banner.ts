@@ -2,17 +2,21 @@
 import { db } from '@db';
 import { siteSettings } from '@db/schema';
 import { errorResponse, successResponse } from '@lib/api';
-import { isAuthenticated, unauthorizedResponse } from '@lib/auth';
+import { requireAdmin } from '@lib/auth';
 import { invalidateBannerCache } from '@lib/banner-cache';
 // Astro types
 import type { APIRoute } from 'astro';
 // External packages
 import { sql } from 'drizzle-orm';
 
-export const POST: APIRoute = async ({ request }) => {
-  // Require authentication for updating banner settings
-  if (!isAuthenticated(request)) {
-    return unauthorizedResponse();
+export const POST: APIRoute = async (context) => {
+  const { request } = context;
+
+  // Require admin authentication
+  try {
+    await requireAdmin(context);
+  } catch {
+    return errorResponse('Unauthorized', 401);
   }
 
   try {
