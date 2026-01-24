@@ -310,7 +310,7 @@ const { roleAliasMap, canonicalRoles } = buildRoleData();
 
 <script>
   import { track } from '@lib/analytics';
-  import { normalizeInstagramUrls, normalizeYoutubeUrl } from '@utils/url';
+  import { normalizeInstagramUrls, normalizeYoutubeUrl, isValidHttpUrl } from '@utils/url';
 
   // Load roles data from JSON script tags
   const roles: string[] = JSON.parse(document.getElementById('roles-data')!.textContent || '[]');
@@ -531,8 +531,14 @@ const { roleAliasMap, canonicalRoles } = buildRoleData();
       function updateLink() {
         const value = input.value.trim();
         if (value) {
-          link.href = normalize(value);
-          link.style.display = 'inline-block';
+          const normalizedUrl = normalize(value);
+          // Only allow http/https URLs to prevent XSS
+          if (isValidHttpUrl(normalizedUrl)) {
+            link.href = normalizedUrl;
+            link.style.display = 'inline-block';
+          } else {
+            link.style.display = 'none';
+          }
         } else {
           link.style.display = 'none';
         }

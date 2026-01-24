@@ -1,12 +1,9 @@
 // Internal imports
-import { db } from '@db';
-import { filmmakers } from '@db/schema';
 import { errorResponse, successResponse } from '@lib/api';
+import { findUserByEmail } from '@lib/auth';
 import { sendPasswordResetEmail } from '@lib/send-reset-email';
 // Astro types
 import type { APIRoute } from 'astro';
-// External packages
-import { eq } from 'drizzle-orm';
 
 export const POST: APIRoute = async ({ request, url }) => {
   try {
@@ -17,10 +14,7 @@ export const POST: APIRoute = async ({ request, url }) => {
     }
 
     // Find user
-    const [user] = await db
-      .select()
-      .from(filmmakers)
-      .where(eq(filmmakers.email, email.toLowerCase().trim()));
+    const user = await findUserByEmail(email);
 
     // Always return success (don't reveal if email exists)
     if (!user) {

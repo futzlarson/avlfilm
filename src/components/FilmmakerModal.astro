@@ -162,9 +162,19 @@ const { id } = Astro.props;
 <script>
   import type { PublicFilmmaker } from '@db/schema';
   import { formatPhone } from '@utils/formatting';
-  import { normalizeInstagramUrls, normalizeYoutubeUrl, getInstagramDisplayText } from '@utils/url';
+  import { normalizeInstagramUrls, normalizeYoutubeUrl, getInstagramDisplayText, isValidHttpUrl } from '@utils/url';
   import { track } from '@lib/analytics';
   import { setupModal } from '@lib/modal';
+
+  // Helper to safely create a link element
+  function createSafeLink(href: string, text: string): HTMLAnchorElement {
+    const link = document.createElement('a');
+    link.href = href;
+    link.textContent = text;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    return link;
+  }
 
   document.addEventListener('DOMContentLoaded', () => {
     setupModal('filmmaker-modal');
@@ -241,8 +251,9 @@ const { id } = Astro.props;
     // Website
     const websiteRow = modal.querySelector('.website-row') as HTMLElement;
     const websiteSpan = modal.querySelector('.filmmaker-website')!;
-    if (filmmaker.website) {
-      websiteSpan.innerHTML = `<a href="${filmmaker.website}" target="_blank" rel="noopener noreferrer">${filmmaker.website}</a>`;
+    if (filmmaker.website && isValidHttpUrl(filmmaker.website)) {
+      websiteSpan.textContent = '';
+      websiteSpan.appendChild(createSafeLink(filmmaker.website, filmmaker.website));
       websiteRow.style.display = 'table-row';
     } else {
       websiteRow.style.display = 'none';
@@ -254,9 +265,17 @@ const { id } = Astro.props;
     if (filmmaker.instagram) {
       const urls = normalizeInstagramUrls(filmmaker.instagram);
       const texts = getInstagramDisplayText(filmmaker.instagram);
-      instagramSpan.innerHTML = urls.map((url, i) =>
-        `<a href="${url}" target="_blank" rel="noopener noreferrer">${texts[i]}</a>`
-      ).join(', ');
+
+      instagramSpan.textContent = '';
+      urls.forEach((url, i) => {
+        if (isValidHttpUrl(url)) {
+          if (i > 0) {
+            instagramSpan.appendChild(document.createTextNode(', '));
+          }
+          instagramSpan.appendChild(createSafeLink(url, texts[i]));
+        }
+      });
+
       instagramRow.style.display = 'table-row';
     } else {
       instagramRow.style.display = 'none';
@@ -266,8 +285,14 @@ const { id } = Astro.props;
     const youtubeRow = modal.querySelector('.youtube-row') as HTMLElement;
     const youtubeSpan = modal.querySelector('.filmmaker-youtube')!;
     if (filmmaker.youtube) {
-      youtubeSpan.innerHTML = `<a href="${normalizeYoutubeUrl(filmmaker.youtube)}" target="_blank" rel="noopener noreferrer">${filmmaker.youtube}</a>`;
-      youtubeRow.style.display = 'table-row';
+      const youtubeUrl = normalizeYoutubeUrl(filmmaker.youtube);
+      if (isValidHttpUrl(youtubeUrl)) {
+        youtubeSpan.textContent = '';
+        youtubeSpan.appendChild(createSafeLink(youtubeUrl, filmmaker.youtube));
+        youtubeRow.style.display = 'table-row';
+      } else {
+        youtubeRow.style.display = 'none';
+      }
     } else {
       youtubeRow.style.display = 'none';
     }
@@ -275,8 +300,9 @@ const { id } = Astro.props;
     // Facebook
     const facebookRow = modal.querySelector('.facebook-row') as HTMLElement;
     const facebookSpan = modal.querySelector('.filmmaker-facebook')!;
-    if (filmmaker.facebook) {
-      facebookSpan.innerHTML = `<a href="${filmmaker.facebook}" target="_blank" rel="noopener noreferrer">${filmmaker.facebook}</a>`;
+    if (filmmaker.facebook && isValidHttpUrl(filmmaker.facebook)) {
+      facebookSpan.textContent = '';
+      facebookSpan.appendChild(createSafeLink(filmmaker.facebook, filmmaker.facebook));
       facebookRow.style.display = 'table-row';
     } else {
       facebookRow.style.display = 'none';

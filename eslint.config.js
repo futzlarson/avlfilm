@@ -9,7 +9,7 @@ export default defineConfig([
   // Ignore build artifacts and generated files
   {
     ignores: [
-      ".astro/",
+      "**/.astro/",
       ".claude/",
       ".vercel/",
       "node_modules/",

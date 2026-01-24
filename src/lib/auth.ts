@@ -1,11 +1,16 @@
 // Internal imports
 // Types
 import type { AuthUser } from '@app-types/auth';
+import { db } from '@db';
+import type { Filmmaker } from '@db/schema';
+import { filmmakers } from '@db/schema';
 import { verifyToken } from '@lib/jwt';
 export type { AuthUser };
 
 // Astro types
 import type { APIContext } from 'astro';
+// External packages
+import { eq } from 'drizzle-orm';
 
 /**
  * Gets the authenticated user from the request cookies
@@ -47,4 +52,19 @@ export async function requireAdmin(context: APIContext): Promise<AuthUser> {
     throw new Error('Forbidden');
   }
   return user;
+}
+
+/**
+ * Finds a filmmaker by email address
+ * Returns the filmmaker or null if not found
+ */
+export async function findUserByEmail(
+  email: string
+): Promise<Filmmaker | null> {
+  const [user] = await db
+    .select()
+    .from(filmmakers)
+    .where(eq(filmmakers.email, email.toLowerCase().trim()));
+
+  return user || null;
 }

@@ -1,4 +1,16 @@
 /**
+ * Validates that a URL uses http or https protocol only
+ * @param url - The URL to validate
+ * @returns True if URL is safe (http/https only), false otherwise
+ */
+export function isValidHttpUrl(url: string | null | undefined): boolean {
+  if (!url) return false;
+  const trimmed = url.trim();
+  if (!trimmed) return false;
+  return trimmed.startsWith('http://') || trimmed.startsWith('https://');
+}
+
+/**
  * Normalizes a URL to ensure it starts with https://
  * @param url - The URL to normalize
  * @returns The normalized URL with https:// prefix

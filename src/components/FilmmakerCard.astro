@@ -1,0 +1,153 @@
+---
+// Internal imports
+import type { Filmmaker } from '@db/schema';
+import { isValidHttpUrl, normalizeInstagramUrls, normalizeYoutubeUrl, getInstagramDisplayText } from '@utils/url';
+
+interface Props {
+  filmmaker: Filmmaker;
+  showApproveButton?: boolean;
+}
+
+const { filmmaker: f, showApproveButton = false } = Astro.props;
+
+// Helper to render simple social links (website, facebook)
+const renderSimpleLink = (url: string | null) => {
+  if (!url || !isValidHttpUrl(url)) return null;
+  return { url, text: url };
+};
+
+// Helper to render Instagram links
+const renderInstagramLinks = (instagram: string | null) => {
+  if (!instagram) return [];
+  const urls = normalizeInstagramUrls(instagram);
+  const texts = getInstagramDisplayText(instagram);
+  return urls
+    .filter(url => isValidHttpUrl(url))
+    .map((url, i) => ({ url, text: texts[i] }));
+};
+
+// Helper to render YouTube link
+const renderYoutubeLink = (youtube: string | null) => {
+  if (!youtube) return null;
+  const url = normalizeYoutubeUrl(youtube);
+  if (!isValidHttpUrl(url)) return null;
+  return { url, text: youtube };
+};
+
+const websiteLink = renderSimpleLink(f.website);
+const instagramLinks = renderInstagramLinks(f.instagram);
+const youtubeLink = renderYoutubeLink(f.youtube);
+const facebookLink = renderSimpleLink(f.facebook);
+---
+
+<div class="filmmaker-card" data-id={f.id} data-name={f.name.toLowerCase()} data-email={f.email.toLowerCase()}>
+  <h3 style="margin: 0 0 1.25rem 0;">{f.name}</h3>
+
+  <form onsubmit={`saveFilmmaker(event, ${f.id})`}>
+    <table class="info-table">
+      <tr>
+        <td>Name</td>
+        <td><input type="text" name="name" value={f.name} readonly required /></td>
+      </tr>
+      <tr>
+        <td>Email</td>
+        <td><input type="email" name="email" value={f.email} readonly required /></td>
+      </tr>
+      <tr>
+        <td>Roles</td>
+        <td><input type="text" name="roles" value={f.roles} readonly required /></td>
+      </tr>
+      <tr class={!f.phone ? 'empty-row' : ''} data-field="phone">
+        <td>Phone</td>
+        <td><input type="tel" name="phone" value={f.phone || ''} readonly /></td>
+      </tr>
+      <tr class={!f.company ? 'empty-row' : ''} data-field="company">
+        <td>Company</td>
+        <td><input type="text" name="company" value={f.company || ''} readonly /></td>
+      </tr>
+      <tr class={!f.website ? 'empty-row' : ''} data-field="website">
+        <td>Website</td>
+        <td>
+          <span class="social-display">
+            {websiteLink && (
+              <a href={websiteLink.url} target="_blank" rel="noopener noreferrer">{websiteLink.text}</a>
+            )}
+          </span>
+          <input type="url" name="website" value={f.website || ''} readonly />
+        </td>
+      </tr>
+      <tr class={!f.instagram ? 'empty-row' : ''} data-field="instagram">
+        <td>Instagram</td>
+        <td>
+          <span class="social-display">
+            {instagramLinks.map((link, i) => (
+              <>
+                {i > 0 && ', '}
+                <a href={link.url} target="_blank" rel="noopener noreferrer">{link.text}</a>
+              </>
+            ))}
+          </span>
+          <input type="text" name="instagram" value={f.instagram || ''} readonly />
+        </td>
+      </tr>
+      <tr class={!f.youtube ? 'empty-row' : ''} data-field="youtube">
+        <td>YouTube</td>
+        <td>
+          <span class="social-display">
+            {youtubeLink && (
+              <a href={youtubeLink.url} target="_blank" rel="noopener noreferrer">{youtubeLink.text}</a>
+            )}
+          </span>
+          <input type="text" name="youtube" value={f.youtube || ''} readonly />
+        </td>
+      </tr>
+      <tr class={!f.facebook ? 'empty-row' : ''} data-field="facebook">
+        <td>Facebook</td>
+        <td>
+          <span class="social-display">
+            {facebookLink && (
+              <a href={facebookLink.url} target="_blank" rel="noopener noreferrer">{facebookLink.text}</a>
+            )}
+          </span>
+          <input type="text" name="facebook" value={f.facebook || ''} readonly />
+        </td>
+      </tr>
+      <tr class={!f.gear ? 'empty-row' : ''} data-field="gear">
+        <td>Gear</td>
+        <td><textarea name="gear" rows="3" readonly>{f.gear || ''}</textarea></td>
+      </tr>
+      <tr class={!f.bio ? 'empty-row' : ''} data-field="bio">
+        <td>Bio</td>
+        <td><textarea name="bio" rows="3" readonly>{f.bio || ''}</textarea></td>
+      </tr>
+      {!showApproveButton && (
+        <tr data-field="status">
+          <td>Status</td>
+          <td>
+            <span class="status-display">
+              <span class={`status-badge ${f.status}`}>{f.status}</span>
+            </span>
+            <select name="status" style="display: none;">
+              <option value="pending" selected={f.status === 'pending'}>Pending</option>
+              <option value="approved" selected={f.status === 'approved'}>Approved</option>
+              <option value="archived" selected={f.status === 'archived'}>Archived</option>
+            </select>
+          </td>
+        </tr>
+      )}
+    </table>
+
+    <div class="filmmaker-actions view-actions" style="margin-top: 1.25rem;">
+      {showApproveButton && (
+        <button type="button" class="btn btn-approve" onclick={`approveFilmmaker(${f.id})`}>Approve</button>
+      )}
+      <button type="button" class="btn btn-edit" onclick={`${showApproveButton ? 'toggleEditPending' : 'toggleEditAll'}(${f.id})`}>Edit</button>
+      <button type="button" class="btn btn-archive" onclick={`archiveFilmmaker(${f.id})`}>Archive</button>
+    </div>
+
+    <div class="edit-actions" style="display: none;">
+      <button type="submit" class="btn btn-save">Save</button>
+      <button type="button" class="btn btn-cancel" onclick={`${showApproveButton ? 'toggleEditPending' : 'toggleEditAll'}(${f.id})`}>Cancel</button>
+    </div>
+  </form>
+</div>

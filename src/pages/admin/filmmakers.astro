@@ -4,6 +4,7 @@ import { db } from '@db';
 import { filmmakers } from '@db/schema';
 import type { Filmmaker } from '@db/schema';
 import BaseLayout from '@layouts/BaseLayout.astro';
+import FilmmakerCard from '@components/FilmmakerCard.astro';
 
 // Load all filmmakers on server
 let allFilmmakers: Filmmaker[] = [];
@@ -14,7 +15,7 @@ try {
   console.error('Failed to load filmmakers:', error);
 }
 
-// Filter pending client-side
+// Filter pending for display
 const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
 ---
 
@@ -29,7 +30,13 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
 
   <div class="admin-section">
     <h2>Pending Submissions: <span id="pending-count">{pendingFilmmakers.length}</span></h2>
-    <div id="pending-filmmakers"></div>
+    <div id="pending-filmmakers">
+      {pendingFilmmakers.length > 0 ? (
+        pendingFilmmakers.map(f => <FilmmakerCard filmmaker={f} showApproveButton={true} />)
+      ) : (
+        <div class="empty-state">No pending submissions</div>
+      )}
+    </div>
   </div>
 
   <div class="admin-section">
@@ -42,7 +49,12 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
         autocomplete="off"
       />
     </div>
-    <div id="all-filmmakers"></div>
+    <div id="all-filmmakers">
+      {allFilmmakers.map(f => (
+        <FilmmakerCard filmmaker={f} showApproveButton={false} />
+      ))}
+      <div class="empty-state" id="no-results" style="display: none;">No filmmakers found</div>
+    </div>
   </div>
 </BaseLayout>
 
@@ -336,6 +348,15 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
     color: #9ca3af;
   }
 
+  /* Hide all search cards by default, only show when matching search */
+  #all-filmmakers :global(.filmmaker-card) {
+    display: none;
+  }
+
+  #all-filmmakers :global(.filmmaker-card.visible) {
+    display: block;
+  }
+
   /* Social media field display/edit toggling */
   :global(.social-display) {
     display: inline;
@@ -367,134 +388,45 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
   }
 </style>
 
-<script is:inline id="pending-data" type="application/json" set:html={JSON.stringify(pendingFilmmakers)}></script>
-<script is:inline id="all-data" type="application/json" set:html={JSON.stringify(allFilmmakers)}></script>
-
 <script>
   import type { Filmmaker } from '@db/schema';
-  import { normalizeInstagramUrls, normalizeYoutubeUrl, getInstagramDisplayText } from '@utils/url';
 
-  // Load filmmakers from JSON script tags
-  const pendingFilmmakers: Filmmaker[] = JSON.parse(document.getElementById('pending-data')!.textContent || '[]');
-  const allFilmmakers: Filmmaker[] = JSON.parse(document.getElementById('all-data')!.textContent || '[]');
+  function filterSearchResults() {
+    const searchInput = document.getElementById('search-input') as HTMLInputElement;
+    const containerEl = document.getElementById('all-filmmakers');
+    const noResults = document.getElementById('no-results') as HTMLElement;
 
-  // Helper to render a simple social link (for website, facebook)
-  function renderSimpleSocialLink(value: string | null): string {
-    if (!value) return '';
-    return `<a href="${value}" target="_blank" rel="noreferrer">${value}</a>`;
-  }
+    if (!containerEl || !searchInput) return;
 
-  // Helper to render Instagram links (supports multiple handles)
-  function renderInstagramLinks(value: string | null): string {
-    if (!value) return '';
-    const urls = normalizeInstagramUrls(value);
-    const texts = getInstagramDisplayText(value);
-    return urls.map((url, i) =>
-      `<a href="${url}" target="_blank" rel="noreferrer">${texts[i]}</a>`
-    ).join(', ');
-  }
+    const searchTerm = searchInput.value.toLowerCase().trim();
 
-  // Helper to render YouTube link
-  function renderYoutubeLink(value: string | null): string {
-    if (!value) return '';
-    return `<a href="${normalizeYoutubeUrl(value)}" target="_blank" rel="noreferrer">${value}</a>`;
-  }
+    // Get all filmmaker cards in search section
+    const cards = containerEl.querySelectorAll('.filmmaker-card');
 
-  function renderFilmmakerCard(f: Filmmaker, showApproveButton: boolean = false) {
-    return `
-      <div class="filmmaker-card" data-id="${f.id}">
-        <h3 style="margin: 0 0 1.25rem 0;">${f.name}</h3>
+    // Hide all cards if no search term
+    if (!searchTerm) {
+      cards.forEach(card => card.classList.remove('visible'));
+      noResults.style.display = 'none';
+      return;
+    }
 
-        <form onsubmit="saveFilmmaker(event, ${f.id})">
-          <table class="info-table">
-            <tr>
-              <td>Name</td>
-              <td><input type="text" name="name" value="${f.name}" readonly required></td>
-            </tr>
-            <tr>
-              <td>Email</td>
-              <td><input type="email" name="email" value="${f.email}" readonly required></td>
-            </tr>
-            <tr>
-              <td>Roles</td>
-              <td><input type="text" name="roles" value="${f.roles}" readonly required></td>
-            </tr>
-            <tr class="${!f.phone ? 'empty-row' : ''}" data-field="phone">
-              <td>Phone</td>
-              <td><input type="tel" name="phone" value="${f.phone || ''}" readonly></td>
-            </tr>
-            <tr class="${!f.company ? 'empty-row' : ''}" data-field="company">
-              <td>Company</td>
-              <td><input type="text" name="company" value="${f.company || ''}" readonly></td>
-            </tr>
-            <tr class="${!f.website ? 'empty-row' : ''}" data-field="website">
-              <td>Website</td>
-              <td>
-                <span class="social-display">${renderSimpleSocialLink(f.website)}</span>
-                <input type="url" name="website" value="${f.website || ''}" readonly>
-              </td>
-            </tr>
-            <tr class="${!f.instagram ? 'empty-row' : ''}" data-field="instagram">
-              <td>Instagram</td>
-              <td>
-                <span class="social-display">${renderInstagramLinks(f.instagram)}</span>
-                <input type="text" name="instagram" value="${f.instagram || ''}" readonly>
-              </td>
-            </tr>
-            <tr class="${!f.youtube ? 'empty-row' : ''}" data-field="youtube">
-              <td>YouTube</td>
-              <td>
-                <span class="social-display">${renderYoutubeLink(f.youtube)}</span>
-                <input type="text" name="youtube" value="${f.youtube || ''}" readonly>
-              </td>
-            </tr>
-            <tr class="${!f.facebook ? 'empty-row' : ''}" data-field="facebook">
-              <td>Facebook</td>
-              <td>
-                <span class="social-display">${renderSimpleSocialLink(f.facebook)}</span>
-                <input type="text" name="facebook" value="${f.facebook || ''}" readonly>
-              </td>
-            </tr>
-            <tr class="${!f.gear ? 'empty-row' : ''}" data-field="gear">
-              <td>Gear</td>
-              <td><textarea name="gear" rows="3" readonly>${f.gear || ''}</textarea></td>
-            </tr>
-            <tr class="${!f.bio ? 'empty-row' : ''}" data-field="bio">
-              <td>Bio</td>
-              <td><textarea name="bio" rows="3" readonly>${f.bio || ''}</textarea></td>
-            </tr>
-            ${!showApproveButton ? `
-              <tr data-field="status">
-                <td>Status</td>
-                <td>
-                  <span class="status-display">
-                    <span class="status-badge ${f.status}">${f.status}</span>
-                  </span>
-                  <select name="status" style="display: none;">
-                    <option value="pending" ${f.status === 'pending' ? 'selected' : ''}>Pending</option>
-                    <option value="approved" ${f.status === 'approved' ? 'selected' : ''}>Approved</option>
-                    <option value="archived" ${f.status === 'archived' ? 'selected' : ''}>Archived</option>
-                  </select>
-                </td>
-              </tr>
-            ` : ''}
-          </table>
+    // Filter and show matching cards
+    let visibleCount = 0;
+    cards.forEach(card => {
+      const htmlCard = card as HTMLElement;
+      const name = htmlCard.dataset.name || '';
+      const email = htmlCard.dataset.email || '';
 
-          <div class="filmmaker-actions view-actions" style="margin-top: 1.25rem;">
-            ${showApproveButton ? `
-              <button type="button" class="btn btn-approve" onclick="approveFilmmaker(${f.id})">Approve</button>
-            ` : ''}
-            <button type="button" class="btn btn-edit" onclick="${showApproveButton ? 'toggleEditPending' : 'toggleEditAll'}(${f.id})">Edit</button>
-            <button type="button" class="btn btn-archive" onclick="archiveFilmmaker(${f.id})">Archive</button>
-          </div>
+      if (name.includes(searchTerm) || email.includes(searchTerm)) {
+        htmlCard.classList.add('visible');
+        visibleCount++;
+      } else {
+        htmlCard.classList.remove('visible');
+      }
+    });
 
-          <div class="edit-actions" style="display: none;">
-            <button type="submit" class="btn btn-save">Save</button>
-            <button type="button" class="btn btn-cancel" onclick="${showApproveButton ? 'toggleEditPending' : 'toggleEditAll'}(${f.id})">Cancel</button>
-          </div>
-        </form>
-      </div>
-    `;
+    // Show/hide no results message
+    noResults.style.display = visibleCount === 0 ? 'block' : 'none';
   }
 
   function toggleEditMode(card: Element) {
@@ -569,42 +501,6 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
       });
       if (statusRow) statusRow.style.display = 'table-row';
     }
-  }
-
-  function renderPendingFilmmakers() {
-    const containerEl = document.getElementById('pending-filmmakers');
-    if (!containerEl) return;
-
-    if (pendingFilmmakers.length > 0) {
-      containerEl.innerHTML = pendingFilmmakers.map(f => renderFilmmakerCard(f, true)).join('');
-    }
-  }
-
-  function renderAllFilmmakers() {
-    const containerEl = document.getElementById('all-filmmakers');
-    const searchInput = document.getElementById('search-input') as HTMLInputElement;
-
-    if (!containerEl) return;
-
-    const searchTerm = searchInput?.value.toLowerCase() || '';
-
-    // Hide all filmmakers by default if no search term
-    if (!searchTerm) {
-      containerEl.innerHTML = '';
-      return;
-    }
-
-    const filtered = allFilmmakers.filter(f =>
-      f.name.toLowerCase().includes(searchTerm) ||
-      f.email.toLowerCase().includes(searchTerm)
-    );
-
-    if (filtered.length === 0) {
-      containerEl.innerHTML = '<div class="empty-state">No filmmakers found</div>';
-      return;
-    }
-
-    containerEl.innerHTML = filtered.map(f => renderFilmmakerCard(f, false)).join('');
   }
 
   async function approveFilmmaker(id: number) {
@@ -731,17 +627,15 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
   (window as any).saveFilmmaker = saveFilmmaker;
 
   document.addEventListener('DOMContentLoaded', () => {
-    renderPendingFilmmakers();
-
     const searchInput = document.getElementById('search-input') as HTMLInputElement;
-    searchInput?.addEventListener('input', renderAllFilmmakers);
+    searchInput?.addEventListener('input', filterSearchResults);
 
     // Restore search term from URL if present
     const urlParams = new URLSearchParams(window.location.search);
     const searchTerm = urlParams.get('search');
     if (searchTerm && searchInput) {
       searchInput.value = searchTerm;
-      renderAllFilmmakers();
+      filterSearchResults();
     }
 
     const testEmailBtn = document.getElementById('test-email-btn');
