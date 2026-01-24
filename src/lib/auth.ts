@@ -68,3 +68,16 @@ export async function findUserByEmail(
 
   return user || null;
 }
+
+/**
+ * Finds a filmmaker by ID
+ * Returns the filmmaker or null if not found
+ */
+export async function findUserById(id: number): Promise<Filmmaker | null> {
+  const [user] = await db
+    .select()
+    .from(filmmakers)
+    .where(eq(filmmakers.id, id));
+
+  return user || null;
+}

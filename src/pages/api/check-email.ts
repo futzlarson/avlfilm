@@ -1,11 +1,8 @@
 // Internal imports
-import { db } from '@db';
-import { filmmakers } from '@db/schema';
 import { errorResponse, successResponse } from '@lib/api';
+import { findUserByEmail } from '@lib/auth';
 // Astro types
 import type { APIRoute } from 'astro';
-// External packages
-import { eq } from 'drizzle-orm';
 
 export const GET: APIRoute = async ({ url }) => {
   try {
@@ -15,9 +12,9 @@ export const GET: APIRoute = async ({ url }) => {
       return errorResponse('Email parameter is required');
     }
 
-    const existing = await db.select().from(filmmakers).where(eq(filmmakers.email, email)).limit(1);
+    const existing = await findUserByEmail(email);
 
-    return successResponse({ exists: existing.length > 0 });
+    return successResponse({ exists: !!existing });
   } catch (error) {
     return errorResponse('Failed to check email', error);
   }

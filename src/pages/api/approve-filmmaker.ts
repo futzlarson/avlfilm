@@ -3,7 +3,7 @@ import { db } from '@db';
 import { filmmakers } from '@db/schema';
 import { errorResponse, successResponse } from '@lib/api';
 import { generateApprovalEmailHtml } from '@lib/approval-email';
-import { requireAdmin } from '@lib/auth';
+import { findUserById, requireAdmin } from '@lib/auth';
 // Astro types
 import type { APIRoute } from 'astro';
 // External packages
@@ -36,11 +36,7 @@ export const POST: APIRoute = async (context) => {
 
     if (isApprovingFilmmaker) {
       // Fetch current filmmaker to check if already approved
-      const [currentFilmmaker] = await db
-        .select()
-        .from(filmmakers)
-        .where(eq(filmmakers.id, id))
-        .limit(1);
+      const currentFilmmaker = await findUserById(id);
 
       if (currentFilmmaker) {
         previousStatus = currentFilmmaker.status;

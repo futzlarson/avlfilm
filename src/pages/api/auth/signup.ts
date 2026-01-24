@@ -2,13 +2,12 @@
 import { db } from '@db';
 import { filmmakers } from '@db/schema';
 import { errorResponse, successResponse } from '@lib/api';
+import { findUserByEmail } from '@lib/auth';
 import { signToken } from '@lib/jwt';
 import { hashPassword, validatePassword } from '@lib/password';
 import { sendSlackNotification } from '@lib/slack';
 // Astro types
 import type { APIRoute } from 'astro';
-// External packages
-import { eq } from 'drizzle-orm';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
@@ -25,14 +24,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     // Check if email exists
-    const existing = await db
-      .select()
-      .from(filmmakers)
-      .where(eq(filmmakers.email, email.toLowerCase().trim()));
+    const existing = await findUserByEmail(email);
 
-    if (existing.length > 0) {
+    if (existing) {
       // If they have no password, they should claim their profile instead
-      if (!existing[0].passwordHash) {
+      if (!existing.passwordHash) {
         return errorResponse(
           'An account with this email already exists. Please use "Claim Profile" to set your password.',
           409

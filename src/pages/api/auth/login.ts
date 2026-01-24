@@ -2,6 +2,7 @@
 import { db } from '@db';
 import { filmmakers } from '@db/schema';
 import { errorResponse, successResponse } from '@lib/api';
+import { findUserByEmail } from '@lib/auth';
 import { signToken } from '@lib/jwt';
 import { verifyPassword } from '@lib/password';
 // Astro types
@@ -18,10 +19,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }
 
     // Find user
-    const [user] = await db
-      .select()
-      .from(filmmakers)
-      .where(eq(filmmakers.email, email.toLowerCase().trim()));
+    const user = await findUserByEmail(email);
 
     if (!user || !user.passwordHash) {
       return errorResponse('Invalid email or password', 401);

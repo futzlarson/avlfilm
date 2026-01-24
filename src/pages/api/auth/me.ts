@@ -1,21 +1,14 @@
 // Internal imports
-import { db } from '@db';
-import { filmmakers } from '@db/schema';
 import { errorResponse, successResponse } from '@lib/api';
-import { requireAuth } from '@lib/auth';
+import { findUserById, requireAuth } from '@lib/auth';
 // Astro types
 import type { APIRoute } from 'astro';
-// External packages
-import { eq } from 'drizzle-orm';
 
 export const GET: APIRoute = async (context) => {
   try {
     const authUser = await requireAuth(context);
 
-    const [filmmaker] = await db
-      .select()
-      .from(filmmakers)
-      .where(eq(filmmakers.id, authUser.userId));
+    const filmmaker = await findUserById(authUser.userId);
 
     if (!filmmaker) {
       return errorResponse('User not found', 404);
