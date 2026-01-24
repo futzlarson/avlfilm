@@ -111,4 +111,3 @@ RESEND_API_KEY=""
 
 - **README.md** (this file) - Quick start for new collaborators
 - **CLAUDE.md** - AI assistant guidelines and code patterns
-- **TECHNICAL.md** - Deep architecture documentation for developers
