@@ -81,7 +81,7 @@ const { roleAliasMap, canonicalRoles } = buildRoleData();
   <div class="form-group">
     <label for="instagram">Instagram</label>
     <div class="input-with-button">
-      <input type="text" id="instagram" name="instagram" placeholder="@username or URL" value={isEdit ? (filmmaker?.instagram || '') : ''} />
+      <input type="text" id="instagram" name="instagram" placeholder="@username1 @username2" value={isEdit ? (filmmaker?.instagram || '') : ''} />
       <a
         href="#"
         target="_blank"
@@ -93,6 +93,7 @@ const { roleAliasMap, canonicalRoles } = buildRoleData();
         Open
       </a>
     </div>
+    <span style="font-size: smaller">Separate multiple accounts with a space.</span>
   </div>
 
   <div class="form-group">
