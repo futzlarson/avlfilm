@@ -8,19 +8,15 @@ import BaseLayout from '@layouts/BaseLayout.astro';
   description="Discover film festivals near Asheville, NC - from local competitions to major regional events within 250 miles."
   keywords="Asheville film festivals, NC film festivals, submit film festival, independent film festivals, regional film festivals"
 >
-  <div class="hero">
-    <h1>Film Festivals Near Asheville</h1>
-    <p class="tagline">From hometown showcases to road-trip-worthy regional festivals</p>
-  </div>
+  <h1>Film Festivals Near Asheville</h1>
+  <p class="tagline">From hometown showcases to road-trip-worthy regional festivals</p>
 
-  <div class="intro">
-    <p>
-      Whether you're looking to submit your latest short, challenge yourself with a 48-hour sprint,
-      or take a weekend trip to premiere your feature, the Southeast has festivals for every filmmaker
-      and every stage of the journey. Here's your guide to festivals within 250 miles of Asheville,
-      sorted by how far you'll need to drive (or not drive at all). And if you're wondering how to get your film into festivals, <a href="/info">we've got you covered</a>.
-    </p>
-  </div>
+  <p>
+    Whether you're looking to submit your latest short, challenge yourself with a 48-hour sprint,
+    or take a weekend trip to premiere your feature, the Southeast has festivals for every filmmaker
+    and every stage of the journey. Here's your guide to festivals within 250 miles of Asheville,
+    sorted by how far you'll need to drive (or not drive at all). And if you're wondering how to get your film into festivals, <a href="/info">we've got you covered</a>.
+  </p>
 
   <div class="highlights">
     <div class="highlight-box">
@@ -207,33 +203,11 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 </BaseLayout>
 
 <style>
-  .hero {
-    padding: 2rem 0 1rem;
-  }
-
-  .hero h1 {
-    margin-bottom: 0.5rem;
-  }
-
   .tagline {
     font-size: 1.25rem;
     color: var(--color-text-light);
     font-style: italic;
     margin: 0;
-  }
-
-  .intro {
-    background: var(--color-bg-subtle);
-    padding: 1.5rem;
-    border-radius: var(--radius-lg);
-    margin: 2rem 0;
-    border-left: 4px solid var(--color-primary);
-  }
-
-  .intro p {
-    margin: 0;
-    line-height: 1.7;
-    font-size: 1.05rem;
   }
 
   .highlights {

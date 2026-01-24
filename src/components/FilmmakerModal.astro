@@ -37,7 +37,7 @@ const { id } = Astro.props;
           </tr>
           <tr class="website-row">
             <th>Website</th>
-            <td><a class="filmmaker-website" href="" target="_blank" rel="noopener noreferrer"></a></td>
+            <td><span class="filmmaker-website"></span></td>
           </tr>
           <tr class="instagram-row">
             <th>Instagram</th>
@@ -162,7 +162,7 @@ const { id } = Astro.props;
 <script>
   import type { PublicFilmmaker } from '@db/schema';
   import { formatPhone } from '@utils/formatting';
-  import { normalizeUrl } from '@utils/url';
+  import { normalizeInstagramUrls, normalizeYoutubeUrl, getInstagramDisplayText } from '@utils/url';
   import { track } from '@lib/analytics';
   import { setupModal } from '@lib/modal';
 
@@ -238,38 +238,45 @@ const { id } = Astro.props;
       companyRow.style.display = 'none';
     }
 
+    // Website
     const websiteRow = modal.querySelector('.website-row') as HTMLElement;
-    const websiteLink = modal.querySelector('.filmmaker-website') as HTMLAnchorElement;
+    const websiteSpan = modal.querySelector('.filmmaker-website')!;
     if (filmmaker.website) {
-      websiteLink.textContent = filmmaker.website;
-      websiteLink.href = normalizeUrl(filmmaker.website);
+      websiteSpan.innerHTML = `<a href="${filmmaker.website}" target="_blank" rel="noopener noreferrer">${filmmaker.website}</a>`;
       websiteRow.style.display = 'table-row';
     } else {
       websiteRow.style.display = 'none';
     }
 
+    // Instagram - supports multiple handles
     const instagramRow = modal.querySelector('.instagram-row') as HTMLElement;
     const instagramSpan = modal.querySelector('.filmmaker-instagram')!;
     if (filmmaker.instagram) {
-      instagramSpan.textContent = filmmaker.instagram;
+      const urls = normalizeInstagramUrls(filmmaker.instagram);
+      const texts = getInstagramDisplayText(filmmaker.instagram);
+      instagramSpan.innerHTML = urls.map((url, i) =>
+        `<a href="${url}" target="_blank" rel="noopener noreferrer">${texts[i]}</a>`
+      ).join(', ');
       instagramRow.style.display = 'table-row';
     } else {
       instagramRow.style.display = 'none';
     }
 
+    // YouTube
     const youtubeRow = modal.querySelector('.youtube-row') as HTMLElement;
     const youtubeSpan = modal.querySelector('.filmmaker-youtube')!;
     if (filmmaker.youtube) {
-      youtubeSpan.textContent = filmmaker.youtube;
+      youtubeSpan.innerHTML = `<a href="${normalizeYoutubeUrl(filmmaker.youtube)}" target="_blank" rel="noopener noreferrer">${filmmaker.youtube}</a>`;
       youtubeRow.style.display = 'table-row';
     } else {
       youtubeRow.style.display = 'none';
     }
 
+    // Facebook
     const facebookRow = modal.querySelector('.facebook-row') as HTMLElement;
     const facebookSpan = modal.querySelector('.filmmaker-facebook')!;
     if (filmmaker.facebook) {
-      facebookSpan.textContent = filmmaker.facebook;
+      facebookSpan.innerHTML = `<a href="${filmmaker.facebook}" target="_blank" rel="noopener noreferrer">${filmmaker.facebook}</a>`;
       facebookRow.style.display = 'table-row';
     } else {
       facebookRow.style.display = 'none';

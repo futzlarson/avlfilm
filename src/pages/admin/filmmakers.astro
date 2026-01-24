@@ -336,6 +336,29 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
     color: #9ca3af;
   }
 
+  /* Social media field display/edit toggling */
+  :global(.social-display) {
+    display: inline;
+  }
+
+  :global(.info-table tr[data-field="website"] input),
+  :global(.info-table tr[data-field="instagram"] input),
+  :global(.info-table tr[data-field="youtube"] input),
+  :global(.info-table tr[data-field="facebook"] input) {
+    display: none;
+  }
+
+  :global(.filmmaker-card.editing .info-table tr[data-field="website"] input),
+  :global(.filmmaker-card.editing .info-table tr[data-field="instagram"] input),
+  :global(.filmmaker-card.editing .info-table tr[data-field="youtube"] input),
+  :global(.filmmaker-card.editing .info-table tr[data-field="facebook"] input) {
+    display: block;
+  }
+
+  :global(.filmmaker-card.editing .social-display) {
+    display: none !important;
+  }
+
   @media (max-width: 768px) {
     .admin-header {
       flex-direction: column;
@@ -349,10 +372,33 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
 
 <script>
   import type { Filmmaker } from '@db/schema';
+  import { normalizeInstagramUrls, normalizeYoutubeUrl, getInstagramDisplayText } from '@utils/url';
 
   // Load filmmakers from JSON script tags
   const pendingFilmmakers: Filmmaker[] = JSON.parse(document.getElementById('pending-data')!.textContent || '[]');
   const allFilmmakers: Filmmaker[] = JSON.parse(document.getElementById('all-data')!.textContent || '[]');
+
+  // Helper to render a simple social link (for website, facebook)
+  function renderSimpleSocialLink(value: string | null): string {
+    if (!value) return '';
+    return `<a href="${value}" target="_blank" rel="noreferrer">${value}</a>`;
+  }
+
+  // Helper to render Instagram links (supports multiple handles)
+  function renderInstagramLinks(value: string | null): string {
+    if (!value) return '';
+    const urls = normalizeInstagramUrls(value);
+    const texts = getInstagramDisplayText(value);
+    return urls.map((url, i) =>
+      `<a href="${url}" target="_blank" rel="noreferrer">${texts[i]}</a>`
+    ).join(', ');
+  }
+
+  // Helper to render YouTube link
+  function renderYoutubeLink(value: string | null): string {
+    if (!value) return '';
+    return `<a href="${normalizeYoutubeUrl(value)}" target="_blank" rel="noreferrer">${value}</a>`;
+  }
 
   function renderFilmmakerCard(f: Filmmaker, showApproveButton: boolean = false) {
     return `
@@ -383,19 +429,31 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
             </tr>
             <tr class="${!f.website ? 'empty-row' : ''}" data-field="website">
               <td>Website</td>
-              <td><input type="url" name="website" value="${f.website || ''}" readonly></td>
+              <td>
+                <span class="social-display">${renderSimpleSocialLink(f.website)}</span>
+                <input type="url" name="website" value="${f.website || ''}" readonly>
+              </td>
             </tr>
             <tr class="${!f.instagram ? 'empty-row' : ''}" data-field="instagram">
               <td>Instagram</td>
-              <td><input type="text" name="instagram" value="${f.instagram || ''}" readonly></td>
+              <td>
+                <span class="social-display">${renderInstagramLinks(f.instagram)}</span>
+                <input type="text" name="instagram" value="${f.instagram || ''}" readonly>
+              </td>
             </tr>
             <tr class="${!f.youtube ? 'empty-row' : ''}" data-field="youtube">
               <td>YouTube</td>
-              <td><input type="text" name="youtube" value="${f.youtube || ''}" readonly></td>
+              <td>
+                <span class="social-display">${renderYoutubeLink(f.youtube)}</span>
+                <input type="text" name="youtube" value="${f.youtube || ''}" readonly>
+              </td>
             </tr>
             <tr class="${!f.facebook ? 'empty-row' : ''}" data-field="facebook">
               <td>Facebook</td>
-              <td><input type="text" name="facebook" value="${f.facebook || ''}" readonly></td>
+              <td>
+                <span class="social-display">${renderSimpleSocialLink(f.facebook)}</span>
+                <input type="text" name="facebook" value="${f.facebook || ''}" readonly>
+              </td>
             </tr>
             <tr class="${!f.gear ? 'empty-row' : ''}" data-field="gear">
               <td>Gear</td>
@@ -449,6 +507,10 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
     const allRows = formEl?.querySelectorAll('tr[data-field]');
     const statusRow = formEl?.querySelector('tr[data-field="status"]') as HTMLElement;
 
+    // Get social display elements and inputs
+    const socialDisplays = formEl?.querySelectorAll('.social-display') as NodeListOf<HTMLElement>;
+    const socialInputs = formEl?.querySelectorAll('input[name="website"], input[name="instagram"], input[name="youtube"], input[name="facebook"]') as NodeListOf<HTMLInputElement>;
+
     if (!formEl || !editActionsEl || !viewActionsEl || !inputs) return;
 
     const isEditing = !inputs[0].hasAttribute('readonly');
@@ -466,6 +528,13 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
         selectEl.style.display = 'none';
         statusDisplay.style.display = 'inline';
       }
+      // Show social links, hide inputs
+      socialDisplays?.forEach(display => {
+        display.style.display = 'inline';
+      });
+      socialInputs?.forEach(input => {
+        input.style.display = 'none';
+      });
       editActionsEl.style.setProperty('display', 'none');
       viewActionsEl.style.setProperty('display', 'flex');
       // Hide empty rows in display mode (but keep status row visible)
@@ -485,6 +554,13 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
         selectEl.style.display = 'block';
         statusDisplay.style.display = 'none';
       }
+      // Hide social links, show inputs
+      socialDisplays?.forEach(display => {
+        display.style.display = 'none';
+      });
+      socialInputs?.forEach(input => {
+        input.style.display = 'block';
+      });
       editActionsEl.style.setProperty('display', 'flex');
       viewActionsEl.style.setProperty('display', 'none');
       // Show all rows in edit mode, including status and empty ones

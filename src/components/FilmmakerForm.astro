@@ -63,22 +63,70 @@ const { roleAliasMap, canonicalRoles } = buildRoleData();
 
   <div class="form-group">
     <label for="website">Website</label>
-    <input type="url" id="website" name="website" placeholder="https://example.com" value={isEdit ? (filmmaker?.website || '') : ''} />
+    <div class="input-with-button">
+      <input type="url" id="website" name="website" placeholder="https://example.com" value={isEdit ? (filmmaker?.website || '') : ''} />
+      <a
+        href="#"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn-preview"
+        id="website-link"
+        style="display: none;"
+      >
+        Open
+      </a>
+    </div>
   </div>
 
   <div class="form-group">
     <label for="instagram">Instagram</label>
-    <input type="text" id="instagram" name="instagram" placeholder="@username or URL" value={isEdit ? (filmmaker?.instagram || '') : ''} />
+    <div class="input-with-button">
+      <input type="text" id="instagram" name="instagram" placeholder="@username or URL" value={isEdit ? (filmmaker?.instagram || '') : ''} />
+      <a
+        href="#"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn-preview"
+        id="instagram-link"
+        style="display: none;"
+      >
+        Open
+      </a>
+    </div>
   </div>
 
   <div class="form-group">
     <label for="youtube">YouTube</label>
-    <input type="text" id="youtube" name="youtube" placeholder="https://youtube.com/@channel" value={isEdit ? (filmmaker?.youtube || '') : ''} />
+    <div class="input-with-button">
+      <input type="text" id="youtube" name="youtube" placeholder="https://youtube.com/@channel" value={isEdit ? (filmmaker?.youtube || '') : ''} />
+      <a
+        href="#"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn-preview"
+        id="youtube-link"
+        style="display: none;"
+      >
+        Open
+      </a>
+    </div>
   </div>
 
   <div class="form-group">
     <label for="facebook">Facebook</label>
-    <input type="text" id="facebook" name="facebook" placeholder="https://facebook.com/page" value={isEdit ? (filmmaker?.facebook || '') : ''} />
+    <div class="input-with-button">
+      <input type="text" id="facebook" name="facebook" placeholder="https://facebook.com/page" value={isEdit ? (filmmaker?.facebook || '') : ''} />
+      <a
+        href="#"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn-preview"
+        id="facebook-link"
+        style="display: none;"
+      >
+        Open
+      </a>
+    </div>
   </div>
 
   <div class="form-group">
@@ -224,6 +272,36 @@ const { roleAliasMap, canonicalRoles } = buildRoleData();
   .btn-secondary:hover {
     background: #e5e7eb;
   }
+
+  .input-with-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .input-with-button input {
+    flex: 1;
+  }
+
+  .btn-preview {
+    flex-shrink: 0;
+    padding: 0.5rem 1rem;
+    background: var(--color-bg-subtle);
+    color: var(--color-primary);
+    text-decoration: none;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: all var(--transition-base);
+    white-space: nowrap;
+  }
+
+  .btn-preview:hover {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+  }
 </style>
 
 <script is:inline id="roles-data" type="application/json" set:html={JSON.stringify(canonicalRoles)}></script>
@@ -232,6 +310,7 @@ const { roleAliasMap, canonicalRoles } = buildRoleData();
 
 <script>
   import { track } from '@lib/analytics';
+  import { normalizeInstagramUrls, normalizeYoutubeUrl } from '@utils/url';
 
   // Load roles data from JSON script tags
   const roles: string[] = JSON.parse(document.getElementById('roles-data')!.textContent || '[]');
@@ -419,6 +498,54 @@ const { roleAliasMap, canonicalRoles } = buildRoleData();
     }
   }
 
+  function setupPreviewButtons() {
+    const fields = [
+      {
+        inputId: 'website',
+        linkId: 'website-link',
+        normalize: (val: string) => val // Already a valid URL
+      },
+      {
+        inputId: 'instagram',
+        linkId: 'instagram-link',
+        normalize: (val: string) => normalizeInstagramUrls(val)[0] || ''
+      },
+      {
+        inputId: 'youtube',
+        linkId: 'youtube-link',
+        normalize: (val: string) => normalizeYoutubeUrl(val)
+      },
+      {
+        inputId: 'facebook',
+        linkId: 'facebook-link',
+        normalize: (val: string) => val // Already a valid URL
+      }
+    ];
+
+    fields.forEach(({ inputId, linkId, normalize }) => {
+      const input = document.getElementById(inputId) as HTMLInputElement;
+      const link = document.getElementById(linkId) as HTMLAnchorElement;
+
+      if (!input || !link) return;
+
+      function updateLink() {
+        const value = input.value.trim();
+        if (value) {
+          link.href = normalize(value);
+          link.style.display = 'inline-block';
+        } else {
+          link.style.display = 'none';
+        }
+      }
+
+      // Initial setup
+      updateLink();
+
+      // Update on input
+      input.addEventListener('input', updateLink);
+    });
+  }
+
   async function checkEmailExists(email: string): Promise<boolean> {
     try {
       const response = await fetch(`/api/check-email?email=${encodeURIComponent(email)}`);
@@ -472,6 +599,7 @@ const { roleAliasMap, canonicalRoles } = buildRoleData();
 
   document.addEventListener('DOMContentLoaded', () => {
     setupAutocomplete();
+    setupPreviewButtons();
 
     if (isEdit) {
       updateSelectedRoles();
