@@ -26,7 +26,7 @@ pnpm-debug.log*
 .idea/
 
 # Vercel
-.vercel
+.vercel/
 
 # Metadata
 metadata/
@@ -35,3 +35,6 @@ metadata/
 docs/specs/
 docs/CODE_QUALITY.md
 docs/ROLLBAR_SETUP.md
+
+# Repomix output
+repomix-output.xml

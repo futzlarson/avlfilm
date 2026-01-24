@@ -1,0 +1,22 @@
+{
+  "$schema": "https://repomix.com/schemas/latest/schema.json",
+  "output": {
+    "filePath": "repomix-output.xml",
+    "style": "xml",
+    "parsable": true
+  },
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": [
+      "repomix-output.xml",
+      "docs/**",
+      "metadata/**",
+      "*.log",
+      ".claude/**"
+    ]
+  },
+  "security": {
+    "enableAutoCheck": true
+  }
+}
