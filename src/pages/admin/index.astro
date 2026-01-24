@@ -8,6 +8,9 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 // External packages
 import { inArray } from 'drizzle-orm';
 
+const allPages = import.meta.glob('/src/pages/**/*.astro', { eager: true });
+const links = Object.values(allPages).filter((page: any) => !page.url.startsWith('/account/') && !page.url.startsWith('/admin/'));
+
 let bannerHtml = '<p>Welcome to AVL Film!</p>';
 let bannerEnabled = false;
 
@@ -61,6 +64,13 @@ try {
 
       <button type="submit" class="submit-btn">Save</button>
     </form>
+  </div>
+
+  <div class="admin-section">
+    <h2>Pages</h2>
+    {links.map((page: any) => (
+      <a href={page.url || '/'}>{page.url || '/index'}</a><br />
+    ))}
   </div>
 </BaseLayout>
 

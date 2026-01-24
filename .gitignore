@@ -33,3 +33,5 @@ metadata/
 
 # Spec files
 docs/specs/
+docs/CODE_QUALITY.md
+docs/ROLLBAR_SETUP.md
