@@ -5,12 +5,35 @@
 
 ---
 
+# ⛔ STOP - READ THIS FIRST ⛔
+
+**Before ANY file operation, complete this checklist:**
+
+- [ ] Am I about to use Read, Grep, or Glob tools?
+- [ ] Have I packed this directory with repomix yet?
+  - **NO** → Use `pack_codebase` with `compress: true` FIRST
+  - **YES** → Use `grep_repomix_output` or `read_repomix_output` ONLY
+
+**❌ FORBIDDEN:** Read, Grep, Glob tools on source code files
+**✅ REQUIRED:** pack_codebase → grep_repomix_output → read_repomix_output
+
+**Exception:** Meta files only (CLAUDE.md, README.md, package.json, tsconfig.json)
+
+---
+
 ## 🚨 Token Efficiency FIRST
 
-- **Use Repomix for exploration:** `pack_codebase` with `compress: true` (saves ~70% tokens)
-- **Run `/compact`** when context usage >50%
-- **Pre-flight check:** If folder >2MB, estimate tokens first
-- **Threshold:** Stop if >30K tokens, suggest narrower `includePattern`
+**MANDATORY REPOMIX WORKFLOW:**
+1. **ALWAYS use `pack_codebase` FIRST** before reading ANY files
+2. **Use `compress: true`** (saves ~70% tokens)
+3. **Use `grep_repomix_output` to search** - NEVER use Grep tool directly
+4. **Use `read_repomix_output` for line ranges** - NEVER use Read tool on packed files
+5. **❌ FORBIDDEN:** Using Read/Grep/Glob tools on files already in repomix output
+
+**Other token rules:**
+- Run `/compact` when context usage >50%
+- Pre-flight check: If folder >2MB, estimate tokens first
+- Threshold: Stop if >30K tokens, suggest narrower `includePattern`
 
 ---
 
@@ -24,6 +47,7 @@
 **Past mistakes:**
 - Used `define:vars` → breaks TypeScript (use JSON script tags)
 - Used `pg_dump` on Vercel → doesn't exist (use GitHub Actions)
+- **Used Read tool after packing with repomix** → wasted thousands of tokens (use grep/read_repomix_output)
 
 ---
 
@@ -95,7 +119,8 @@ import { filmmakers, siteSettings, events } from '@db/schema';
 import { FILM_ROLES_BY_CATEGORY } from '@config/roles';
 
 // Email
-import { generateApprovalEmailHtml } from '@emails/approval';
+import * as approvalEmail from '@emails/approval';
+import { BUTTON_STYLE, userEmailTemplate } from '@emails/templates';
 ```
 
 ---

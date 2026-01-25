@@ -33,8 +33,7 @@ metadata/
 
 # Spec files
 docs/specs/
-docs/CODE_QUALITY.md
-docs/ROLLBAR_SETUP.md
+docs/backup/
 
 # Repomix output
 repomix-output.xml
