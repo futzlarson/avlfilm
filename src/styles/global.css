@@ -110,6 +110,11 @@ p {
   margin: 1rem 0;
 }
 
+a {
+  color: var(--color-primary);
+  text-decoration: none;;
+}
+
 ul,ol {
   margin-left: 2rem;
 }

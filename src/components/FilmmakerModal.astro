@@ -130,6 +130,10 @@ const { id } = Astro.props;
   .filmmaker-details a:hover {
     text-decoration: underline;
   }
+  
+  :global(.filmmaker-instagram a) {
+    margin-right: var(--spacing-sm);
+  }
 
   @media (max-width: 768px) {
     .filmmaker-name {
@@ -173,6 +177,7 @@ const { id } = Astro.props;
     link.textContent = text;
     link.target = '_blank';
     link.rel = 'noopener';
+
     return link;
   }
 
@@ -269,9 +274,6 @@ const { id } = Astro.props;
       instagramSpan.textContent = '';
       urls.forEach((url, i) => {
         if (isValidHttpUrl(url)) {
-          if (i > 0) {
-            instagramSpan.appendChild(document.createTextNode(', '));
-          }
           instagramSpan.appendChild(createSafeLink(url, texts[i]));
         }
       });
