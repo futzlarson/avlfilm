@@ -3,7 +3,9 @@ import { db } from '@db';
 import { filmmakers } from '@db/schema';
 import * as filmmakerSubmissionEmail from '@emails/filmmaker-submission';
 import { errorResponse, jsonResponse } from '@lib/api';
+import { findUserByEmail } from '@lib/auth';
 import { subscribeToNewsletter } from '@lib/newsletter';
+import { sendPasswordResetEmail } from '@lib/send-reset-email';
 // Astro types
 import type { APIRoute } from 'astro';
 // External packages
@@ -18,6 +20,12 @@ export const POST: APIRoute = async ({ request, url }) => {
 
     if (!name || !email || !roles) {
       return errorResponse('Name, email, and roles are required');
+    }
+
+    // Check for duplicate (defensive)
+    const existing = await findUserByEmail(email);
+    if (existing) {
+      return errorResponse('This email is already registered', 400);
     }
 
     // Normalize newsletter value to boolean
@@ -65,6 +73,22 @@ export const POST: APIRoute = async ({ request, url }) => {
       } catch (emailError) {
         console.error('Failed to send email notification:', emailError);
       }
+    }
+
+    // Send password setup email to user
+    try {
+      await sendPasswordResetEmail({
+        user: {
+          id: filmmaker.id,
+          email: filmmaker.email,
+          name: filmmaker.name
+        },
+        origin: url.origin,
+        subject: 'Welcome to AVL Film - Set Your Password',
+      });
+    } catch (emailError) {
+      console.error('Failed to send password setup email:', emailError);
+      // Don't fail the submission if email fails
     }
 
     return jsonResponse({ success: true, filmmaker }, 201);

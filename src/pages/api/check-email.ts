@@ -14,7 +14,10 @@ export const GET: APIRoute = async ({ url }) => {
 
     const existing = await findUserByEmail(email);
 
-    return successResponse({ exists: !!existing });
+    return successResponse({
+      exists: !!existing,
+      hasPassword: !!existing?.passwordHash
+    });
   } catch (error) {
     return errorResponse('Failed to check email', error);
   }
