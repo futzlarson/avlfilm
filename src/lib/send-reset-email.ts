@@ -1,7 +1,7 @@
 // Internal imports
 import { db } from '@db';
 import { filmmakers } from '@db/schema';
-import { generateResetPasswordEmailHtml } from '@lib/reset-password-email';
+import * as passwordResetEmail from '@emails/password-reset';
 import { generateResetToken, getTokenExpiryDate } from '@lib/reset-token';
 // External packages
 import { eq } from 'drizzle-orm';
@@ -44,6 +44,6 @@ export async function sendPasswordResetEmail(
       import.meta.env.RESEND_FROM_EMAIL || 'AVL Film <onboarding@resend.dev>',
     to: user.email,
     subject,
-    html: generateResetPasswordEmailHtml(user.name, resetUrl),
+    html: passwordResetEmail.generate(user.name, resetUrl),
   });
 }

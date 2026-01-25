@@ -1,6 +1,7 @@
 // Internal imports
 import { db } from '@db';
 import { filmmakers } from '@db/schema';
+import * as filmmakerSubmissionEmail from '@emails/filmmaker-submission';
 import { errorResponse, jsonResponse } from '@lib/api';
 import { subscribeToNewsletter } from '@lib/newsletter';
 // Astro types
@@ -49,73 +50,17 @@ export const POST: APIRoute = async ({ request, url }) => {
 
     if (import.meta.env.RESEND_API_KEY && import.meta.env.ADMIN_EMAIL) {
       try {
-        const adminUrl = `${url.origin}/admin/filmmakers`;
-
         await resend.emails.send({
           from: 'AVL Film <onboarding@resend.dev>',
           replyTo: email,
           to: import.meta.env.ADMIN_EMAIL,
           subject: 'New Filmmaker Directory Submission',
-          html: `
-            <h2>New Filmmaker Directory Submission</h2>
-            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-              <tr>
-                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db; width: 150px;">NAME</td>
-                <td style="padding: 10px; border: 1px solid #d1d5db;">${name}</td>
-              </tr>
-              <tr>
-                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">EMAIL</td>
-                <td style="padding: 10px; border: 1px solid #d1d5db;">${email}</td>
-              </tr>
-              <tr>
-                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">PHONE</td>
-                <td style="padding: 10px; border: 1px solid #d1d5db;">${phone || 'N/A'}</td>
-              </tr>
-              <tr>
-                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">ROLES</td>
-                <td style="padding: 10px; border: 1px solid #d1d5db;">${roles}</td>
-              </tr>
-              <tr>
-                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">COMPANY</td>
-                <td style="padding: 10px; border: 1px solid #d1d5db;">${company || 'N/A'}</td>
-              </tr>
-              <tr>
-                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">WEBSITE</td>
-                <td style="padding: 10px; border: 1px solid #d1d5db;">${website || 'N/A'}</td>
-              </tr>
-              <tr>
-                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">INSTAGRAM</td>
-                <td style="padding: 10px; border: 1px solid #d1d5db;">${instagram || 'N/A'}</td>
-              </tr>
-              <tr>
-                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">YOUTUBE</td>
-                <td style="padding: 10px; border: 1px solid #d1d5db;">${youtube || 'N/A'}</td>
-              </tr>
-              <tr>
-                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">FACEBOOK</td>
-                <td style="padding: 10px; border: 1px solid #d1d5db;">${facebook || 'N/A'}</td>
-              </tr>
-              <tr>
-                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">GEAR</td>
-                <td style="padding: 10px; border: 1px solid #d1d5db; white-space: pre-wrap;">${gear || 'N/A'}</td>
-              </tr>
-              <tr>
-                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">BIO</td>
-                <td style="padding: 10px; border: 1px solid #d1d5db; white-space: pre-wrap;">${bio || 'N/A'}</td>
-              </tr>
-              ${notes ? `
-              <tr>
-                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">NOTES</td>
-                <td style="padding: 10px; border: 1px solid #d1d5db; white-space: pre-wrap;">${notes}</td>
-              </tr>
-              ` : ''}
-              <tr>
-                <td style="padding: 10px; background: #4b5563; color: white; font-weight: 600; border: 1px solid #d1d5db;">NEWSLETTER</td>
-                <td style="padding: 10px; border: 1px solid #d1d5db;">${subscribeToNewsletterRequested ? 'Yes' : 'No'}</td>
-              </tr>
-            </table>
-            <p><a href="${adminUrl}" style="color: #667eea; font-weight: 600;">Review in Admin</a></p>
-          `,
+          html: filmmakerSubmissionEmail.generate({
+            ...filmmaker,
+            notes,
+            newsletter: subscribeToNewsletterRequested,
+            adminUrl: `${url.origin}/admin/filmmakers`,
+          }),
         });
       } catch (emailError) {
         console.error('Failed to send email notification:', emailError);

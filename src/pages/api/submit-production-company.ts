@@ -1,4 +1,5 @@
 // Internal imports
+import * as productionCompanySubmissionEmail from '@emails/production-company-submission';
 import { errorResponse, successResponse } from '@lib/api';
 // Astro types
 import type { APIRoute } from 'astro';
@@ -9,8 +10,7 @@ const resend = new Resend(import.meta.env.RESEND_API_KEY);
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const body = await request.json();
-    const { email, companyName, website, description } = body;
+    const { email, companyName, website, description } = await request.json();
 
     // Validation
     if (!email || !companyName || !description) {
@@ -36,21 +36,15 @@ export const POST: APIRoute = async ({ request }) => {
       return errorResponse('Description must be 800 characters or less', 400);
     }
 
+    const companyData = { companyName, email, website, description };
+
     // Send email notification
     await resend.emails.send({
       from: import.meta.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
       replyTo: email,
       to: import.meta.env.ADMIN_EMAIL,
       subject: 'New Production Company Submission - AVL Film',
-      text: `New production company submission received:
-
-Company Name: ${companyName}
-Email: ${email}
-Website: ${website || 'Not provided'}
-
-Description:
-${description}
-`,
+      text: productionCompanySubmissionEmail.generate(companyData),
     });
 
     return successResponse({ message: 'Submission received successfully' });

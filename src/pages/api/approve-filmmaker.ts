@@ -1,8 +1,8 @@
 // Internal imports
 import { db } from '@db';
 import { filmmakers } from '@db/schema';
+import * as approvalEmail from '@emails/approval';
 import { errorResponse, successResponse } from '@lib/api';
-import { generateApprovalEmailHtml } from '@lib/approval-email';
 import { findUserById, requireAdmin } from '@lib/auth';
 // Astro types
 import type { APIRoute } from 'astro';
@@ -63,7 +63,7 @@ export const POST: APIRoute = async (context) => {
     if (isApprovingFilmmaker && previousStatus !== 'approved') {
       try {
         const directoryUrl = `${url.origin}/directory`;
-        const emailHtml = generateApprovalEmailHtml(
+        const emailHtml = approvalEmail.generate(
           filmmaker.name,
           filmmaker.roles,
           directoryUrl
