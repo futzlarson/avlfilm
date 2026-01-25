@@ -532,12 +532,8 @@ footer {
     font-size: 0.85rem;
   }
 
-  .account-link a {
-    padding: 0 0 0 0.8rem;
-    border: none;
-    border-left: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 0;
-    font-weight: 400;
+  .account-link {
+    display: none;
   }
 
   .home-link {
