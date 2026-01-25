@@ -23,7 +23,12 @@ const finalDescription = description || defaultDescription;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site || Astro.url.origin);
 
 // Get user from middleware
-const user = Astro.locals.user;
+let user = Astro.locals.user;
+
+// Dev override for testing admin/non-admin UI
+if (user && import.meta.env.DEV && import.meta.env.DEV_OVERRIDE_ADMIN) {
+  user = { ...user, isAdmin: import.meta.env.DEV_OVERRIDE_ADMIN === 'true' };
+}
 ---
 
 <!DOCTYPE html>
@@ -67,7 +72,15 @@ const user = Astro.locals.user;
           <li><a href="/calendar">Calendar</a></li>
           <li><a href="/directory">Directory</a></li>
           <li><a href="/resources">Resources</a></li>
-          {user?.isAdmin && <li><a href="/admin">🦄</a></li>}
+          {
+            user?.isAdmin ? (
+              <li><a href="/admin">🦄</a></li>
+            ) : user ? (
+              <li class="account-link"><a href="/account/profile">Profile</a></li>
+            ) : (
+              <li class="account-link"><a href="/account/login">Log in</a></li>
+            )
+          }
         </ul>
       </nav>
     </header>
