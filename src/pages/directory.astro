@@ -44,7 +44,7 @@ try {
   </p>
 
   <div class="mobile-warning">
-    <p>For the best viewing experience, we recommend viewing this directory on a desktop or tablet.</p>
+    <p>For the best viewing experience, we recommend viewing this page in landscape mode.</p>
   </div>
 
   {error ? (
@@ -81,6 +81,7 @@ try {
   }
 
   .mobile-warning {
+    display: none;
     background: #fef3c7;
     border: 1px solid #fbbf24;
     border-radius: var(--radius-lg);
@@ -95,9 +96,9 @@ try {
     font-size: 0.875rem;
   }
 
-  @media (min-width: 769px) {
+  @media (max-width: 768px) and (orientation: portrait) {
     .mobile-warning {
-      display: none;
+      display: block;
     }
   }
 
