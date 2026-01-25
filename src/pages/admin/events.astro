@@ -3,6 +3,7 @@
 import { getAddedEventIds } from '@lib/redis-calendar';
 import type { AvlGoEvent } from '@app-types/avlgo-event';
 import BaseLayout from '@layouts/BaseLayout.astro';
+import AdminNav from '@components/AdminNav.astro';
 
 // Fetch all events from AVL GO API
 const API_URL = 'https://www.avlgo.com/api/export/json?search=film,movie';
@@ -33,9 +34,10 @@ try {
 
 <BaseLayout title="Admin - AVL GO Events">
   <div class="admin-header">
-    <h1>AVL GO Film & Movie Events</h1>
-    <a href="/admin" class="back-link">← Back to Admin</a>
+    <h1>Admin</h1>
   </div>
+
+  <AdminNav currentPage="events" />
 
   <div class="admin-section">
     {error ? (
@@ -372,35 +374,6 @@ try {
 </script>
 
 <style>
-  /* Admin Header - Consistent with filmmakers.astro */
-  .admin-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-
-  .back-link {
-    color: var(--color-primary);
-    text-decoration: none;
-    font-weight: 600;
-  }
-
-  .back-link:hover {
-    text-decoration: underline;
-  }
-
-  /* Admin Section */
-  .admin-section {
-    margin-bottom: 3rem;
-    padding: 2rem;
-    background: white;
-    border-radius: var(--radius-lg);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-
   h2 {
     margin: 0 0 1.5rem;
     color: #333;
@@ -682,15 +655,6 @@ try {
 
   /* Mobile Responsive */
   @media (max-width: 768px) {
-    .admin-header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .admin-section {
-      padding: 1.5rem;
-    }
-
     .events-header {
       flex-direction: column;
       align-items: flex-start;

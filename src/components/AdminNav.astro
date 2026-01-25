@@ -1,0 +1,64 @@
+---
+interface Props {
+  currentPage: 'dashboard' | 'filmmakers' | 'events' | 'profile';
+}
+
+const { currentPage } = Astro.props;
+---
+
+<nav class="admin-nav">
+  <a href="/admin" class:list={['admin-link', { active: currentPage === 'dashboard' }]}>
+    Dashboard
+  </a>
+  <a href="/admin/filmmakers" class:list={['admin-link', { active: currentPage === 'filmmakers' }]}>
+    Filmmakers
+  </a>
+  <a href="/admin/events" class:list={['admin-link', { active: currentPage === 'events' }]}>
+    Events
+  </a>
+  <a href="/account/profile" class:list={['admin-link', { active: currentPage === 'profile' }]}>
+    My Profile
+  </a>
+</nav>
+
+<style>
+  .admin-nav {
+    display: inline-flex;
+    gap: 2rem;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .admin-link {
+    color: #666;
+    text-decoration: none;
+    font-weight: 500;
+    padding-bottom: 0.4rem;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .admin-link:hover {
+    color: #333;
+  }
+
+  .admin-link.active {
+    color: #333;
+    font-weight: 600;
+    border-bottom-color: var(--color-primary);
+  }
+
+  @media (max-width: 768px) {
+    .admin-nav {
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .admin-link {
+      font-size: 0.875rem;
+      white-space: nowrap;
+    }
+  }
+</style>

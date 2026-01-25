@@ -5,6 +5,7 @@ import { siteSettings } from '@db/schema';
 import { emails } from '@emails';
 import { logError } from '@lib/rollbar';
 import BaseLayout from '@layouts/BaseLayout.astro';
+import AdminNav from '@components/AdminNav.astro';
 
 // External packages
 import { inArray } from 'drizzle-orm';
@@ -31,13 +32,11 @@ try {
 ---
 
 <BaseLayout title="Admin Dashboard">
-  <h1>Admin Dashboard</h1>
-
-  <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-    <a href="/admin/filmmakers" class="btn-primary">Manage Filmmakers</a>
-    <a href="/admin/events" class="btn-primary">View AVL GO Events</a>
-    <a href="/account/profile" class="btn-primary">My Profile</a>
+  <div class="admin-header">
+    <h1>Admin</h1>
   </div>
+
+  <AdminNav currentPage="dashboard" />
 
   <div class="admin-section">
     <h2 style="margin-top: 0">Banner Settings</h2>
@@ -114,13 +113,13 @@ try {
   @media (max-width: 768px) {
     .grid-container {
       grid-template-columns: 1fr;
+      gap: 1rem;
+      margin: 1rem 0;
     }
-  }
 
-  .admin-section {
-    padding: 2rem;
-    background: #f9f9f9;
-    border-radius: var(--radius-lg);
+    #banner-html {
+      font-size: 0.8rem;
+    }
   }
 
   h2 {

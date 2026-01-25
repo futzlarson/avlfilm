@@ -5,6 +5,7 @@ import { filmmakers } from '@db/schema';
 import type { Filmmaker } from '@db/schema';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import FilmmakerCard from '@components/FilmmakerCard.astro';
+import AdminNav from '@components/AdminNav.astro';
 
 // Load all filmmakers on server
 let allFilmmakers: Filmmaker[] = [];
@@ -21,22 +22,19 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
 
 <BaseLayout title="Admin - Filmmakers">
   <div class="admin-header">
-    <h1>Filmmaker Directory Management</h1>
-    <div class="header-actions">
-      <a href="/admin" class="back-link">← Back to Admin</a>
-    </div>
+    <h1>Admin</h1>
   </div>
 
-  <div class="admin-section">
-    <h2>Pending Submissions: <span id="pending-count">{pendingFilmmakers.length}</span></h2>
-    <div id="pending-filmmakers">
-      {pendingFilmmakers.length > 0 ? (
-        pendingFilmmakers.map(f => <FilmmakerCard filmmaker={f} showApproveButton={true} />)
-      ) : (
-        <div class="empty-state">No pending submissions</div>
-      )}
+  <AdminNav currentPage="filmmakers" />
+
+  {pendingFilmmakers.length > 0 && (
+    <div class="admin-section">
+      <h2>Pending Submissions: <span id="pending-count">{pendingFilmmakers.length}</span></h2>
+      <div id="pending-filmmakers">
+        {pendingFilmmakers.map(f => <FilmmakerCard filmmaker={f} showApproveButton={true} />)}
+      </div>
     </div>
-  </div>
+  )}
 
   <div class="admin-section">
     <h2>Filmmaker Search</h2>
@@ -58,40 +56,6 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
 </BaseLayout>
 
 <style>
-  .admin-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-
-  .header-actions {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-
-  .back-link {
-    color: var(--color-primary);
-    text-decoration: none;
-    font-weight: 600;
-  }
-
-  .back-link:hover {
-    text-decoration: underline;
-  }
-
-  .admin-section {
-    margin-bottom: 3rem;
-    padding: 2rem;
-    background: white;
-    border-radius: var(--radius-lg);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-
   h2 {
     margin: 0 0 1.5rem;
     color: #333;
