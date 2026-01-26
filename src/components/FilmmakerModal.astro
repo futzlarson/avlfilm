@@ -341,7 +341,7 @@ const { id } = Astro.props;
 
     // Claim account section
     const claimSection = modal.querySelector('.claim-account-section') as HTMLElement;
-    const claimMessage = modal.querySelector('.claim-account-message'); 
+    const claimMessage = modal.querySelector('.claim-account-message')!;
     if (!filmmaker.hasPassword) {
       claimMessage.innerHTML = `Are you ${filmmaker.name}?`; 
       claimSection.style.display = 'block';

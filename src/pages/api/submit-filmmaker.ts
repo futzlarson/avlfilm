@@ -49,7 +49,7 @@ export const POST: APIRoute = async ({ request, url }) => {
     // Subscribe to newsletter if requested
     if (subscribeToNewsletterRequested) {
       try {
-        await subscribeToNewsletter(email);
+        await subscribeToNewsletter(email, { tags: ['filmmaker_directory'] });
       } catch (newsletterError) {
         // Don't fail the filmmaker submission if newsletter signup fails
         console.error('Failed to subscribe to newsletter:', newsletterError);

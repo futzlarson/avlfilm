@@ -9,9 +9,13 @@ interface SubscribeResult {
   success: boolean;
   message: string;
   alreadySubscribed?: boolean;
+  memberId?: string;
 }
 
-export async function subscribeToNewsletter(email: string): Promise<SubscribeResult> {
+export async function subscribeToNewsletter(
+  email: string,
+  options?: { tags?: string[] }
+): Promise<SubscribeResult> {
   const EMAILOCTOPUS_API_KEY = import.meta.env.EMAILOCTOPUS_API_KEY;
   const EMAILOCTOPUS_LIST_ID = import.meta.env.EMAILOCTOPUS_LIST_ID;
 
@@ -34,6 +38,22 @@ export async function subscribeToNewsletter(email: string): Promise<SubscribeRes
 
   try {
     // Call EmailOctopus API
+    const requestBody: {
+      api_key: string;
+      email_address: string;
+      status: string;
+      tags?: string[];
+    } = {
+      api_key: EMAILOCTOPUS_API_KEY,
+      email_address: email,
+      status: 'SUBSCRIBED',
+    };
+
+    // Add tags if provided
+    if (options?.tags && options.tags.length > 0) {
+      requestBody.tags = options.tags;
+    }
+
     const response = await fetch(
       `https://emailoctopus.com/api/1.6/lists/${EMAILOCTOPUS_LIST_ID}/contacts`,
       {
@@ -41,11 +61,7 @@ export async function subscribeToNewsletter(email: string): Promise<SubscribeRes
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          api_key: EMAILOCTOPUS_API_KEY,
-          email_address: email,
-          status: 'SUBSCRIBED',
-        }),
+        body: JSON.stringify(requestBody),
       }
     );
 
@@ -71,6 +87,7 @@ export async function subscribeToNewsletter(email: string): Promise<SubscribeRes
     return {
       success: true,
       message: 'Successfully subscribed to newsletter',
+      memberId: data.id,
     };
   } catch (error) {
     logError(error, { service: 'newsletter', action: 'subscribe' });
