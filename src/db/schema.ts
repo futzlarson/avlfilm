@@ -49,5 +49,7 @@ export type FilmmakerStatus = Filmmaker['status'];
 export type PublicFilmmaker = Omit<
   Filmmaker,
   'email' | 'phone' | 'passwordHash' | 'resetToken' | 'resetTokenExpiresAt'
->;
+> & {
+  hasPassword: boolean;
+};
 export type Event = InferSelectModel<typeof events>;

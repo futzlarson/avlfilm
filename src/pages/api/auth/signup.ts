@@ -30,11 +30,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       // If they have no password, they should claim their profile instead
       if (!existing.passwordHash) {
         return errorResponse(
-          'An account with this email already exists. Please use "Claim Profile" to set your password.',
+          'An account with this email already exists. Please claim your profile below to set a password.',
           409
         );
       }
-      return errorResponse('Email already registered', 409);
+      return errorResponse('Email already registered. Please log in.', 409);
     }
 
     // Create user with pending status

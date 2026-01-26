@@ -61,6 +61,10 @@ const { id } = Astro.props;
           </tr>
         </tbody>
       </table>
+      <div class="claim-account-section" style="display: none;">
+        <span class="claim-account-message"></span>
+        <a href="/account/claim-profile" class="claim-account-link">Claim this profile</a>
+      </div>
     </div>
   </div>
 </div>
@@ -130,9 +134,16 @@ const { id } = Astro.props;
   .filmmaker-details a:hover {
     text-decoration: underline;
   }
-  
+
   :global(.filmmaker-instagram a) {
     margin-right: var(--spacing-sm);
+  }
+
+  .claim-account-section {
+    font-size: smaller;
+    margin-top: 1rem;
+    margin-bottom: -0.5rem;
+    text-align: center;
   }
 
   @media (max-width: 768px) {
@@ -326,6 +337,16 @@ const { id } = Astro.props;
       bioRow.style.display = 'table-row';
     } else {
       bioRow.style.display = 'none';
+    }
+
+    // Claim account section
+    const claimSection = modal.querySelector('.claim-account-section') as HTMLElement;
+    const claimMessage = modal.querySelector('.claim-account-message'); 
+    if (!filmmaker.hasPassword) {
+      claimMessage.innerHTML = `Are you ${filmmaker.name}?`; 
+      claimSection.style.display = 'block';
+    } else {
+      claimSection.style.display = 'none';
     }
 
     modal.classList.add('active');

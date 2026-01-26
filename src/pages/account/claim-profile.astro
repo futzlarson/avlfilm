@@ -23,7 +23,7 @@ const email = Astro.url.searchParams.get('email') || '';
       <div class="form-group">
         <label for="email">Email</label>
         <input type="email" id="email" name="email" required autocomplete="email" value={email} />
-        <p class="help-text">Use the email used in our directory</p>
+        <p class="help-text">Use your email from our directory</p>
       </div>
 
       <div id="error-message" class="alert alert-error" style="display: none;"></div>

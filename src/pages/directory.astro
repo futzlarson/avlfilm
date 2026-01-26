@@ -21,8 +21,11 @@ try {
     .from(filmmakersTable)
     .where(eq(filmmakersTable.status, 'approved'));
 
-  // Remove email and phone from results
-  filmmakers = results.map(({ email, phone, ...filmmaker }) => filmmaker) as PublicFilmmaker[];
+  // Remove sensitive fields, add hasPassword boolean
+  filmmakers = results.map(({ email, phone, passwordHash, resetToken, resetTokenExpiresAt, ...filmmaker }) => ({
+    ...filmmaker,
+    hasPassword: !!passwordHash,
+  })) as PublicFilmmaker[];
 } catch (e) {
   logError(e, { context: 'directory page', action: 'fetch filmmakers' });
   error = 'Failed to load filmmakers';
