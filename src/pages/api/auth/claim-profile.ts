@@ -2,6 +2,7 @@
 import { errorResponse, successResponse } from '@lib/api';
 import { findUserByEmail } from '@lib/auth';
 import { sendPasswordResetEmail } from '@lib/send-reset-email';
+import { sendSlackNotification } from '@lib/slack';
 // Astro types
 import type { APIRoute } from 'astro';
 
@@ -18,6 +19,8 @@ export const POST: APIRoute = async ({ request, url }) => {
 
     // Always return success (don't reveal if email exists)
     if (!user) {
+      sendSlackNotification(`Email not found claiming profile: ${email}`);
+
       return successResponse({
         message: 'If that email exists in our directory, a link has been sent',
       });
