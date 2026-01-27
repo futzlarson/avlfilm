@@ -31,6 +31,7 @@ export const POST: APIRoute = async ({ request }) => {
       .where(eq(filmmakers.resetToken, token));
 
     if (!user) {
+      sendSlackNotification(`Invalid or expired reset token: ${token}`);
       return errorResponse('Invalid or expired reset token', 400);
     }
 
