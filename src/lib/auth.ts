@@ -10,7 +10,7 @@ export type { AuthUser };
 // Astro types
 import type { APIContext } from 'astro';
 // External packages
-import { eq } from 'drizzle-orm';
+import { eq, ilike } from 'drizzle-orm';
 
 /**
  * Gets the authenticated user from the request cookies
@@ -64,7 +64,7 @@ export async function findUserByEmail(
   const [user] = await db
     .select()
     .from(filmmakers)
-    .where(eq(filmmakers.email, email.toLowerCase().trim()));
+    .where(ilike(filmmakers.email, email.trim()));
 
   return user || null;
 }
