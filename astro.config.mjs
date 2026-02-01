@@ -9,9 +9,10 @@ export default defineConfig({
   integrations: [
     sitemap({
       filter: (page) => {
-        // Exclude admin pages and API routes
+        // Exclude admin pages, API routes and account pages
         if (page.includes('/admin')) return false;
         if (page.includes('/api/')) return false;
+        if (page.includes('/account/')) return false;
         return true;
       },
       serialize(item) {
