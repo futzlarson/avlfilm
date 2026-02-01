@@ -645,6 +645,25 @@ const { roleAliasMap, canonicalRoles } = buildRoleData();
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    // Move to next field when Enter is pressed in input fields
+    form?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (e.target as HTMLElement).tagName === 'INPUT') {
+        e.preventDefault();
+
+        // Special handling for roles input - close dropdown and move to next field
+        if ((e.target as HTMLElement).id === 'roles-input') {
+          const dropdown = document.getElementById('roles-dropdown');
+          if (dropdown) dropdown.classList.remove('active');
+        }
+
+        const inputs = Array.from(form.querySelectorAll('input:not([type="hidden"]), textarea'));
+        const currentIndex = inputs.indexOf(e.target as HTMLInputElement);
+        if (currentIndex !== -1 && currentIndex < inputs.length - 1) {
+          (inputs[currentIndex + 1] as HTMLInputElement).focus();
+        }
+      }
+    });
+
     setupAutocomplete();
     setupPreviewButtons();
 
