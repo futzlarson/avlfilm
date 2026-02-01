@@ -62,11 +62,10 @@ export const POST: APIRoute = async (context) => {
     // Send approval email if status changed to approved
     if (isApprovingFilmmaker && previousStatus !== 'approved') {
       try {
-        const directoryUrl = `${url.origin}/directory`;
         const emailHtml = approvalEmail.generate(
           filmmaker.name,
           filmmaker.roles,
-          directoryUrl
+          url.origin,
         );
 
         await resend.emails.send({

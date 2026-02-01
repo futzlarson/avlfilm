@@ -61,7 +61,7 @@ function generateEmailHtml(type: EmailType, origin: string): string {
       return approvalEmail.generate(
         'Test Filmmaker',
         'Director, Cinematographer, Editor',
-        `${origin}/directory`
+        origin
       );
 
     case 'passwordReset':

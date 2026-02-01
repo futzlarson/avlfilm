@@ -13,7 +13,7 @@ export const metadata = {
 export function generate(
   name: string,
   roles: string,
-  directoryUrl: string
+  origin: string
 ): string {
   return userEmailTemplate(`
     <h2 style="color: ${COLORS.text}; margin-top: 0;">Welcome to the AVL Film Directory!</h2>
@@ -29,11 +29,11 @@ export function generate(
     </p>
 
     <p style="${PARAGRAPH_STYLE}">
-      Other filmmakers and production companies can now discover your work and connect with you through the directory.
+      Other filmmakers and <a href="${origin}/production">production companies</a> can now discover your work and connect with you through the directory.
     </p>
 
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${directoryUrl}" style="${BUTTON_STYLE}">
+      <a href="${origin}/directory" style="${BUTTON_STYLE}">
         View the Directory
       </a>
     </div>
