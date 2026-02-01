@@ -105,7 +105,12 @@ export const USER_CONTAINER_STYLE = `font-family: Arial, sans-serif; max-width: 
 export const FOOTER = `
 <div style="background: ${COLORS.gray100}; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; margin-top: 15px;">
   <p style="${SMALL_TEXT_STYLE} margin: 0;">
-    — The AVL Film Team
+    The AVL Film Team<br />
+    <span style="font-size: smaller">
+      <a href="https://instagram.com/avlfilm">@avlfilm</a>
+      |
+      <a href="https://join.slack.com/t/avlfilm/shared_invite/zt-318cqm6e9-45oJ41NbnqzThOfEIX2CPQ">slack</a>
+    </span>
   </p>
 </div>
 `.trim();
