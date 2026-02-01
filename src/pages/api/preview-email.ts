@@ -53,6 +53,13 @@ const SAMPLE_DATA = {
 } as const;
 
 /**
+ * Gets the subject for a given email type
+ */
+function getEmailSubject(type: EmailType): string {
+  return emails[type].metadata.subject;
+}
+
+/**
  * Generates email HTML for a given type
  */
 function generateEmailHtml(type: EmailType, origin: string): string {
@@ -109,6 +116,7 @@ export const GET: APIRoute = async (context) => {
   }
 
   const emailHtml = generateEmailHtml(type, origin);
+  const subject = getEmailSubject(type);
 
   // Wrap email with a "Send Test Email" button at the top
   const wrappedHtml = `
@@ -118,6 +126,29 @@ export const GET: APIRoute = async (context) => {
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <style>
+        body {
+          margin: 0;
+          padding: 20px;
+          font-family: Arial, sans-serif;
+          background-color: #f5f5f5;
+        }
+        .preview-header {
+          background: white;
+          padding: 20px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .preview-header h1 {
+          margin: 0 0 8px 0;
+          font-size: 24px;
+          color: #1f2937;
+        }
+        .preview-header p {
+          margin: 0;
+          font-size: 14px;
+          color: #666;
+        }
         .preview-controls {
           position: fixed;
           top: 20px;
@@ -149,49 +180,62 @@ export const GET: APIRoute = async (context) => {
         }
         .status-msg.success { color: #059669; }
         .status-msg.error { color: #dc2626; }
+        .email-preview {
+          background: white;
+          padding: 20px;
+          border-radius: 8px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
       </style>
     </head>
     <body>
+      <div class="preview-header">
+        <h1>${subject}</h1>
+      </div>
+
       <div class="preview-controls">
         <button class="send-test-btn" onclick="sendTestEmail()">Send Test Email</button>
         <div id="status" class="status-msg"></div>
       </div>
 
-      ${emailHtml}
+      <div class="email-preview">
+        ${emailHtml}
+      </div>
 
-      <script>
-        async function sendTestEmail() {
-          const btn = document.querySelector('.send-test-btn');
-          const status = document.getElementById('status');
+        <script>
+          async function sendTestEmail() {
+            const btn = document.querySelector('.send-test-btn');
+            const status = document.getElementById('status');
 
-          btn.disabled = true;
-          btn.textContent = 'Sending...';
-          status.textContent = '';
-          status.className = 'status-msg';
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            status.textContent = '';
+            status.className = 'status-msg';
 
-          try {
-            const response = await fetch(window.location.href, {
-              method: 'POST'
-            });
+            try {
+              const response = await fetch(window.location.href, {
+                method: 'POST'
+              });
 
-            const data = await response.json();
+              const data = await response.json();
 
-            if (response.ok) {
-              status.textContent = '✓ Sent to ADMIN_EMAIL';
-              status.className = 'status-msg success';
-            } else {
-              status.textContent = '✗ ' + (data.error || 'Failed to send');
+              if (response.ok) {
+                status.textContent = '✓ Sent to ADMIN_EMAIL';
+                status.className = 'status-msg success';
+              } else {
+                status.textContent = '✗ ' + (data.error || 'Failed to send');
+                status.className = 'status-msg error';
+              }
+            } catch (error) {
+              status.textContent = '✗ Network error';
               status.className = 'status-msg error';
+            } finally {
+              btn.disabled = false;
+              btn.textContent = 'Send Test Email';
             }
-          } catch (error) {
-            status.textContent = '✗ Network error';
-            status.className = 'status-msg error';
-          } finally {
-            btn.disabled = false;
-            btn.textContent = 'Send Test Email';
           }
-        }
-      </script>
+        </script>
+      </div>
     </body>
     </html>
   `;
@@ -229,7 +273,7 @@ export const POST: APIRoute = async (context) => {
     await resend.emails.send({
       from: import.meta.env.RESEND_FROM_EMAIL || 'AVL Film <onboarding@resend.dev>',
       to: adminEmail,
-      subject: `[TEST] ${emails[type].metadata.name}`,
+      subject: `[TEST] ${emails[type].metadata.subject}`,
       html: emailHtml,
     });
 

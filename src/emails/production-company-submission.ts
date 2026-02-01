@@ -1,8 +1,8 @@
 export const metadata = {
   name: 'Production Company Submission',
   description: 'Admin notification for production company submission',
-  slug: 'production-company-submission',
   audience: 'internal',
+  subject: 'New Production Company Submission',
 };
 
 export interface ProductionCompanySubmission {

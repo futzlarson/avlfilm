@@ -5,8 +5,8 @@ import { BUTTON_STYLE, COLORS, TABLE_CELL_STYLE, TABLE_HEADER_STYLE, userEmailTe
 export const metadata = {
   name: 'Filmmaker Submission',
   description: 'Admin notification for filmmaker directory submission',
-  slug: 'filmmaker-submission',
   audience: 'internal',
+  subject: 'New Filmmaker Directory Submission',
 };
 
 export type FilmmakerSubmission = Pick<

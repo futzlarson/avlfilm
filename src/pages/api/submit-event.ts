@@ -82,7 +82,7 @@ export const POST: APIRoute = async ({ request }) => {
         await resend.emails.send({
           from: 'AVL Film <onboarding@resend.dev>',
           to: import.meta.env.ADMIN_EMAIL,
-          subject: 'New Event Submission - AVL Film Calendar',
+          subject: eventSubmissionEmail.metadata.subject,
           html: eventSubmissionEmail.generate(eventData),
         });
       } catch (emailError) {

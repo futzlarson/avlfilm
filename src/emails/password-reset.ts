@@ -3,8 +3,8 @@ import { BUTTON_STYLE, COLORS, PARAGRAPH_STYLE, SMALL_TEXT_STYLE, userEmailTempl
 export const metadata = {
   name: 'Password Reset',
   description: 'Sent for password resets',
-  slug: 'password-reset',
   audience: 'external',
+  subject: 'Set Your AVL Film Account Password',
 };
 
 export function generate(

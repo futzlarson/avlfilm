@@ -3,8 +3,8 @@ import { BUTTON_STYLE, COLORS, PARAGRAPH_STYLE, userEmailTemplate } from './temp
 export const metadata = {
   name: 'Filmmaker Approval',
   description: 'Sent when filmmaker is approved',
-  slug: 'approval',
   audience: 'external',
+  subject: 'Welcome to the AVL Film Directory',
 };
 
 /**

@@ -62,7 +62,7 @@ export const POST: APIRoute = async ({ request, url }) => {
           from: 'AVL Film <onboarding@resend.dev>',
           replyTo: email,
           to: import.meta.env.ADMIN_EMAIL,
-          subject: 'New Filmmaker Directory Submission',
+          subject: filmmakerSubmissionEmail.metadata.subject,
           html: filmmakerSubmissionEmail.generate({
             ...filmmaker,
             notes,

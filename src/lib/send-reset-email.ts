@@ -23,7 +23,7 @@ interface SendPasswordResetEmailOptions {
 export async function sendPasswordResetEmail(
   options: SendPasswordResetEmailOptions
 ): Promise<void> {
-  const { user, origin, subject = 'Reset Your Password - AVL Film', source } = options;
+  const { user, origin, subject = passwordResetEmail.metadata.subject, source } = options;
 
   // Generate reset token
   const resetToken = generateResetToken();

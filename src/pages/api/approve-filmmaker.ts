@@ -72,7 +72,7 @@ export const POST: APIRoute = async (context) => {
           from: import.meta.env.RESEND_FROM_EMAIL || 'AVL Film <onboarding@resend.dev>',
           replyTo: import.meta.env.ADMIN_EMAIL,
           to: filmmaker.email,
-          subject: "You've been approved for the AVL Film Directory!",
+          subject: approvalEmail.metadata.subject,
           html: emailHtml,
         });
       } catch (emailError) {

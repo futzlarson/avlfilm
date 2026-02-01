@@ -3,8 +3,8 @@ import { BUTTON_STYLE, COLORS, TABLE_CELL_STYLE, TABLE_HEADER_STYLE, userEmailTe
 export const metadata = {
   name: 'Event Submission',
   description: 'Admin notification for calendar event submission',
-  slug: 'event-submission',
   audience: 'internal',
+  subject: 'New Event Submission',
 };
 
 export interface EventSubmission {
@@ -19,7 +19,7 @@ export interface EventSubmission {
 
 export function generate(data: EventSubmission): string {
   return userEmailTemplate(`
-    <h2 style="color: ${COLORS.text}; margin-top: 0;">New Event Submission for AVL Film Calendar</h2>
+    <h2 style="color: ${COLORS.text}; margin-top: 0;">New Event Submission</h2>
     <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
       <tr>
         <td style="${TABLE_HEADER_STYLE}">TITLE</td>
