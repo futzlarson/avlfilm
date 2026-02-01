@@ -17,7 +17,7 @@ export function generate(
       Hi ${name},
     </p>
     <p style="${PARAGRAPH_STYLE}">
-      Click the button below to set your password for the AVL Film directory:
+      Click the button below to set your password for your AVL Film account. Once you do this, you'll be able to update your directory information at any time.
     </p>
     <div style="text-align: center; margin: 30px 0;">
       <a href="${resetUrl}" style="${BUTTON_STYLE}">

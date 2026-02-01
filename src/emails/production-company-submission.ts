@@ -13,12 +13,11 @@ export interface ProductionCompanySubmission {
 }
 
 export function generate(data: ProductionCompanySubmission): string {
-  return `<pre>New production company submission received:
+  return `<p>New production company submission received:</p>
 
-Company Name: ${data.companyName}
-Email: ${data.email}
-Website: ${data.website || 'Not provided'}
-
-Description:
-${data.description}</pre>`;
+<p>Company Name: ${data.companyName}</p>
+<p>Email: ${data.email}</p>
+<p>Website: ${data.website || 'Not provided'}</p>
+<p>Description:</p>
+<p>${data.description.replace(/\n/g, '<br>')}</p>`;
 }
