@@ -9,6 +9,7 @@ if (user) {
 }
 
 const email = Astro.url.searchParams.get('email') || '';
+const source = Astro.url.searchParams.get('source') || '';
 ---
 
 <BaseLayout
@@ -20,6 +21,7 @@ const email = Astro.url.searchParams.get('email') || '';
     <p class="intro">If you're already in our filmmaker directory, enter your email to set up your password and manage your profile.</p>
 
     <form id="claim-form" class="auth-form">
+      <input type="hidden" name="source" value={source} />
       <div class="form-group">
         <label for="email">Email</label>
         <input type="email" id="email" name="email" required autocomplete="email" value={email} />
@@ -53,14 +55,14 @@ const email = Astro.url.searchParams.get('email') || '';
     submitBtn.textContent = 'Sending...';
 
     const formData = new FormData(form);
-    const email = formData.get('email');
 
     try {
       const response = await fetch('/api/auth/claim-profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: email,
+          email: formData.get('email'),
+          source: formData.get('source'),
         }),
       });
 

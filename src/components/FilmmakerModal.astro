@@ -342,8 +342,10 @@ const { id } = Astro.props;
     // Claim account section
     const claimSection = modal.querySelector('.claim-account-section') as HTMLElement;
     const claimMessage = modal.querySelector('.claim-account-message')!;
+    const claimLink = modal.querySelector('.claim-account-link') as HTMLAnchorElement;
     if (!filmmaker.hasPassword) {
-      claimMessage.innerHTML = `Are you ${filmmaker.name}?`; 
+      claimMessage.innerHTML = `Are you ${filmmaker.name}?`;
+      claimLink.href = '/account/claim-profile?source=profile_popup';
       claimSection.style.display = 'block';
     } else {
       claimSection.style.display = 'none';

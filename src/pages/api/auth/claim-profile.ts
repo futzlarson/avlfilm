@@ -1,6 +1,7 @@
 // Internal imports
 import { errorResponse, successResponse } from '@lib/api';
 import { findUserByEmail } from '@lib/auth';
+import type { PasswordSetSource } from '@lib/send-reset-email';
 import { sendPasswordResetEmail } from '@lib/send-reset-email';
 import { sendSlackNotification } from '@lib/slack';
 // Astro types
@@ -8,11 +9,15 @@ import type { APIRoute } from 'astro';
 
 export const POST: APIRoute = async ({ request, url }) => {
   try {
-    const { email } = await request.json();
+    const { email, source } = await request.json();
 
     if (!email) {
       return errorResponse('Email is required', 400);
     }
+
+    // Pass through source if valid, otherwise undefined
+    const validSources: PasswordSetSource[] = ['email_match', 'profile_popup'];
+    const claimSource: PasswordSetSource | undefined = validSources.includes(source) ? source : undefined;
 
     // Find user
     const user = await findUserByEmail(email);
@@ -46,6 +51,7 @@ export const POST: APIRoute = async ({ request, url }) => {
       user: { id: user.id, email: user.email, name: user.name },
       origin: url.origin,
       subject: 'Set Your Password - AVL Film',
+      source: claimSource,
     });
 
     return successResponse({

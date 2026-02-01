@@ -46,12 +46,14 @@ if (user) {
 
     <div class="claim-profile">
       <p>Already in our directory?</p>
-      <a href="/account/claim-profile">Claim your profile</a>
+      <a href="/account/claim-profile?source=email_match">Claim your profile</a>
     </div>
   </div>
 </BaseLayout>
 
 <script>
+  import { track } from '@lib/analytics';
+
   const form = document.getElementById('signup-form') as HTMLFormElement;
   const errorMessage = document.getElementById('error-message') as HTMLElement;
 
@@ -81,6 +83,9 @@ if (user) {
       if (!response.ok) {
         throw new Error(data.error || 'Signup failed');
       }
+
+      // Track successful signup
+      track('password_set', { source: 'standard_signup' });
 
       // Redirect to profile setup
       window.location.href = '/account/profile';

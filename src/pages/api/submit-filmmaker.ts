@@ -85,6 +85,7 @@ export const POST: APIRoute = async ({ request, url }) => {
         },
         origin: url.origin,
         subject: 'Welcome to AVL Film - Set Your Password',
+        source: 'new_filmmaker',
       });
     } catch (emailError) {
       console.error('Failed to send password setup email:', emailError);

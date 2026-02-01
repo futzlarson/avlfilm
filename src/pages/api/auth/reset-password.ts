@@ -10,9 +10,18 @@ import type { APIRoute } from 'astro';
 // External packages
 import { eq } from 'drizzle-orm';
 
+// Human-readable labels for password set sources
+const SOURCE_LABELS: Record<string, string> = {
+  new_filmmaker: 'new filmmaker signup',
+  email_match: 'email match on directory form',
+  profile_popup: 'claim from directory popup',
+  forgot_password: 'forgot password flow',
+  standard_signup: 'direct signup'
+};
+
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const { token, password } = await request.json();
+    const { token, password, source } = await request.json();
 
     if (!token || !password) {
       return errorResponse('Token and password are required', 400);
@@ -51,7 +60,8 @@ export const POST: APIRoute = async ({ request }) => {
       })
       .where(eq(filmmakers.id, user.id));
 
-    sendSlackNotification(`Password reset for ${user.name} (${user.email})`);
+    const sourceLabel = SOURCE_LABELS[source] || 'unknown';
+    sendSlackNotification(`Password set for ${user.name} (${user.email}) via ${sourceLabel}`);
 
     return successResponse({ message: 'Password reset successful' });
   } catch (error) {

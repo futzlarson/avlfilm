@@ -628,7 +628,7 @@ const { roleAliasMap, canonicalRoles } = buildRoleData();
           // No password - link to claim profile
           emailStatus.innerHTML = `
             This email is in our directory but hasn't been claimed yet.
-            <a href="/account/claim-profile?email=${encodedEmail}">Claim your profile here</a>
+            <a href="/account/claim-profile?email=${encodedEmail}&source=email_match">Claim your profile here</a>
           `;
           emailStatus.className = 'email-status info';
         }

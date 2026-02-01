@@ -27,6 +27,7 @@ export const POST: APIRoute = async ({ request, url }) => {
     await sendPasswordResetEmail({
       user: { id: user.id, email: user.email, name: user.name },
       origin: url.origin,
+      source: 'forgot_password',
     });
 
     return successResponse({

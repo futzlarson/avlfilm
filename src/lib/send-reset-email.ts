@@ -7,10 +7,13 @@ import { generateResetToken, getTokenExpiryDate } from '@lib/reset-token';
 import { eq } from 'drizzle-orm';
 import { Resend } from 'resend';
 
+export type PasswordSetSource = 'new_filmmaker' | 'email_match' | 'profile_popup' | 'forgot_password' | 'standard_signup';
+
 interface SendPasswordResetEmailOptions {
   user: { id: number; email: string; name: string };
   origin: string;
   subject?: string;
+  source?: PasswordSetSource;
 }
 
 /**
@@ -20,7 +23,7 @@ interface SendPasswordResetEmailOptions {
 export async function sendPasswordResetEmail(
   options: SendPasswordResetEmailOptions
 ): Promise<void> {
-  const { user, origin, subject = 'Reset Your Password - AVL Film' } = options;
+  const { user, origin, subject = 'Reset Your Password - AVL Film', source } = options;
 
   // Generate reset token
   const resetToken = generateResetToken();
@@ -37,7 +40,8 @@ export async function sendPasswordResetEmail(
 
   // Send email
   const resend = new Resend(import.meta.env.RESEND_API_KEY);
-  const resetUrl = `${origin}/account/reset-password?token=${resetToken}`;
+  const sourceParam = source ? `&source=${source}` : '';
+  const resetUrl = `${origin}/account/reset-password?token=${resetToken}${sourceParam}`;
 
   await resend.emails.send({
     from:
