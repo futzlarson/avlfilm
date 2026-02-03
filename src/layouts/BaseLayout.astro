@@ -17,7 +17,7 @@ interface Props {
   ogImage?: string;
 }
 
-const { title, description, keywords, ogImage } = Astro.props;
+const { title, description, keywords } = Astro.props;
 const ogImage = 'https://avlfilm.org/community.jpg';
 const defaultDescription = 'Connecting filmmakers and film enthusiasts across Western North Carolina with festivals, crew directories, events, and resources.';
 const finalDescription = description || defaultDescription;
