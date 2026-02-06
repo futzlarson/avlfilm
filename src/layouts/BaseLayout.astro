@@ -15,9 +15,10 @@ interface Props {
   description?: string;
   keywords?: string;
   ogImage?: string;
+  structuredData?: object;
 }
 
-const { title, description, keywords } = Astro.props;
+const { title, description, keywords, structuredData } = Astro.props;
 const ogImage = 'https://avlfilm.com/community.jpg';
 const defaultDescription = 'Connecting filmmakers and film enthusiasts across Western North Carolina with festivals, crew directories, events, and resources.';
 const finalDescription = description || defaultDescription;
@@ -62,6 +63,15 @@ if (user && import.meta.env.DEV && import.meta.env.DEV_OVERRIDE_ADMIN) {
 
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>" />
+
+    <!-- JSON-LD Structured Data -->
+    {structuredData && (
+      <script
+        is:inline
+        type="application/ld+json"
+        set:html={JSON.stringify(structuredData)}
+      />
+    )}
 
     <RollbarClient />
   </head>

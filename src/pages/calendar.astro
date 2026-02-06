@@ -1,17 +1,75 @@
 ---
 // Internal imports
 import BaseLayout from '@layouts/BaseLayout.astro';
+import { getAddedEventIds } from '@lib/redis-calendar';
+import { convertEventsToJsonLd } from '@lib/event-seo';
+import type { AvlGoEvent } from '@app-types/avlgo-event';
+import { logError } from '@lib/rollbar';
 
 // Generate time options
 const hours = Array.from({ length: 12 }, (_, i) => i + 1);
 const minutes = ['00', '15', '30', '45'];
 const periods = ['AM', 'PM'];
+
+// Fetch AVL GO events
+const API_URL = 'https://www.avlgo.com/api/export/json?search=film,movie';
+let avlGoEvents: AvlGoEvent[] = [];
+
+try {
+  const response = await fetch(API_URL);
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+  const data = await response.json();
+  avlGoEvents = Array.isArray(data) ? data : data.events || [];
+} catch (error) {
+  logError(error, { context: 'calendar page', action: 'fetch AVL GO events' });
+  // Continue with empty array - page will render without JSON-LD
+}
+
+// Fetch added event IDs from Redis
+let addedEventIds: Set<string> = new Set();
+try {
+  const eventIds = await getAddedEventIds();
+  addedEventIds = new Set(eventIds);
+} catch (error) {
+  logError(error, { context: 'calendar page', action: 'fetch added event IDs' });
+  // Continue with empty set
+}
+
+// Filter to only events added to calendar
+const calendarEvents = avlGoEvents.filter(event => addedEventIds.has(event.id));
+
+// Filter to future events only (next 14 days)
+const now = new Date();
+const fourteenDaysFromNow = new Date();
+fourteenDaysFromNow.setDate(now.getDate() + 14);
+
+const upcomingEvents = calendarEvents.filter(event => {
+  try {
+    const eventDate = new Date(event.startDate);
+    return eventDate > now && eventDate <= fourteenDaysFromNow;
+  } catch {
+    return false;
+  }
+});
+
+// Sort chronologically
+upcomingEvents.sort((a, b) => {
+  return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+});
+
+// Generate JSON-LD
+const jsonLd = upcomingEvents.length > 0
+  ? convertEventsToJsonLd(upcomingEvents)
+  : null;
 ---
 
 <BaseLayout
   title="Film Event Calendar"
   description="Stay up to date with film events, screenings, meetups, and workshops in Asheville, NC. Join the AVL Film community calendar."
   keywords="Asheville film events, AVL Film calendar, film screenings Asheville, filmmaker meetups, film workshops Asheville, NC film community"
+  structuredData={jsonLd ?? undefined}
 >
   <div class="calendar-header">
     <h1>Event Calendar</h1>
