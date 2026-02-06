@@ -1,8 +1,10 @@
-## Now
-- Admin mobile experience
+## Next
+- Proxies
+  - Analytics
+    - Proxy Solution Using Rewrites in vercel.json
+    - Exclude me (also tracking)
+  - Rollbar: Contacted
 - Claude skills (vs tasks?)
-- Analytics: exclude me?
-- Buttons: Directory vs Calendar. Also the <p> beneath
 - Better directory structure?
 - Timezones of things and best practice
 
@@ -12,17 +14,36 @@
   - Events ignore: FREE Kids Movie! [17069740] | Casual chat + coffee or more, Sunday mornings 10-noon [312846915]
 - og:image
 
-## Proxies
-- Analytics?
-- Rollbar
+## Logo
+```
+ /*
+.logo {
+  font-family: 'Righteous', serif;
+  font-size: 1.5rem;
+  color: white;
+  display: inline-block;
+  
+  line-height: 1;
+  letter-spacing: 0.03em;
+  text-decoration: none;
 
-## Accounts
-- Figure out how claiming should work
-          {user ? (
-            <li class="auth-link"><a href="/account/profile">Profile</a></li>
-          ) : (
-            <li class="auth-link"><a href="/account/login">Login</a></li>
-          )}
+  text-transform: none;
+  transform: scaleY(1.05);
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+  
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+*/
+
+@font-face {
+  font-family: 'Righteous';
+  src: url('/Righteous-Regular.ttf') format('truetype');
+  font-weight: 400; /* Bungee only has one weight */
+  font-style: normal;
+  font-display: swap;
+}
+```
 
 ## Events
 - vistor_id changing?
@@ -34,20 +55,12 @@
 - npm run lint
 - npm run lint:fix (to fix certain things)
 - npx prettier --check
-
-## Submission system
-- Mimic google forms intake, button on page (new one for Spotlight?)
-- Filter by Spotlight event (add/modify): Theme, Date
-- Pending, Selected, Rejected with a note and name
-- Number of films and runtime
+- npx repomix (pack codebase)
 
 ## Later
-
 - Directory: Ability to add photo
 - scan pages for accuracy periodically and email report: festivals, resources
 - use festival page to periodically update gcal
-
-=====
 
 ## Done
 
@@ -82,10 +95,10 @@
   - Handle multiple ig w/ spaces
   - Display as clickable (directory, create/edit, admin)
 - Admin: Preview emails in browser, get rid of test-approval-email
-
-### Calendar Events
-
-- On Sunday, call up an admin page that calls the api and gets all film,movie events over the next week
-- Display the events with whatever info is available, similar to avl go, with <Add>
-- Manually review and click button to add
-- Button uses Calendar API to add to avlfilm calendar in particular format
+- Figure out how claiming should work
+- Calendar Events
+  - On Sunday, call up an admin page that calls the api and gets all film,movie events over the next week
+  - Display the events with whatever info is available, similar to avl go, with <Add>
+  - Manually review and click button to add
+  - Button uses Calendar API to add to avlfilm calendar in particular format
+  - JSON-LD for SEO
