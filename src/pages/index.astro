@@ -70,9 +70,17 @@ import BaseLayout from '@layouts/BaseLayout.astro';
     </div>
   </div>
 
-  <!-- Elfsight Instagram Feed | AVL Film Instagram Feed -->
-  <script src="https://elfsightcdn.com/platform.js" async is:inline></script>
-  <div class="elfsight-app-71723842-9db1-4448-887f-b380bf96651f" data-elfsight-app-lazy style="margin-bottom: 1rem"></div>
+  <div id="curator-feed-default-feed-layout">
+    <a href="https://curator.io" target="_blank" class="crt-logo crt-tag">Powered by Curator.io</a>
+  </div>
+
+  <script type="text/javascript">
+    (function(){
+    var i,e,d=document,s="script";i=d.createElement("script");i.async=1;i.charset="UTF-8";
+    i.src="https://cdn.curator.io/published/d5bcd531-5f22-498d-9491-8eb7cd4f0793.js";
+    e=d.getElementsByTagName(s)[0];e.parentNode.insertBefore(i, e);
+    })();
+  </script>
 </BaseLayout>
 
 <style>
