@@ -121,7 +121,79 @@ import { FILM_ROLES_BY_CATEGORY } from '@config/roles';
 // Email
 import * as approvalEmail from '@emails/approval';
 import { BUTTON_STYLE, userEmailTemplate } from '@emails/templates';
+
+// Utilities
+import { generateSlug } from '@lib/slug';
+import { toDatetimeLocal, subtractDays } from '@lib/datetime';
+import { showFormMessage, hideFormMessage } from '@lib/form-utils';
 ```
+
+---
+
+## Database Migrations (Drizzle)
+
+**⚠️ CRITICAL: Never manually create migration SQL files!**
+
+**Correct workflow:**
+1. Update `src/db/schema.ts` with your changes
+2. Run `npm run db:generate` (creates migration + updates journal)
+3. Run `npm run db:migrate` (applies migration to database)
+
+**Why this matters:**
+- Drizzle uses `drizzle/meta/_journal.json` to track migrations
+- Manually created SQL files won't be in the journal → won't run
+- Always use `db:generate` to ensure proper registration
+
+**Past mistake:**
+- Created `drizzle/0011_add_full_res_video_url.sql` manually → SQL error (column doesn't exist) → had to manually add to journal
+
+---
+
+## Email System
+
+**When creating new email templates:**
+1. Create email file in `src/emails/` (e.g., `request-file.ts`)
+2. Use `userEmailTemplate()` wrapper from `@emails/templates`
+3. Import constants: `BUTTON_STYLE`, `PARAGRAPH_STYLE`, `COLORS`
+4. **CRITICAL:** Add export to `src/emails/index.ts`
+5. Use Resend to send: `new Resend(import.meta.env.RESEND_API_KEY)`
+
+**Example pattern:**
+```typescript
+import { BUTTON_STYLE, COLORS, PARAGRAPH_STYLE, userEmailTemplate } from './templates';
+
+export const metadata = {
+  name: 'Email Name',
+  description: 'When it is sent',
+  audience: 'external',
+  subject: 'Email Subject',
+};
+
+export function generate(param1: string, param2: string): string {
+  return userEmailTemplate(`<h2>...</h2><p>...</p>`);
+}
+```
+
+**Past mistake:**
+- Created new email template but forgot to add to `src/emails/index.ts` exports
+
+---
+
+## Utility Functions
+
+**Slug generation:**
+- ✅ Use `generateSlug()` from `@lib/slug`
+- ❌ Don't manually implement `.toLowerCase().replace(/[^a-z0-9]+/g, '-')`
+
+**DateTime handling:**
+- ✅ Use `toDatetimeLocal(date)` from `@lib/datetime` for datetime-local inputs
+- ✅ Use `subtractDays(date, days)` for deadline calculations
+- ❌ Don't manually handle timezone offsets
+
+**Form messages:**
+- ✅ Use `showFormMessage(element, text, type)` from `@lib/form-utils`
+- ✅ Use `hideFormMessage(element)` to clear messages
+- ❌ Don't create local `showMessage()` functions in each form
 
 ---
 
@@ -131,8 +203,8 @@ import { BUTTON_STYLE, userEmailTemplate } from '@emails/templates';
 npm run dev          # Dev server (port 4321)
 npm run build        # Production build
 npm run lint:fix     # Auto-fix imports & formatting
-npm run db:generate  # Generate migration
-npm run db:migrate   # Run migration
+npm run db:generate  # Generate migration from schema.ts
+npm run db:migrate   # Run migrations
 ```
 
 ---
