@@ -35,6 +35,7 @@ export function track(eventName: string, properties?: Record<string, unknown>): 
   const visitorId = getOrCreateVisitorId();
   const timezone = getTimezone();
 
+  // FIXME: Use utility function to check for skip_analytics
   if (isDev) {
     // Log to console in development instead of sending to API
     console.log('[Analytics]', eventName, {

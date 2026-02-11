@@ -74,9 +74,9 @@ import BaseLayout from '@layouts/BaseLayout.astro';
     <a href="https://curator.io" target="_blank" class="crt-logo crt-tag">Powered by Curator.io</a>
   </div>
 
-  <script type="text/javascript">
+  <script is:inline type="text/javascript">
     (function(){
-    var i,e,d=document,s="script";i=d.createElement("script");i.async=1;i.charset="UTF-8";
+    var i,e,d=document,s="script";i=d.createElement("script");i.async=1;
     i.src="https://cdn.curator.io/published/d5bcd531-5f22-498d-9491-8eb7cd4f0793.js";
     e=d.getElementsByTagName(s)[0];e.parentNode.insertBefore(i, e);
     })();
@@ -196,6 +196,10 @@ import BaseLayout from '@layouts/BaseLayout.astro';
     display: block;
   }
 
+  :global(.crt-filter-label) {
+    display: none !important;
+  }
+
   @media (max-width: 768px) {
     .features-grid {
       grid-template-columns: 1fr;
@@ -226,6 +230,8 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 </style>
 
 <script>
+  import { showFormMessage } from '@lib/form-utils';
+
   const form = document.getElementById('newsletter-form') as HTMLFormElement;
   const emailInput = document.getElementById('email') as HTMLInputElement;
   const messageDiv = document.getElementById('message') as HTMLDivElement;
@@ -237,7 +243,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
     const email = emailInput.value.trim();
 
     if (!email) {
-      showMessage('Please enter your email address', 'error');
+      showFormMessage(messageDiv, 'Please enter your email address', 'error');
       return;
     }
 
@@ -262,35 +268,24 @@ import BaseLayout from '@layouts/BaseLayout.astro';
       const data = await response.json();
 
       if (response.ok) {
-        showMessage(data.message || 'Successfully subscribed!', 'success');
+        showFormMessage(messageDiv, data.message || 'Successfully subscribed!', 'success');
+        messageDiv.className = 'alert message alert-success'; // Maintain alert- prefix
         emailInput.value = '';
+        // Auto-hide success messages after 5 seconds
+        setTimeout(() => {
+          messageDiv.className = 'alert message';
+        }, 5000);
       } else {
-        showMessage(data.error || 'Failed to subscribe. Please try again.', 'error');
+        showFormMessage(messageDiv, data.error || 'Failed to subscribe. Please try again.', 'error');
+        messageDiv.className = 'alert message alert-error'; // Maintain alert- prefix
       }
     } catch (error) {
       console.error('Subscription error:', error);
-      showMessage('Something went wrong. Please try again later.', 'error');
+      showFormMessage(messageDiv, 'Something went wrong. Please try again later.', 'error');
+      messageDiv.className = 'alert message alert-error'; // Maintain alert- prefix
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = originalText;
     }
   });
-
-  function showMessage(text: string, type: 'success' | 'error') {
-    messageDiv.textContent = text;
-    messageDiv.className = `alert message alert-${type}`;
-
-    // Auto-hide success messages after 5 seconds
-    if (type === 'success') {
-      setTimeout(() => {
-        messageDiv.className = 'alert message';
-      }, 5000);
-    }
-  }
-
-  setTimeout(() => {
-    document.querySelectorAll('a[href^="https://elfsight.com"]').forEach(link => {
-        link.remove();
-    });
-  }, 3000);
 </script>
