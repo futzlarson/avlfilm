@@ -225,18 +225,12 @@ try {
 </style>
 
 <script>
+  import { showFormMessage } from '@lib/form-utils';
+
   const form = document.getElementById('banner-form') as HTMLFormElement;
   const htmlTextarea = document.getElementById('banner-html') as HTMLTextAreaElement;
   const enabledCheckbox = document.getElementById('banner-enabled') as HTMLInputElement;
   const messageDiv = document.getElementById('message') as HTMLDivElement;
-
-  function showMessage(text: string, type: 'success' | 'error') {
-    messageDiv.textContent = text;
-    messageDiv.className = `message ${type}`;
-    setTimeout(() => {
-      messageDiv.className = 'message';
-    }, 5000);
-  }
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -261,9 +255,12 @@ try {
       // Reload the page to see the updated banner
       window.location.reload();
     } catch (error) {
-      showMessage('Failed to update banner settings', 'error');
+      showFormMessage(messageDiv, 'Failed to update banner settings', 'error');
       console.error(error);
       submitBtn.disabled = false;
+      setTimeout(() => {
+        messageDiv.className = 'message';
+      }, 5000);
     }
   });
 </script>

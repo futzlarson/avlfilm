@@ -1,0 +1,787 @@
+---
+// Internal imports
+import { db } from '@db';
+import { submissions, reviews, filmmakers } from '@db/schema';
+import { formatDuration } from '@lib/film-utils';
+import { formatDate, DATE_LONG, DATE_LONG_NO_YEAR } from '@lib/datetime';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import AdminNav from '@components/AdminNav.astro';
+
+// External packages
+import { eq, desc } from 'drizzle-orm';
+
+// Get submission ID from query param
+const submissionId = Astro.url.searchParams.get('id');
+if (!submissionId) {
+  return Astro.redirect('/admin/events/submissions');
+}
+
+// Fetch submission and reviews in parallel
+const [submissionResult, reviewsList] = await Promise.all([
+  db.select()
+  .from(submissions)
+  .where(eq(submissions.id, Number(submissionId))),
+
+  db.select({
+    id: reviews.id,
+    submissionId: reviews.submissionId,
+    adminId: reviews.adminId,
+    adminName: filmmakers.name,
+    vote: reviews.vote,
+    comment: reviews.comment,
+    createdAt: reviews.createdAt,
+    updatedAt: reviews.updatedAt,
+  })
+  .from(reviews)
+  .innerJoin(filmmakers, eq(reviews.adminId, filmmakers.id))
+  .where(eq(reviews.submissionId, Number(submissionId)))
+  .orderBy(desc(reviews.createdAt)),
+]);
+
+const [submission] = submissionResult;
+
+if (!submission) {
+  return Astro.redirect('/admin/events/submissions');
+}
+
+// Get current admin info for the review form
+const user = Astro.locals.user;
+const myReview = reviewsList.find(r => r.adminId === user?.userId);
+
+// Helper to display status
+function displayStatus(status: string): string {
+  switch (status) {
+    case 'approved': return 'Approved';
+    case 'rejected': return 'Rejected';
+    case 'future': return 'Future';
+    case 'pending': return 'Pending';
+    default: return status;
+  }
+}
+
+// Generate embed HTML for video links (server-side)
+function getEmbed(url: string): string {
+  try {
+    const u = new URL(url);
+    // YouTube
+    const ytMatch = u.hostname.includes('youtube.com')
+      ? u.searchParams.get('v')
+      : u.hostname === 'youtu.be'
+        ? u.pathname.slice(1)
+        : null;
+    if (ytMatch) return `<iframe src="https://www.youtube.com/embed/${ytMatch}" frameborder="0" allowfullscreen style="width:100%;aspect-ratio:16/9;border-radius:8px;"></iframe>`;
+
+    // Vimeo
+    const vimeoMatch = u.hostname.includes('vimeo.com') ? u.pathname.split('/').filter(Boolean).pop() : null;
+    if (vimeoMatch && /^\d+$/.test(vimeoMatch)) return `<iframe src="https://player.vimeo.com/video/${vimeoMatch}" frameborder="0" allowfullscreen style="width:100%;aspect-ratio:16/9;border-radius:8px;"></iframe>`;
+
+    // Google Drive
+    if (u.hostname.includes('drive.google.com')) {
+      const fileId = u.pathname.match(/\/d\/([^/]+)/)?.[1];
+      if (fileId) return `<iframe src="https://drive.google.com/file/d/${fileId}/preview" frameborder="0" allowfullscreen style="width:100%;aspect-ratio:16/9;border-radius:8px;"></iframe>`;
+    }
+  } catch { /* invalid URL, fall through */ }
+  return `<a href="${url}" target="_blank" rel="noopener" class="film-link">Open Film Link</a>`;
+}
+
+const embedHtml = getEmbed(submission.filmLink);
+
+// Convert video URL to download-friendly format when possible
+function getDownloadUrl(url: string): { url: string; service: string } {
+  try {
+    const u = new URL(url);
+
+    // Google Drive: convert to download URL
+    if (u.hostname.includes('drive.google.com')) {
+      const fileId = u.pathname.match(/\/d\/([^/]+)/)?.[1] || u.searchParams.get('id');
+      if (fileId) {
+        return {
+          url: `https://drive.google.com/uc?export=download&id=${fileId}`,
+          service: 'Google Drive'
+        };
+      }
+    }
+
+    // Dropbox: add download parameter
+    if (u.hostname.includes('dropbox.com')) {
+      u.searchParams.set('dl', '1');
+      return { url: u.toString(), service: 'Dropbox' };
+    }
+
+    // WeTransfer or direct file links
+    if (u.hostname.includes('wetransfer.com') || /\.(mp4|mov|avi|mkv)$/i.test(u.pathname)) {
+      return { url: url, service: 'Direct Link' };
+    }
+
+    // Vimeo or other services - can't force download
+    return { url: url, service: 'External' };
+  } catch {
+    return { url: url, service: 'External' };
+  }
+}
+---
+
+<BaseLayout title={`Review: ${submission.filmTitle}`}>
+  <div class="admin-header">
+    <h1>Admin</h1>
+  </div>
+
+  <AdminNav currentPage="submissions" />
+
+  <div class="admin-section">
+    <h2 style="margin-top: 0">{submission.filmTitle}</h2>
+
+    <!-- Top Section: Filmmaker Info + Admin Reviews -->
+    <div class="top-section">
+      <!-- Filmmaker Info Table -->
+      <div class="filmmaker-info">
+        <table class="info-table">
+          <tbody>
+            <tr>
+              <th>Filmmaker</th>
+              <td>{submission.submitterName}</td>
+            </tr>
+            <tr>
+              <th>Email</th>
+              <td><a href={`mailto:${submission.submitterEmail}`}>{submission.submitterEmail}</a></td>
+            </tr>
+            <tr>
+              <th>Genre</th>
+              <td>{submission.filmGenre === 'Other' ? submission.filmGenreOther : submission.filmGenre}</td>
+            </tr>
+            <tr>
+              <th>Length</th>
+              <td>{formatDuration(submission.filmLength)}</td>
+            </tr>
+            <tr>
+              <th>In-Person</th>
+              <td>{submission.availableInPerson ? 'Yes' : 'No'}</td>
+            </tr>
+            <tr>
+              <th>Submitted</th>
+              <td>{formatDate(submission.createdAt, DATE_LONG)}</td>
+            </tr>
+            <tr>
+              <th>Status</th>
+              <td><span class={`status-badge ${submission.status}`}>{displayStatus(submission.status)}</span></td>
+            </tr>
+            {submission.status === 'approved' && (
+              <tr>
+                <th>Full-Res Video</th>
+                <td>
+                  {submission.fullResVideoUrl ? (() => {
+                    const downloadInfo = getDownloadUrl(submission.fullResVideoUrl);
+                    return (
+                      <div class="video-download-section">
+                        <a href={downloadInfo.url} target="_blank" rel="noopener noreferrer" class="download-btn" download>
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 11L4 7H7V3H9V7H12L8 11Z" fill="currentColor"/>
+                            <path d="M13 13H3V11H1V13C1 14.1 1.9 15 3 15H13C14.1 15 15 14.1 15 13V11H13V13Z" fill="currentColor"/>
+                          </svg>
+                          Download Video
+                        </a>
+                        <span class="service-hint">{downloadInfo.service}</span>
+                      </div>
+                    );
+                  })() : (
+                    <button class="request-file-btn" id="request-file-btn" type="button">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      </svg>
+                      Request File
+                    </button>
+                  )}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+        {submission.filmmakerNotes && (
+          <div class="filmmaker-notes">
+            <strong>Filmmaker Notes:</strong>
+            <p>{submission.filmmakerNotes}</p>
+          </div>
+        )}
+      </div>
+
+      <!-- Admin Reviews -->
+      <div class="admin-reviews-section">
+        <h3>Admin Reviews</h3>
+        <div id="reviews-container" class="reviews-list">
+          {reviewsList.length === 0 ? (
+            <p class="no-votes">No reviews yet</p>
+          ) : (
+            reviewsList.map((r) => (
+              <div class="review-item">
+                <div class="review-header">
+                  <strong>{r.adminName}</strong>
+                  <span class="vote-icon">{r.vote === 'up' ? '👍' : r.vote === 'down' ? '👎' : '💬'}</span>
+                  <small>{formatDate(r.createdAt, DATE_LONG_NO_YEAR)}</small>
+                </div>
+                {r.comment && <p class="review-comment">{r.comment}</p>}
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+
+    <!-- Video Player (100% width) -->
+    <div class="video-section">
+      <div id="film-embed" set:html={embedHtml}></div>
+      {submission.filmLinkPassword && (
+        <div class="password-info">
+          <span class="detail-label">Password:</span> <code>{submission.filmLinkPassword}</code>
+        </div>
+      )}
+    </div>
+
+    <!-- Review and Decision (two columns) -->
+    <div class="action-grid">
+      <!-- My Review -->
+      <div class="my-review-section">
+        <h3>My Review</h3>
+        <div class="vote-buttons">
+          <button class="vote-btn" data-vote="up" id="vote-up">👍</button>
+          <button class="vote-btn" data-vote="down" id="vote-down">👎</button>
+        </div>
+        <textarea id="review-comment" placeholder="Add a comment..." rows="4">{myReview?.comment || ''}</textarea>
+        <button class="btn-primary" id="submit-review-btn">Submit Review</button>
+        <div id="review-message" class="form-message" style="display: none;"></div>
+      </div>
+
+      <!-- Final Decision -->
+      <div class="decision-section">
+        <h3>Final Decision</h3>
+        <div class="form-group">
+          <label for="status-select">Status</label>
+          <select id="status-select">
+            <option value="pending" selected={submission.status === 'pending'}>Pending</option>
+            <option value="approved" selected={submission.status === 'approved'}>Approved</option>
+            <option value="rejected" selected={submission.status === 'rejected'}>Rejected</option>
+            <option value="future" selected={submission.status === 'future'}>Future</option>
+          </select>
+        </div>
+        <div class="form-group" id="rejection-reason-group" style={submission.status === 'rejected' ? '' : 'display: none;'}>
+          <label for="rejection-reason">Rejection Reason <span class="required">*</span></label>
+          <textarea id="rejection-reason" rows="2">{submission.rejectionReason || ''}</textarea>
+        </div>
+        <div class="form-group">
+          <label for="admin-notes">Admin Notes</label>
+          <textarea id="admin-notes" rows="2" placeholder="Internal notes...">{submission.adminNotes || ''}</textarea>
+        </div>
+        <button class="btn-primary" id="update-status-btn">Update Status</button>
+        <div id="status-message" class="form-message" style="display: none;"></div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script is:inline id="submission-data" type="application/json" set:html={JSON.stringify({
+  submissionId: submission.id,
+  userId: user?.userId,
+  initialVote: myReview?.vote || null
+})}></script>
+
+<script>
+  import { showFormMessage, hideFormMessage } from '@lib/form-utils';
+
+  const data = JSON.parse(document.getElementById('submission-data')?.textContent || '{}');
+  let currentVote: string | null = data.initialVote;
+
+  // Initialize vote buttons
+  if (currentVote) {
+    document.querySelectorAll('.vote-btn').forEach(b => {
+      b.classList.toggle('active', (b as HTMLElement).dataset.vote === currentVote);
+    });
+  }
+
+  // Toggle rejection reason field
+  function toggleRejectionReason(status: string) {
+    const group = document.getElementById('rejection-reason-group') as HTMLDivElement;
+    group.style.display = status === 'rejected' ? 'block' : 'none';
+  }
+
+  (document.getElementById('status-select') as HTMLSelectElement).addEventListener('change', (e) => {
+    toggleRejectionReason((e.target as HTMLSelectElement).value);
+  });
+
+  // Vote buttons
+  document.querySelectorAll('.vote-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const vote = (btn as HTMLElement).dataset.vote!;
+      if (currentVote === vote) {
+        currentVote = null;
+        btn.classList.remove('active');
+      } else {
+        currentVote = vote;
+        document.querySelectorAll('.vote-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+    });
+  });
+
+  // Submit review
+  const reviewMsgEl = document.getElementById('review-message') as HTMLDivElement;
+
+  document.getElementById('submit-review-btn')?.addEventListener('click', async () => {
+    const comment = (document.getElementById('review-comment') as HTMLTextAreaElement).value;
+    const btn = document.getElementById('submit-review-btn') as HTMLButtonElement;
+    btn.disabled = true;
+    hideFormMessage(reviewMsgEl);
+
+    try {
+      const res = await fetch('/admin/api/reviews/vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          submissionId: data.submissionId,
+          vote: currentVote,
+          comment: comment || null,
+        }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error);
+
+      // Reload to show updated reviews
+      window.location.reload();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to submit review';
+      showFormMessage(reviewMsgEl, message, 'error');
+      window.Rollbar?.error('Failed to submit review', err);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // Update status
+  const statusMsgEl = document.getElementById('status-message') as HTMLDivElement;
+
+  document.getElementById('update-status-btn')?.addEventListener('click', async () => {
+    const status = (document.getElementById('status-select') as HTMLSelectElement).value;
+    const rejectionReason = (document.getElementById('rejection-reason') as HTMLTextAreaElement).value;
+    const adminNotes = (document.getElementById('admin-notes') as HTMLTextAreaElement).value;
+    const btn = document.getElementById('update-status-btn') as HTMLButtonElement;
+    btn.disabled = true;
+    hideFormMessage(statusMsgEl);
+
+    try {
+      const res = await fetch('/admin/api/submissions/update-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: data.submissionId,
+          status,
+          rejectionReason: status === 'rejected' ? rejectionReason : null,
+          adminNotes: adminNotes || null,
+        }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error);
+
+      showFormMessage(statusMsgEl, 'Status updated', 'success');
+
+      // Redirect back after a moment
+      setTimeout(() => window.location.href = '/admin/events/submissions', 1000);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to update';
+      showFormMessage(statusMsgEl, message, 'error');
+      window.Rollbar?.error('Failed to update submission status', err);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // Request file
+  document.getElementById('request-file-btn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('request-file-btn') as HTMLButtonElement;
+
+    if (!confirm('Send a file request email to the filmmaker?')) {
+      return;
+    }
+
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+
+    try {
+      const res = await fetch('/admin/api/submissions/request-file', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ submissionId: data.submissionId }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error);
+
+      btn.textContent = '✓ Email Sent';
+      btn.style.background = '#10b981';
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.style.background = '';
+        btn.disabled = false;
+      }, 3000);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to send email';
+      showFormMessage(statusMsgEl, message, 'error');
+      window.Rollbar?.error('Failed to send file request email', err);
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
+  });
+</script>
+
+<style>
+  /* Top Section: Filmmaker Info + Admin Reviews */
+  .top-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  /* Filmmaker Info Table */
+  .filmmaker-info {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .info-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .info-table th,
+  .info-table td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .info-table tr:last-child th,
+  .info-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .info-table th {
+    font-weight: 600;
+    color: #6b7280;
+    font-size: 0.85rem;
+    width: 30%;
+    background: var(--color-bg-subtle);
+  }
+
+  .info-table td {
+    color: #111827;
+    font-size: 0.9rem;
+  }
+
+  .info-table td a {
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+
+  .info-table td a:hover {
+    text-decoration: underline;
+  }
+
+  .video-download-section {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #10b981;
+    color: white !important;
+    border-radius: var(--radius-md);
+    text-decoration: none !important;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: background 0.2s;
+  }
+
+  .download-btn:hover {
+    background: #059669;
+  }
+
+  .download-btn svg {
+    flex-shrink: 0;
+  }
+
+  .service-hint {
+    font-size: 0.8rem;
+    color: #6b7280;
+    padding: 0.25rem 0.65rem;
+    background: #f3f4f6;
+    border-radius: var(--radius-sm);
+  }
+
+  .request-file-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .request-file-btn:hover {
+    background: #2563eb;
+  }
+
+  .request-file-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+  }
+
+  .request-file-btn svg {
+    flex-shrink: 0;
+  }
+
+  .filmmaker-notes {
+    padding: 1rem;
+    background: #fffbeb;
+    border-top: 1px solid #fde68a;
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  .filmmaker-notes strong {
+    display: block;
+    color: #92400e;
+    margin-bottom: 0.5rem;
+  }
+
+  .filmmaker-notes p {
+    margin: 0;
+    color: #78350f;
+  }
+
+  /* Video Section (100% width) */
+  .video-section {
+    margin: 1.5rem 0;
+  }
+
+  #film-embed {
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    border-radius: var(--radius-md);
+  }
+
+  .password-info {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background: #fef3c7;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    text-align: center;
+  }
+
+  .password-info code {
+    background: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-family: 'Courier New', monospace;
+    margin-left: 0.5rem;
+    font-weight: 600;
+  }
+
+  /* Action Grid (My Review + Final Decision) */
+  .action-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .my-review-section,
+  .decision-section {
+    padding: 1.25rem;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: var(--radius-md);
+  }
+
+  .my-review-section h3,
+  .decision-section h3 {
+    margin: 0 0 1rem;
+    font-size: 1.1rem;
+    color: #111827;
+  }
+
+  /* Vote Buttons */
+  .vote-buttons {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .vote-btn {
+    flex: 1;
+    padding: 0.75rem;
+    border: 2px solid #d1d5db;
+    border-radius: var(--radius-md);
+    background: white;
+    cursor: pointer;
+    font-size: 1.5rem;
+    transition: all 0.15s;
+  }
+
+  .vote-btn:hover {
+    border-color: var(--color-primary);
+    transform: scale(1.05);
+  }
+
+  .vote-btn.active[data-vote="up"] {
+    background: #d1fae5;
+    border-color: #059669;
+  }
+
+  .vote-btn.active[data-vote="down"] {
+    background: #fee2e2;
+    border-color: #dc2626;
+  }
+
+  .my-review-section textarea,
+  .decision-section textarea,
+  .decision-section select {
+    width: 100%;
+    padding: 0.65rem;
+    border: 1px solid #d1d5db;
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-size: 0.9rem;
+  }
+
+  .my-review-section textarea {
+    margin-bottom: 0.75rem;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-group:last-of-type {
+    margin-bottom: 1.25rem;
+  }
+
+  .form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+    font-size: 0.9rem;
+  }
+
+  .required {
+    color: #dc2626;
+  }
+
+  /* Admin Reviews Section (Right Sidebar) */
+  .admin-reviews-section {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .admin-reviews-section h3 {
+    margin: 0 0 0.75rem;
+    font-size: 1rem;
+    color: #111827;
+  }
+
+  .reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .review-item {
+    padding: 0.65rem;
+    background: var(--color-bg-subtle);
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+  }
+
+  .review-header {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .review-header strong {
+    color: #111827;
+    font-size: 0.85rem;
+  }
+
+  .vote-icon {
+    font-size: 1rem;
+  }
+
+  .review-header small {
+    color: #9ca3af;
+    font-size: 0.7rem;
+    margin-left: auto;
+  }
+
+  .review-comment {
+    margin: 0.25rem 0 0;
+    color: #374151;
+    line-height: 1.4;
+    font-size: 0.8rem;
+  }
+
+  .no-votes {
+    color: #9ca3af;
+    font-style: italic;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  :global(.film-link) {
+    display: inline-block;
+    padding: 0.75rem 1.25rem;
+    background: var(--color-primary);
+    color: white !important;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  @media (max-width: 768px) {
+    .top-section {
+      grid-template-columns: 1fr;
+    }
+
+    .action-grid {
+      grid-template-columns: 1fr;
+    }
+
+    #film-embed {
+      min-height: 300px;
+    }
+
+    .admin-reviews-section {
+      max-height: none;
+    }
+  }
+</style>

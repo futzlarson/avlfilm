@@ -1,6 +1,6 @@
 ---
 interface Props {
-  currentPage: 'dashboard' | 'filmmakers' | 'events' | 'profile';
+  currentPage: 'dashboard' | 'filmmakers' | 'calendar' | 'spotlight' | 'submissions' | 'profile';
 }
 
 const { currentPage } = Astro.props;
@@ -13,8 +13,14 @@ const { currentPage } = Astro.props;
   <a href="/admin/filmmakers" class:list={['admin-link', { active: currentPage === 'filmmakers' }]}>
     Filmmakers
   </a>
-  <a href="/admin/events" class:list={['admin-link', { active: currentPage === 'events' }]}>
+  <a href="/admin/calendar" class:list={['admin-link', { active: currentPage === 'calendar' }]}>
+    Calendar
+  </a>
+  <a href="/admin/events" class:list={['admin-link', { active: currentPage === 'spotlight' }]}>
     Events
+  </a>
+  <a href="/admin/events/submissions" class:list={['admin-link', { active: currentPage === 'submissions' }]}>
+    Submissions
   </a>
   <a href="/account/profile" class:list={['admin-link', { active: currentPage === 'profile' }]}>
     My Profile

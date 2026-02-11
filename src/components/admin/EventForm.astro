@@ -1,0 +1,235 @@
+---
+import type { SpotlightEvent } from '@db/schema';
+import { toDatetimeLocal } from '@lib/datetime';
+
+interface Props {
+  mode: 'create' | 'edit';
+  event?: SpotlightEvent;
+}
+
+const { mode, event } = Astro.props;
+const isEdit = mode === 'edit';
+---
+
+<form id="event-form" class="event-form" data-mode={mode} data-event-id={isEdit ? event?.id : ''}>
+  <div class="form-row">
+    <div class="form-group flex-2">
+      <label for="event-title">Title <span class="required">*</span></label>
+      <input type="text" id="event-title" name="title" required value={isEdit ? event?.title : ''} />
+    </div>
+    <div class="form-group flex-1">
+      <label for="event-slug">Slug</label>
+      <input type="text" id="event-slug" name="slug" value={isEdit ? event?.slug : ''} placeholder="auto-generated" />
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="event-theme">Theme</label>
+    <input type="text" id="event-theme" name="theme" value={isEdit ? (event?.theme || '') : ''} />
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label for="event-date">Event Date <span class="required">*</span></label>
+      <input type="datetime-local" id="event-date" name="eventDate" required value={toDatetimeLocal(event?.eventDate)} />
+    </div>
+    <div class="form-group">
+      <label for="event-deadline">Submission Deadline <span class="required">*</span></label>
+      <input type="datetime-local" id="event-deadline" name="submissionDeadline" required value={toDatetimeLocal(event?.submissionDeadline)} />
+    </div>
+    <div class="form-group">
+      <label for="event-status">Status</label>
+      <select id="event-status" name="status">
+        {['upcoming', 'reviewing', 'scheduled', 'past'].map((s) => (
+          <option value={s} selected={isEdit && event?.status === s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+        ))}
+      </select>
+    </div>
+  </div>
+
+  <div id="event-form-message" class="form-message" style="display: none;"></div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn-primary" id="event-submit-btn">
+      {isEdit ? 'Update Event' : 'Create Event'}
+    </button>
+    {isEdit && (
+      <button type="button" class="btn-primary btn-danger" id="event-delete-btn">Delete Event</button>
+    )}
+  </div>
+</form>
+
+<script>
+  import { generateSlug } from '@lib/slug';
+  import { subtractDays } from '@lib/datetime';
+  import { showFormMessage, hideFormMessage } from '@lib/form-utils';
+
+  const form = document.getElementById('event-form') as HTMLFormElement;
+  const titleInput = document.getElementById('event-title') as HTMLInputElement;
+  const slugInput = document.getElementById('event-slug') as HTMLInputElement;
+  const messageEl = document.getElementById('event-form-message') as HTMLDivElement;
+  const submitBtn = document.getElementById('event-submit-btn') as HTMLButtonElement;
+  const deleteBtn = document.getElementById('event-delete-btn') as HTMLButtonElement | null;
+  const mode = form.dataset.mode;
+  const eventId = form.dataset.eventId ? Number(form.dataset.eventId) : null;
+
+  const eventDateInput = document.getElementById('event-date') as HTMLInputElement;
+  const deadlineInput = document.getElementById('event-deadline') as HTMLInputElement;
+
+  // Auto-generate slug from title (only on create, and only if user hasn't customized)
+  let slugCustomized = mode === 'edit';
+  slugInput.addEventListener('input', () => { slugCustomized = true; });
+  titleInput.addEventListener('input', () => {
+    if (!slugCustomized) {
+      slugInput.value = generateSlug(titleInput.value);
+    }
+  });
+
+  // Default deadline to 2 weeks before event date (only if deadline is empty or was auto-set)
+  let deadlineCustomized = mode === 'edit';
+  deadlineInput.addEventListener('input', () => { deadlineCustomized = true; });
+  eventDateInput.addEventListener('change', () => {
+    if (!deadlineCustomized && eventDateInput.value) {
+      const eventDate = new Date(eventDateInput.value);
+      deadlineInput.value = subtractDays(eventDate, 14);
+    }
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    submitBtn.disabled = true;
+    hideFormMessage(messageEl);
+
+    const data: Record<string, unknown> = {
+      title: (form.querySelector('[name="title"]') as HTMLInputElement).value,
+      slug: (form.querySelector('[name="slug"]') as HTMLInputElement).value || undefined,
+      theme: (form.querySelector('[name="theme"]') as HTMLInputElement).value || null,
+      eventDate: (form.querySelector('[name="eventDate"]') as HTMLInputElement).value,
+      submissionDeadline: (form.querySelector('[name="submissionDeadline"]') as HTMLInputElement).value,
+      status: (form.querySelector('[name="status"]') as HTMLSelectElement).value,
+    };
+
+    if (mode === 'edit') data.id = eventId;
+
+    try {
+      const url = mode === 'edit' ? '/admin/api/events/update' : '/admin/api/events/create';
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Failed to save event');
+
+      if (mode === 'create') {
+        window.location.href = `/admin/events/${result.id}`;
+      } else {
+        showFormMessage(messageEl, 'Event updated successfully', 'success');
+      }
+    } catch (err) {
+      showFormMessage(messageEl, err instanceof Error ? err.message : 'Something went wrong', 'error');
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  deleteBtn?.addEventListener('click', async () => {
+    if (!confirm('Are you sure you want to delete this event?')) return;
+    deleteBtn.disabled = true;
+
+    try {
+      const res = await fetch('/admin/api/events/update', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: eventId }),
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Failed to delete event');
+
+      window.location.href = '/admin/events';
+    } catch (err) {
+      showFormMessage(messageEl, err instanceof Error ? err.message : 'Something went wrong', 'error');
+      deleteBtn.disabled = false;
+    }
+  });
+</script>
+
+<style>
+  .event-form {
+    max-width: 800px;
+  }
+
+  .form-row {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .form-row .form-group {
+    flex: 1;
+  }
+
+  .flex-2 {
+    flex: 2 !important;
+  }
+
+  .flex-1 {
+    flex: 1 !important;
+  }
+
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+
+  label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+  }
+
+  input[type="text"],
+  input[type="datetime-local"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    font-family: inherit;
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  .required {
+    color: #dc2626;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .btn-danger {
+    background: #dc2626;
+  }
+
+  .btn-danger:hover {
+    background: #b91c1c;
+  }
+
+  @media (max-width: 768px) {
+    .form-row {
+      flex-direction: column;
+      gap: 0;
+    }
+  }
+</style>

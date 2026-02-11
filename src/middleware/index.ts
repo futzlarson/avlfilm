@@ -4,7 +4,7 @@ import { logError } from '@lib/rollbar';
 // Astro built-ins
 import { defineMiddleware } from 'astro:middleware';
 
-const PROTECTED_USER_ROUTES = ['/account/profile'];
+const PROTECTED_USER_ROUTES = ['/account/profile', '/account/submissions'];
 
 export const onRequest = defineMiddleware(async (context, next) => {
   try {

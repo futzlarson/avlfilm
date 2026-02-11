@@ -9,6 +9,7 @@ import * as filmmakerSubmissionEmail from '@emails/filmmaker-submission';
 import * as passwordResetEmail from '@emails/password-reset';
 import type { ProductionCompanySubmission } from '@emails/production-company-submission';
 import * as productionCompanySubmissionEmail from '@emails/production-company-submission';
+import * as requestFileEmail from '@emails/request-file';
 import { errorResponse, successResponse } from '@lib/api';
 import { requireAdmin } from '@lib/auth';
 // Astro types
@@ -62,7 +63,7 @@ function getEmailSubject(type: EmailType): string {
 /**
  * Generates email HTML for a given type
  */
-function generateEmailHtml(type: EmailType, origin: string): string {
+function generateEmailHtml(type: EmailType, origin: string, scenario?: string): string {
   switch (type) {
     case 'approval':
       return approvalEmail.generate(
@@ -95,6 +96,32 @@ function generateEmailHtml(type: EmailType, origin: string): string {
         'https://github.com/username/avlfilm/actions/runs/123456789'
       );
 
+    case 'requestFile': {
+      // Default to 'not-in-directory' if no scenario specified
+      const fileScenario = scenario || 'not-in-directory';
+
+      let claimProfileUrl = null;
+      let signupUrl = null;
+
+      if (fileScenario === 'unclaimed') {
+        claimProfileUrl = `${origin}/account/claim-profile?email=${encodeURIComponent('jane.smith@example.com')}`;
+      } else if (fileScenario === 'not-in-directory') {
+        signupUrl = `${origin}/submit?email=${encodeURIComponent('jane.smith@example.com')}&name=${encodeURIComponent('Jane Smith')}`;
+      }
+      // For 'claimed' scenario, both are null (shows normal "Provide Video Link" button)
+
+      return requestFileEmail.generate(
+        'Jane Smith',
+        'Mountain Memories',
+        'May 2026 Spotlight',
+        'Friday, May 15, 2026',
+        'Friday, May 8, 2026',
+        `${origin}/account/submissions`,
+        claimProfileUrl,
+        signupUrl
+      );
+    }
+
     default:
       throw new Error('Invalid email type');
   }
@@ -109,13 +136,14 @@ export const GET: APIRoute = async (context) => {
   }
 
   const type = context.url.searchParams.get('type') as EmailType;
+  const scenario = context.url.searchParams.get('scenario') || undefined;
   const { origin } = context.url;
 
   if (!type || !emails[type]) {
     return errorResponse('Invalid email type');
   }
 
-  const emailHtml = generateEmailHtml(type, origin);
+  const emailHtml = generateEmailHtml(type, origin, scenario);
   const subject = getEmailSubject(type);
 
   // Wrap email with a "Send Test Email" button at the top
@@ -186,11 +214,39 @@ export const GET: APIRoute = async (context) => {
           border-radius: 8px;
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
+        .scenario-selector {
+          margin-top: 12px;
+        }
+        .scenario-selector label {
+          font-size: 14px;
+          color: #4b5563;
+          margin-right: 8px;
+          font-weight: 500;
+        }
+        .scenario-selector select {
+          padding: 6px 12px;
+          border: 1px solid #d1d5db;
+          border-radius: 6px;
+          font-size: 14px;
+          color: #1f2937;
+          background: white;
+          cursor: pointer;
+        }
       </style>
     </head>
     <body>
       <div class="preview-header">
         <h1>${subject}</h1>
+        ${type === 'requestFile' ? `
+        <div class="scenario-selector">
+          <label for="scenario">Scenario:</label>
+          <select id="scenario" onchange="changeScenario(this.value)">
+            <option value="claimed" ${scenario === 'claimed' ? 'selected' : ''}>Filmmaker has claimed account</option>
+            <option value="unclaimed" ${scenario === 'unclaimed' ? 'selected' : ''}>In directory, unclaimed account</option>
+            <option value="not-in-directory" ${!scenario || scenario === 'not-in-directory' ? 'selected' : ''}>Not in directory</option>
+          </select>
+        </div>
+        ` : ''}
       </div>
 
       <div class="preview-controls">
@@ -203,6 +259,12 @@ export const GET: APIRoute = async (context) => {
       </div>
 
         <script>
+          function changeScenario(scenario) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('scenario', scenario);
+            window.location.href = url.toString();
+          }
+
           async function sendTestEmail() {
             const btn = document.querySelector('.send-test-btn');
             const status = document.getElementById('status');

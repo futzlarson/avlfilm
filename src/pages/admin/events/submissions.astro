@@ -1,0 +1,278 @@
+---
+// Internal imports
+import { db } from '@db';
+import { spotlightEvents, submissions, reviews } from '@db/schema';
+import { formatDuration, calculateTotalRuntime } from '@lib/film-utils';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import AdminNav from '@components/AdminNav.astro';
+
+// External packages
+import { eq, desc, count, sql } from 'drizzle-orm';
+
+// Get selected filters from query params
+const selectedEventId = Astro.url.searchParams.get('event');
+const selectedStatus = Astro.url.searchParams.get('status') || 'all';
+
+// Build submission query (conditionally filtered)
+let submissionsQuery = db
+  .select()
+  .from(submissions)
+  .orderBy(desc(submissions.createdAt))
+  .$dynamic();
+
+if (selectedEventId) {
+  submissionsQuery = submissionsQuery.where(eq(submissions.eventId, Number(selectedEventId)));
+}
+
+// Run all queries in parallel
+const [allEvents, allSubmissions, reviewSummaries] = await Promise.all([
+  db.select({
+    id: spotlightEvents.id,
+    title: spotlightEvents.title,
+  })
+  .from(spotlightEvents)
+  .orderBy(desc(spotlightEvents.eventDate)),
+
+  submissionsQuery,
+
+  db.select({
+    submissionId: reviews.submissionId,
+    totalVotes: count(reviews.vote),
+    upVotes: sql<number>`count(case when ${reviews.vote} = 'up' then 1 end)`,
+    downVotes: sql<number>`count(case when ${reviews.vote} = 'down' then 1 end)`,
+  })
+  .from(reviews)
+  .groupBy(reviews.submissionId),
+]);
+
+// Filter by status client-side if needed (simpler for small datasets)
+const filteredSubmissions = selectedStatus === 'all'
+  ? allSubmissions
+  : allSubmissions.filter(s => s.status === selectedStatus);
+
+// Calculate stats
+const stats = {
+  total: allSubmissions.length,
+  pending: allSubmissions.filter(s => s.status === 'pending').length,
+  approved: allSubmissions.filter(s => s.status === 'approved').length,
+  rejected: allSubmissions.filter(s => s.status === 'rejected').length,
+  future: allSubmissions.filter(s => s.status === 'future').length,
+};
+
+const approvedSubs = allSubmissions.filter(s => s.status === 'approved');
+const totalRuntime = calculateTotalRuntime(approvedSubs);
+
+const reviewMap = new Map(reviewSummaries.map(r => [r.submissionId, r]));
+---
+
+<BaseLayout title="Admin - Submissions">
+  <div class="admin-header">
+    <h1>Admin</h1>
+  </div>
+
+  <AdminNav currentPage="submissions" />
+
+  <div class="admin-section">
+    <h2 style="margin-top: 0; margin-bottom: 1rem">Submission Review</h2>
+
+    <!-- Filters -->
+    <div class="filters">
+      <div class="filter-group">
+        <label for="event-filter">Event:</label>
+        <select id="event-filter">
+          <option value="">All Events</option>
+          {allEvents.map((ev) => (
+            <option value={ev.id} selected={selectedEventId === String(ev.id)}>{ev.title}</option>
+          ))}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="status-filter">Status:</label>
+        <select id="status-filter">
+          {['all', 'pending', 'approved', 'rejected', 'future'].map((s) => (
+            <option value={s} selected={selectedStatus === s}>{s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}</option>
+          ))}
+        </select>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    {selectedEventId && (
+      <div class="stats-bar">
+        <div class="stat">Total: <strong>{stats.total}</strong></div>
+        <div class="stat pending">Pending: <strong>{stats.pending}</strong></div>
+        <div class="stat approved">Approved: <strong>{stats.approved}</strong> ({formatDuration(totalRuntime)})</div>
+        <div class="stat rejected">Rejected: <strong>{stats.rejected}</strong></div>
+        <div class="stat future">Future: <strong>{stats.future}</strong></div>
+      </div>
+    )}
+
+    <!-- Submissions Table -->
+    {filteredSubmissions.length === 0 ? (
+      <div class="empty-state">No submissions found.</div>
+    ) : (
+      <table class="submissions-table">
+        <thead>
+          <tr>
+            <th>Film Title</th>
+            <th>Filmmaker</th>
+            <th>Genre</th>
+            <th>Length</th>
+            <th>Status</th>
+            <th>Notes</th>
+            <th>Votes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredSubmissions.map((sub) => {
+            const rv = reviewMap.get(sub.id);
+            return (
+              <tr>
+                <td class="title-cell"><a href={`/admin/events/reviews?id=${sub.id}`}>{sub.filmTitle}</a></td>
+                <td><a href={`mailto:${sub.submitterEmail}`}>{sub.submitterName}</a></td>
+                <td>{sub.filmGenre === 'Other' ? sub.filmGenreOther : sub.filmGenre}</td>
+                <td>{formatDuration(sub.filmLength)}</td>
+                <td><span class={`status-badge ${sub.status}`}>{sub.status}</span></td>
+                <td class="notes-cell">{sub.adminNotes || '—'}</td>
+                <td class="votes-cell">
+                  {rv ? (
+                    <span>{rv.upVotes} up / {rv.downVotes} down</span>
+                  ) : (
+                    <span class="no-votes">—</span>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    )}
+  </div>
+
+</BaseLayout>
+
+<script>
+  // Filter navigation
+  const eventFilter = document.getElementById('event-filter') as HTMLSelectElement;
+  const statusFilter = document.getElementById('status-filter') as HTMLSelectElement;
+
+  function applyFilters() {
+    const params = new URLSearchParams();
+    if (eventFilter.value) params.set('event', eventFilter.value);
+    if (statusFilter.value && statusFilter.value !== 'all') params.set('status', statusFilter.value);
+    window.location.search = params.toString();
+  }
+
+  eventFilter.addEventListener('change', applyFilters);
+  statusFilter.addEventListener('change', applyFilters);
+</script>
+
+<style>
+  .filters {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .filter-group label {
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .filter-group select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: var(--radius-md);
+    font-family: inherit;
+  }
+
+  .stats-bar {
+    display: flex;
+    gap: 1.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--color-bg-subtle);
+    border-radius: var(--radius-md);
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+  }
+
+  .submissions-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .submissions-table th,
+  .submissions-table td {
+    padding: 0.65rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .submissions-table th {
+    font-weight: 600;
+    color: #6b7280;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .title-cell {
+    font-weight: 500;
+  }
+
+  .votes-cell {
+    font-size: 0.85rem;
+    color: #6b7280;
+  }
+
+  .notes-cell {
+    font-size: 0.85rem;
+    color: #6b7280;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .no-votes {
+    color: #9ca3af;
+    font-style: italic;
+  }
+
+  .btn-sm {
+    display: inline-block;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.85rem;
+    background: var(--color-bg-subtle);
+    border: 1px solid #d1d5db;
+    border-radius: var(--radius-md);
+    color: #374151;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .btn-sm:hover { background: #e5e7eb; }
+
+  .submissions-table td a {
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+
+  .submissions-table td a:hover {
+    text-decoration: underline;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #9ca3af;
+  }
+</style>

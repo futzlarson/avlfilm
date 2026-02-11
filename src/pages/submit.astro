@@ -2,6 +2,10 @@
 // Internal imports
 import BaseLayout from '@layouts/BaseLayout.astro';
 import FilmmakerForm from '@components/FilmmakerForm.astro';
+
+// Get email and name from query parameters if provided
+const prefillEmail = Astro.url.searchParams.get('email') || undefined;
+const prefillName = Astro.url.searchParams.get('name') || undefined;
 ---
 
 <BaseLayout
@@ -11,5 +15,5 @@ import FilmmakerForm from '@components/FilmmakerForm.astro';
   <h1>Add Yourself to the Filmmaker Directory</h1>
   <p class="intro">Join the AVL Film community! Fill out the form below to be listed in our filmmaker directory. Or if you are already listed, use that email and you'll be able to claim that profile.</p>
 
-  <FilmmakerForm mode="create" />
+  <FilmmakerForm mode="create" prefillEmail={prefillEmail} prefillName={prefillName} />
 </BaseLayout>

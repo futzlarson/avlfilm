@@ -1,0 +1,206 @@
+---
+// Internal imports
+import { db } from '@db';
+import { spotlightEvents, submissions } from '@db/schema';
+import { formatDate, DATE_SHORT } from '@lib/datetime';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import AdminNav from '@components/AdminNav.astro';
+import EventForm from '@components/admin/EventForm.astro';
+
+// External packages
+import { desc, eq, count } from 'drizzle-orm';
+
+// Fetch all spotlight events with submission counts
+const eventsWithCounts = await db
+  .select({
+    id: spotlightEvents.id,
+    title: spotlightEvents.title,
+    slug: spotlightEvents.slug,
+    theme: spotlightEvents.theme,
+    eventDate: spotlightEvents.eventDate,
+    submissionDeadline: spotlightEvents.submissionDeadline,
+    status: spotlightEvents.status,
+    submissionCount: count(submissions.id),
+  })
+  .from(spotlightEvents)
+  .leftJoin(submissions, eq(submissions.eventId, spotlightEvents.id))
+  .groupBy(spotlightEvents.id)
+  .orderBy(desc(spotlightEvents.eventDate));
+---
+
+<BaseLayout title="Admin - Spotlight Events">
+  <div class="admin-header">
+    <h1>Admin</h1>
+  </div>
+
+  <AdminNav currentPage="spotlight" />
+
+  <div class="admin-section">
+    <div class="section-header">
+      <h2 style="margin: 0">Spotlight Events</h2>
+      <button class="btn-primary" id="toggle-create-btn">Create New Event</button>
+    </div>
+
+    <div id="create-form-wrapper" style="display: none;">
+      <EventForm mode="create" />
+      <hr />
+    </div>
+
+    {eventsWithCounts.length === 0 ? (
+      <div class="empty-state">
+        No spotlight events yet. Create your first one above.
+      </div>
+    ) : (
+      <table class="events-table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Theme</th>
+            <th>Event Date</th>
+            <th>Deadline</th>
+            <th>Status</th>
+            <th>Submissions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {eventsWithCounts.map((event) => (
+            <tr>
+              <td>
+                <a href={`/admin/events/${event.id}`}>{event.title}</a>
+              </td>
+              <td>{event.theme || '—'}</td>
+              <td>{formatDate(event.eventDate, DATE_SHORT)}</td>
+              <td>
+                {formatDate(event.submissionDeadline, DATE_SHORT)}
+                {new Date() > event.submissionDeadline && <span class="badge-closed">Closed</span>}
+              </td>
+              <td>
+                <span class={`status-badge ${event.status}`}>{event.status}</span>
+              </td>
+              <td>
+                <a href={`/admin/events/submissions?event=${event.id}`} class="btn-sm submissions-btn">
+                  {event.submissionCount}
+                </a>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )}
+  </div>
+</BaseLayout>
+
+<script>
+  const toggleBtn = document.getElementById('toggle-create-btn') as HTMLButtonElement;
+  const wrapper = document.getElementById('create-form-wrapper') as HTMLDivElement;
+
+  toggleBtn.addEventListener('click', () => {
+    const isHidden = wrapper.style.display === 'none';
+    wrapper.style.display = isHidden ? 'block' : 'none';
+    toggleBtn.textContent = isHidden ? 'Cancel' : 'Create New Event';
+  });
+</script>
+
+<style>
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .events-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .events-table th,
+  .events-table td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .events-table th {
+    font-weight: 600;
+    color: #6b7280;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .events-table a {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .events-table a:hover {
+    text-decoration: underline;
+  }
+
+  .submissions-btn {
+    display: inline-block;
+    min-width: 2rem;
+    text-align: center;
+    font-weight: 600;
+  }
+
+  .submissions-btn:hover {
+    text-decoration: none !important;
+  }
+
+  .badge-closed {
+    display: inline-block;
+    font-size: 0.7rem;
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 0.1rem 0.4rem;
+    border-radius: 999px;
+    margin-left: 0.35rem;
+    font-weight: 600;
+  }
+
+  .btn-sm {
+    padding: 0.3rem 0.75rem;
+    font-size: 0.85rem;
+    background: var(--color-bg-subtle);
+    border: 1px solid #d1d5db;
+    border-radius: var(--radius-md);
+    color: #374151;
+    text-decoration: none;
+  }
+
+  .btn-sm:hover {
+    background: #e5e7eb;
+    text-decoration: none !important;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #9ca3af;
+  }
+
+  #create-form-wrapper {
+    background: var(--color-bg-subtle);
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    margin-bottom: 1.5rem;
+  }
+
+  hr {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    .events-table {
+      font-size: 0.9rem;
+    }
+
+    .events-table th,
+    .events-table td {
+      padding: 0.5rem;
+    }
+  }
+</style>

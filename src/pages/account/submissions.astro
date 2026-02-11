@@ -1,0 +1,510 @@
+---
+// Internal imports
+import { db } from '@db';
+import { submissions, spotlightEvents } from '@db/schema';
+import { formatDuration } from '@lib/film-utils';
+import { formatDate, DATE_SHORT, DATE_LONG } from '@lib/datetime';
+import { findUserById } from '@lib/auth';
+import BaseLayout from '@layouts/BaseLayout.astro';
+
+// External packages
+import { eq, desc } from 'drizzle-orm';
+
+const user = Astro.locals.user;
+if (!user) {
+  return Astro.redirect('/account/login?redirect=/account/submissions');
+}
+
+const filmmaker = await findUserById(user.userId);
+if (!filmmaker) {
+  return Astro.redirect('/account/login');
+}
+
+// Fetch all submissions by this filmmaker (via filmmakerId link)
+const mySubmissions = await db
+  .select({
+    id: submissions.id,
+    filmTitle: submissions.filmTitle,
+    filmGenre: submissions.filmGenre,
+    filmLength: submissions.filmLength,
+    status: submissions.status,
+    fullResVideoUrl: submissions.fullResVideoUrl,
+    createdAt: submissions.createdAt,
+    eventTitle: spotlightEvents.title,
+    eventSlug: spotlightEvents.slug,
+    eventDate: spotlightEvents.eventDate,
+  })
+  .from(submissions)
+  .innerJoin(spotlightEvents, eq(submissions.eventId, spotlightEvents.id))
+  .where(eq(submissions.filmmakerId, user.userId))
+  .orderBy(desc(submissions.createdAt));
+
+// Group by event
+const groupedByEvent = new Map<string, typeof mySubmissions>();
+for (const sub of mySubmissions) {
+  const key = sub.eventTitle;
+  if (!groupedByEvent.has(key)) groupedByEvent.set(key, []);
+  groupedByEvent.get(key)!.push(sub);
+}
+
+function displayStatus(status: string): string {
+  switch (status) {
+    case 'approved': return 'Accepted';
+    case 'rejected': return 'Not selected';
+    case 'future': return 'Under consideration for future events';
+    case 'pending': return 'Under review';
+    default: return status;
+  }
+}
+---
+
+<BaseLayout
+  title="My Submissions"
+  description="View your film submission history."
+>
+  <h1>My Submissions</h1>
+  <p class="intro">Track the status of your film submissions. <a href="/account/profile">Edit your profile</a></p>
+
+  {mySubmissions.length === 0 ? (
+    <div class="empty-state">
+      <p>You haven't submitted any films yet.</p>
+    </div>
+  ) : (
+    <div class="submissions-list">
+      {[...groupedByEvent.entries()].map(([eventTitle, subs]) => (
+        <div class="event-group">
+          <h2 class="event-group-title">{eventTitle}</h2>
+          {subs.map((sub) => (
+            <div class="submission-card">
+              <div class="submission-header">
+                <h3>{sub.filmTitle}</h3>
+                <span class={`status-badge ${sub.status}`}>{displayStatus(sub.status)}</span>
+              </div>
+              <div class="submission-meta">
+                <div class="meta-item">
+                  <svg class="meta-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M6 2V4M10 2V4" stroke="currentColor" stroke-width="1.5"/>
+                  </svg>
+                  <span class="meta-label">Genre</span>
+                  <span class="meta-value">{sub.filmGenre}</span>
+                </div>
+                <div class="meta-item">
+                  <svg class="meta-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M8 5V8L10.5 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  </svg>
+                  <span class="meta-label">Runtime</span>
+                  <span class="meta-value">{formatDuration(sub.filmLength)}</span>
+                </div>
+                <div class="meta-item">
+                  <svg class="meta-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="2" y="3" width="12" height="11" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M2 6H14" stroke="currentColor" stroke-width="1.5"/>
+                    <circle cx="5" cy="9" r="0.5" fill="currentColor"/>
+                    <circle cx="8" cy="9" r="0.5" fill="currentColor"/>
+                  </svg>
+                  <span class="meta-label">Submitted</span>
+                  <span class="meta-value">{formatDate(sub.createdAt, DATE_SHORT)}</span>
+                </div>
+              </div>
+              {sub.status === 'approved' && (
+                <>
+                  <p class="status-message approved-message">
+                    This film will be shown on {formatDate(sub.eventDate, DATE_LONG)}.
+                  </p>
+                  <div class="video-upload-section">
+                    <label for={`video-url-${sub.id}`} class="upload-label">
+                      <strong>Full-Resolution Video Link</strong>
+                      <span class="upload-hint">Please provide a link to your full-resolution video as an <strong>mp4 or mov file, 1080 or higher</strong>. Google Drive, Dropbox, etc.</span>
+                    </label>
+                    <div class="upload-input-group">
+                      <input
+                        type="url"
+                        id={`video-url-${sub.id}`}
+                        class="video-url-input"
+                        placeholder="https://drive.google.com/file/d/..."
+                        value={sub.fullResVideoUrl || ''}
+                        data-submission-id={sub.id}
+                      />
+                      <button
+                        class="save-url-btn"
+                        data-submission-id={sub.id}
+                        type="button"
+                      >
+                        Save
+                      </button>
+                    </div>
+                    <div id={`url-message-${sub.id}`} class="url-message" style="display: none;"></div>
+                  </div>
+                </>
+              )}
+              {sub.status === 'rejected' && (
+                <p class="status-message">Not selected for this event.</p>
+              )}
+              {sub.status === 'future' && (
+                <p class="status-message">We'll keep this in mind for future events.</p>
+              )}
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  )}
+</BaseLayout>
+
+<script>
+  import { showFormMessage, hideFormMessage } from '@lib/form-utils';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const saveButtons = document.querySelectorAll<HTMLButtonElement>('.save-url-btn');
+
+    saveButtons.forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const submissionId = btn.getAttribute('data-submission-id');
+        const input = document.getElementById(`video-url-${submissionId}`) as HTMLInputElement;
+        const messageEl = document.getElementById(`url-message-${submissionId}`) as HTMLDivElement;
+        const url = input.value.trim();
+
+        if (!url) {
+          showFormMessage(messageEl, 'Please enter a URL', 'error');
+          messageEl.className = 'url-message error'; // Maintain url-message prefix
+          return;
+        }
+
+        // Basic URL validation
+        try {
+          new URL(url);
+        } catch {
+          showFormMessage(messageEl, 'Please enter a valid URL', 'error');
+          messageEl.className = 'url-message error'; // Maintain url-message prefix
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+
+        try {
+          const res = await fetch('/api/submissions/update-video-url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ submissionId: Number(submissionId), url }),
+          });
+
+          const result = await res.json();
+
+          if (!res.ok) {
+            throw new Error(result.error || 'Failed to save URL');
+          }
+
+          showFormMessage(messageEl, 'Video link saved successfully!', 'success');
+          messageEl.className = 'url-message success'; // Maintain url-message prefix
+
+          setTimeout(() => {
+            hideFormMessage(messageEl);
+          }, 3000);
+        } catch (err) {
+          showFormMessage(messageEl, err instanceof Error ? err.message : 'Failed to save URL', 'error');
+          messageEl.className = 'url-message error'; // Maintain url-message prefix
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Save';
+        }
+      });
+    });
+  });
+</script>
+
+<style>
+  .intro {
+    max-width: 42rem;
+    margin-bottom: 2rem;
+    color: #6b7280;
+    line-height: 1.6;
+  }
+
+  .intro a {
+    color: var(--color-accent);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .intro a:hover {
+    text-decoration: underline;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #9ca3af;
+    background: #f9fafb;
+    border-radius: var(--radius-lg);
+    border: 2px dashed #e5e7eb;
+  }
+
+  .empty-state p {
+    font-size: 1.05rem;
+    margin: 0;
+  }
+
+  .submissions-list {
+    max-width: 56rem;
+  }
+
+  .event-group {
+    margin-bottom: 3rem;
+  }
+
+  .event-group-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e5e7eb;
+    letter-spacing: -0.01em;
+  }
+
+  .submission-card {
+    padding: 1.5rem;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: var(--radius-lg);
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+  }
+
+  .submission-card:hover {
+    box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.08);
+    border-color: #d1d5db;
+  }
+
+  .submission-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .submission-header h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #111827;
+    line-height: 1.4;
+    flex: 1;
+  }
+
+  .submission-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: #f9fafb;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+  }
+
+  .meta-icon {
+    color: #9ca3af;
+    flex-shrink: 0;
+  }
+
+  .meta-label {
+    color: #6b7280;
+    font-weight: 500;
+    font-size: 0.8125rem;
+  }
+
+  .meta-label::after {
+    content: ':';
+    margin-left: 0.125rem;
+  }
+
+  .meta-value {
+    color: #111827;
+    font-weight: 600;
+  }
+
+  /* Override global status-badge with fancier user-facing styles */
+  .status-badge {
+    padding: 0.35rem 0.85rem;
+    font-size: 0.8125rem;
+    white-space: nowrap;
+    letter-spacing: 0.01em;
+    flex-shrink: 0;
+  }
+
+  .status-badge.pending {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    box-shadow: 0 1px 2px rgba(146, 64, 14, 0.1);
+  }
+
+  .status-badge.approved {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    box-shadow: 0 1px 2px rgba(6, 95, 70, 0.1);
+  }
+
+  .status-badge.rejected {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    box-shadow: 0 1px 2px rgba(153, 27, 27, 0.1);
+  }
+
+  .status-badge.future {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    box-shadow: 0 1px 2px rgba(30, 64, 175, 0.1);
+  }
+
+  .status-message {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin-top: 0.75rem;
+    margin-bottom: 0;
+    padding: 0.75rem 1rem;
+    background: #f9fafb;
+    border-radius: var(--radius-md);
+    border-left: 3px solid #e5e7eb;
+    line-height: 1.5;
+  }
+
+  .approved-message {
+    color: #065f46;
+    font-weight: 500;
+    background: #ecfdf5;
+    border-left-color: #10b981;
+  }
+
+  .video-upload-section {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f0fdf4;
+    border-radius: var(--radius-md);
+    border: 1px solid #bbf7d0;
+  }
+
+  .upload-label {
+    display: block;
+    margin-bottom: 0.75rem;
+  }
+
+  .upload-label strong {
+    display: block;
+    color: #065f46;
+    margin-bottom: 0.25rem;
+    font-size: 0.95rem;
+  }
+
+  .upload-hint {
+    display: block;
+    color: #16a34a;
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+
+  .upload-hint strong {
+    display: inline;
+    font-weight: 700;
+    font-size: inherit;
+  }
+
+  .upload-input-group {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .video-url-input {
+    flex: 1;
+    padding: 0.65rem 0.85rem;
+    border: 1px solid #bbf7d0;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    font-family: inherit;
+    background: white;
+  }
+
+  .video-url-input:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+  }
+
+  .save-url-btn {
+    padding: 0.65rem 1.25rem;
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+
+  .save-url-btn:hover {
+    background: #059669;
+  }
+
+  .save-url-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+  }
+
+  .url-message {
+    margin-top: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+  }
+
+  .url-message.success {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #6ee7b7;
+  }
+
+  .url-message.error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+  }
+
+  @media (max-width: 768px) {
+    .submission-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .submission-meta {
+      flex-direction: column;
+      gap: 0.5rem;
+      width: 100%;
+    }
+
+    .meta-item {
+      width: 100%;
+    }
+
+    .event-group-title {
+      font-size: 1.1rem;
+    }
+
+    .upload-input-group {
+      flex-direction: column;
+    }
+
+    .save-url-btn {
+      width: 100%;
+    }
+  }
+</style>

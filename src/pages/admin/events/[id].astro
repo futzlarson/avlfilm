@@ -1,0 +1,109 @@
+---
+// Internal imports
+import { db } from '@db';
+import { spotlightEvents, submissions } from '@db/schema';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import AdminNav from '@components/AdminNav.astro';
+import EventForm from '@components/admin/EventForm.astro';
+
+// External packages
+import { eq, count } from 'drizzle-orm';
+
+const { id } = Astro.params;
+
+if (!id || isNaN(Number(id))) {
+  return Astro.redirect('/admin/events');
+}
+
+// Fetch event and submission count in parallel
+const [eventResult, [subCount]] = await Promise.all([
+  db.select()
+    .from(spotlightEvents)
+    .where(eq(spotlightEvents.id, Number(id))),
+  db.select({ value: count() })
+    .from(submissions)
+    .where(eq(submissions.eventId, Number(id))),
+]);
+
+const [event] = eventResult;
+
+if (!event) {
+  return Astro.redirect('/admin/events');
+}
+
+const submissionCount = subCount?.value || 0;
+const submissionUrl = `/events/${event.slug}/submit`;
+---
+
+<BaseLayout title={`Edit - ${event.title}`}>
+  <div class="admin-header">
+    <h1>Admin</h1>
+  </div>
+
+  <AdminNav currentPage="spotlight" />
+
+  <div class="admin-section">
+    <div class="section-header">
+      <h2 style="margin: 0">Edit Event: {event.title}</h2>
+      <a href="/admin/events" class="btn-sm">&larr; Back to Events</a>
+    </div>
+
+    <div class="event-meta">
+      <div class="meta-item">
+        <span class="meta-label">Submissions:</span>
+        {submissionCount > 0 ? (
+          <a href={`/admin/events/submissions?event=${event.id}`}>{submissionCount} submissions</a>
+        ) : (
+          <span>0 submissions</span>
+        )}
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Submission URL:</span>
+        <a href={submissionUrl} target="_blank">{submissionUrl}</a>
+      </div>
+    </div>
+
+    <EventForm mode="edit" event={event} />
+  </div>
+</BaseLayout>
+
+<style>
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .btn-sm {
+    padding: 0.4rem 0.85rem;
+    font-size: 0.85rem;
+    background: var(--color-bg-subtle);
+    border: 1px solid #d1d5db;
+    border-radius: var(--radius-md);
+    color: #374151;
+    text-decoration: none;
+  }
+
+  .btn-sm:hover {
+    background: #e5e7eb;
+  }
+
+  .event-meta {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: var(--color-bg-subtle);
+    border-radius: var(--radius-md);
+  }
+
+  .meta-label {
+    font-weight: 600;
+    margin-right: 0.5rem;
+  }
+
+  .event-meta a {
+    color: var(--color-primary);
+  }
+</style>

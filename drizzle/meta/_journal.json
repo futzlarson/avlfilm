@@ -64,6 +64,27 @@
       "when": 1769270400000,
       "tag": "0008_add_auth_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1770422400000,
+      "tag": "0009_create_submission_system",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1770508800000,
+      "tag": "0010_remove_description_from_spotlight_events",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1770595200000,
+      "tag": "0011_add_full_res_video_url",
+      "breakpoints": true
     }
   ]
 }

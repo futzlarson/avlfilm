@@ -7,9 +7,11 @@ interface Props {
   mode: 'create' | 'edit';
   filmmaker?: Filmmaker;
   existingRoles?: string[];
+  prefillEmail?: string;
+  prefillName?: string;
 }
 
-const { mode, filmmaker, existingRoles = [] } = Astro.props;
+const { mode, filmmaker, existingRoles = [], prefillEmail, prefillName } = Astro.props;
 const isEdit = mode === 'edit';
 
 const { roleAliasMap, canonicalRoles } = buildRoleData();
@@ -25,7 +27,7 @@ const { roleAliasMap, canonicalRoles } = buildRoleData();
       </>
     ) : (
       <>
-        <input type="email" id="email" name="email" required />
+        <input type="email" id="email" name="email" required value={prefillEmail || ''} />
         <div id="email-status" class="email-status" style="display: none;"></div>
       </>
     )}
@@ -33,7 +35,7 @@ const { roleAliasMap, canonicalRoles } = buildRoleData();
 
   <div class="form-group">
     <label for="name">Name <span class="required">*</span></label>
-    <input type="text" id="name" name="name" required value={isEdit ? filmmaker?.name : ''} />
+    <input type="text" id="name" name="name" required value={isEdit ? filmmaker?.name : (prefillName || '')} />
   </div>
 
   <div class="form-group">

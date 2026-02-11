@@ -985,3 +985,51 @@ footer {
     margin-bottom: 1.5rem;
   }
 }
+
+/* ==========================================================================
+   STATUS BADGES
+   ========================================================================== */
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+/* Submission statuses */
+.status-badge.pending { background: #fef3c7; color: #92400e; }
+.status-badge.approved { background: #d1fae5; color: #065f46; }
+.status-badge.rejected { background: #fee2e2; color: #991b1b; }
+.status-badge.future { background: #dbeafe; color: #1e40af; }
+
+/* Event statuses */
+.status-badge.upcoming { background: #dbeafe; color: #1e40af; }
+.status-badge.reviewing { background: #fef3c7; color: #92400e; }
+.status-badge.scheduled { background: #d1fae5; color: #065f46; }
+.status-badge.past { background: #f3f4f6; color: #6b7280; }
+
+/* ==========================================================================
+   FORM MESSAGES
+   ========================================================================== */
+
+.form-message {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1rem;
+}
+
+.form-message.error {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.form-message.success {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}

@@ -225,6 +225,7 @@ const jsonLd = upcomingEvents.length > 0
 
     // Event Modal functionality
     import { setupModal } from '@lib/modal';
+    import { showFormMessage } from '@lib/form-utils';
 
     function setupEventModal() {
       const openBtn = document.getElementById('submit-event-btn');
@@ -312,23 +313,17 @@ const jsonLd = upcomingEvents.length > 0
           const result = await response.json();
 
           if (response.ok) {
-            messageDiv.textContent = 'Thank you! Your event submission has been sent. We\'ll review it and add it to the calendar.';
-            messageDiv.className = 'success';
-            messageDiv.style.display = 'block';
+            showFormMessage(messageDiv, 'Thank you! Your event submission has been sent. We\'ll review it and add it to the calendar.', 'success');
             form.reset();
 
             setTimeout(() => {
               close();
             }, 3000);
           } else {
-            messageDiv.textContent = result.error || 'Failed to submit event. Please try again.';
-            messageDiv.className = 'error';
-            messageDiv.style.display = 'block';
+            showFormMessage(messageDiv, result.error || 'Failed to submit event. Please try again.', 'error');
           }
         } catch (error) {
-          messageDiv.textContent = 'An error occurred. Please try again.';
-          messageDiv.className = 'error';
-          messageDiv.style.display = 'block';
+          showFormMessage(messageDiv, 'An error occurred. Please try again.', 'error');
         } finally {
           if (submitBtn) {
             submitBtn.disabled = false;
