@@ -55,20 +55,19 @@ const eventsWithCounts = await db
         <thead>
           <tr>
             <th>Title</th>
-            <th>Theme</th>
             <th>Event Date</th>
             <th>Deadline</th>
             <th>Status</th>
             <th>Submissions</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
           {eventsWithCounts.map((event) => (
             <tr>
               <td>
-                <a href={`/admin/events/${event.id}`}>{event.title}</a>
+                <a href={`/admin/events/submissions?event=${event.id}`}>{event.title}</a>
               </td>
-              <td>{event.theme || '—'}</td>
               <td>{formatDate(event.eventDate, DATE_SHORT)}</td>
               <td>
                 {formatDate(event.submissionDeadline, DATE_SHORT)}
@@ -77,9 +76,12 @@ const eventsWithCounts = await db
               <td>
                 <span class={`status-badge ${event.status}`}>{event.status}</span>
               </td>
+              <td><strong>{event.submissionCount}</strong></td>
               <td>
-                <a href={`/admin/events/submissions?event=${event.id}`} class="btn-sm submissions-btn">
-                  {event.submissionCount}
+                <a href={`/admin/events/${event.id}`} class="edit-btn" title="Edit event">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M11.5 1.5L14.5 4.5M1 15L1.5 11.5L12 1L15 4L4.5 14.5L1 15Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
                 </a>
               </td>
             </tr>
@@ -139,18 +141,7 @@ const eventsWithCounts = await db
     text-decoration: underline;
   }
 
-  .submissions-btn {
-    display: inline-block;
-    min-width: 2rem;
-    text-align: center;
-    font-weight: 600;
-  }
-
-  .submissions-btn:hover {
-    text-decoration: none !important;
-  }
-
-  .badge-closed {
+.badge-closed {
     display: inline-block;
     font-size: 0.7rem;
     background: #fee2e2;
@@ -173,6 +164,22 @@ const eventsWithCounts = await db
 
   .btn-sm:hover {
     background: #e5e7eb;
+    text-decoration: none !important;
+  }
+
+  .edit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.35rem;
+    color: #6b7280;
+    border-radius: var(--radius-md);
+    transition: color 0.15s, background 0.15s;
+  }
+
+  .edit-btn:hover {
+    color: var(--color-primary);
+    background: var(--color-bg-subtle);
     text-decoration: none !important;
   }
 

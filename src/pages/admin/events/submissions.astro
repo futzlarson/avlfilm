@@ -98,12 +98,28 @@ const reviewMap = new Map(reviewSummaries.map(r => [r.submissionId, r]));
 
     <!-- Stats -->
     {selectedEventId && (
-      <div class="stats-bar">
-        <div class="stat">Total: <strong>{stats.total}</strong></div>
-        <div class="stat pending">Pending: <strong>{stats.pending}</strong></div>
-        <div class="stat approved">Approved: <strong>{stats.approved}</strong> ({formatDuration(totalRuntime)})</div>
-        <div class="stat rejected">Rejected: <strong>{stats.rejected}</strong></div>
-        <div class="stat future">Future: <strong>{stats.future}</strong></div>
+      <div class="stats-section">
+        <div class="runtime-display">{formatDuration(totalRuntime)}</div>
+        <table class="stats-table">
+          <thead>
+            <tr>
+              <th>Total</th>
+              <th>Pending</th>
+              <th>Approved</th>
+              <th>Rejected</th>
+              <th>Future</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{stats.total}</td>
+              <td class="pending">{stats.pending}</td>
+              <td class="approved">{stats.approved}</td>
+              <td class="rejected">{stats.rejected}</td>
+              <td class="future">{stats.future}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     )}
 
@@ -129,7 +145,15 @@ const reviewMap = new Map(reviewSummaries.map(r => [r.submissionId, r]));
             return (
               <tr>
                 <td class="title-cell"><a href={`/admin/events/reviews?id=${sub.id}`}>{sub.filmTitle}</a></td>
-                <td><a href={`mailto:${sub.submitterEmail}`}>{sub.submitterName}</a></td>
+                <td>
+                  {sub.submitterName}
+                  <a href={`mailto:${sub.submitterEmail}`} class="email-icon" title={sub.submitterEmail}>
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect x="1.5" y="3" width="13" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+                      <path d="M1.5 5L8 9.5L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </a>
+                </td>
                 <td>{sub.filmGenre === 'Other' ? sub.filmGenreOther : sub.filmGenre}</td>
                 <td>{formatDuration(sub.filmLength)}</td>
                 <td><span class={`status-badge ${sub.status}`}>{sub.status}</span></td>
@@ -193,16 +217,47 @@ const reviewMap = new Map(reviewSummaries.map(r => [r.submissionId, r]));
     font-family: inherit;
   }
 
-  .stats-bar {
+  .stats-section {
     display: flex;
+    align-items: center;
     gap: 1.5rem;
-    padding: 0.75rem 1rem;
-    background: var(--color-bg-subtle);
-    border-radius: var(--radius-md);
     margin-bottom: 1.5rem;
-    flex-wrap: wrap;
-    font-size: 0.9rem;
   }
+
+  .runtime-display {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .stats-table {
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  .stats-table th {
+    padding: 0.25rem 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-align: center;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .stats-table td {
+    padding: 0.25rem 0.75rem;
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+
+  .stats-table .pending { color: #92400e; }
+  .stats-table .approved { color: #065f46; }
+  .stats-table .rejected { color: #991b1b; }
+  .stats-table .future { color: #1e40af; }
 
   .submissions-table {
     width: 100%;
@@ -245,6 +300,17 @@ const reviewMap = new Map(reviewSummaries.map(r => [r.submissionId, r]));
   .no-votes {
     color: #9ca3af;
     font-style: italic;
+  }
+
+  .email-icon {
+    margin-left: 0.35rem;
+    color: #9ca3af;
+    vertical-align: middle;
+  }
+
+  .email-icon:hover {
+    color: var(--color-primary);
+    text-decoration: none !important;
   }
 
   .btn-sm {
