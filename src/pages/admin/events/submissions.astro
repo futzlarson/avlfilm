@@ -7,7 +7,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import AdminNav from '@components/AdminNav.astro';
 
 // External packages
-import { eq, desc, count, sql } from 'drizzle-orm';
+import { eq, desc, asc, count, sql } from 'drizzle-orm';
 
 // Get selected filters from query params
 const selectedEventId = Astro.url.searchParams.get('event');
@@ -17,7 +17,7 @@ const selectedStatus = Astro.url.searchParams.get('status') || 'all';
 let submissionsQuery = db
   .select()
   .from(submissions)
-  .orderBy(desc(submissions.createdAt))
+  .orderBy(asc(submissions.sortOrder), desc(submissions.createdAt))
   .$dynamic();
 
 if (selectedEventId) {
@@ -130,6 +130,7 @@ const reviewMap = new Map(reviewSummaries.map(r => [r.submissionId, r]));
       <table class="submissions-table">
         <thead>
           <tr>
+            <th class="drag-col"></th>
             <th>Film Title</th>
             <th>Filmmaker</th>
             <th>Genre</th>
@@ -143,7 +144,17 @@ const reviewMap = new Map(reviewSummaries.map(r => [r.submissionId, r]));
           {filteredSubmissions.map((sub) => {
             const rv = reviewMap.get(sub.id);
             return (
-              <tr>
+              <tr data-id={sub.id} draggable="true">
+                <td class="drag-handle" title="Drag to reorder">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="6" cy="4" r="1.25" fill="currentColor"/>
+                    <circle cx="10" cy="4" r="1.25" fill="currentColor"/>
+                    <circle cx="6" cy="8" r="1.25" fill="currentColor"/>
+                    <circle cx="10" cy="8" r="1.25" fill="currentColor"/>
+                    <circle cx="6" cy="12" r="1.25" fill="currentColor"/>
+                    <circle cx="10" cy="12" r="1.25" fill="currentColor"/>
+                  </svg>
+                </td>
                 <td class="title-cell"><a href={`/admin/events/reviews?id=${sub.id}`}>{sub.filmTitle}</a></td>
                 <td>
                   {sub.submitterName}
@@ -189,6 +200,70 @@ const reviewMap = new Map(reviewSummaries.map(r => [r.submissionId, r]));
 
   eventFilter.addEventListener('change', applyFilters);
   statusFilter.addEventListener('change', applyFilters);
+
+  // Drag and drop reordering
+  const tbody = document.querySelector('.submissions-table tbody') as HTMLTableSectionElement | null;
+  if (tbody) {
+    let dragRow: HTMLTableRowElement | null = null;
+
+    tbody.addEventListener('dragstart', (e) => {
+      const row = (e.target as HTMLElement).closest('tr') as HTMLTableRowElement;
+      if (!row) return;
+      dragRow = row;
+      row.classList.add('dragging');
+      e.dataTransfer!.effectAllowed = 'move';
+    });
+
+    tbody.addEventListener('dragend', () => {
+      if (dragRow) dragRow.classList.remove('dragging');
+      dragRow = null;
+      document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    });
+
+    tbody.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer!.dropEffect = 'move';
+      const targetRow = (e.target as HTMLElement).closest('tr') as HTMLTableRowElement;
+      if (!targetRow || targetRow === dragRow) return;
+
+      document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+      targetRow.classList.add('drag-over');
+
+      const rows = [...tbody.querySelectorAll('tr')];
+      const dragIdx = rows.indexOf(dragRow!);
+      const targetIdx = rows.indexOf(targetRow);
+
+      if (dragIdx < targetIdx) {
+        targetRow.after(dragRow!);
+      } else {
+        targetRow.before(dragRow!);
+      }
+    });
+
+    tbody.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+
+      const rows = [...tbody.querySelectorAll('tr')];
+      const order = rows.map((row, i) => ({
+        id: Number(row.dataset.id),
+        sortOrder: i,
+      }));
+
+      try {
+        const res = await fetch('/admin/api/submissions/reorder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ order }),
+        });
+        if (!res.ok) {
+          console.error('Failed to save order');
+        }
+      } catch (err) {
+        console.error('Failed to save order', err);
+      }
+    });
+  }
 </script>
 
 <style>
@@ -258,6 +333,33 @@ const reviewMap = new Map(reviewSummaries.map(r => [r.submissionId, r]));
   .stats-table .approved { color: #065f46; }
   .stats-table .rejected { color: #991b1b; }
   .stats-table .future { color: #1e40af; }
+
+  .drag-col {
+    width: 2rem;
+  }
+
+  .drag-handle {
+    cursor: grab;
+    color: #d1d5db;
+    text-align: center;
+    width: 2rem;
+  }
+
+  .drag-handle:hover {
+    color: #6b7280;
+  }
+
+  .submissions-table tr[draggable="true"] {
+    transition: opacity 0.15s;
+  }
+
+  .submissions-table tr.dragging {
+    opacity: 0.4;
+  }
+
+  .submissions-table tr.drag-over td {
+    border-top: 2px solid var(--color-primary);
+  }
 
   .submissions-table {
     width: 100%;

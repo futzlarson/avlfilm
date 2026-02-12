@@ -71,9 +71,22 @@ function getEmbed(url: string): string {
         : null;
     if (ytMatch) return `<iframe src="https://www.youtube.com/embed/${ytMatch}" frameborder="0" allowfullscreen style="width:100%;aspect-ratio:16/9;border-radius:8px;"></iframe>`;
 
-    // Vimeo
-    const vimeoMatch = u.hostname.includes('vimeo.com') ? u.pathname.split('/').filter(Boolean).pop() : null;
-    if (vimeoMatch && /^\d+$/.test(vimeoMatch)) return `<iframe src="https://player.vimeo.com/video/${vimeoMatch}" frameborder="0" allowfullscreen style="width:100%;aspect-ratio:16/9;border-radius:8px;"></iframe>`;
+    // Vimeo (player.vimeo.com embeds, vimeo.com/ID, vimeo.com/ID/hash)
+    if (u.hostname.includes('vimeo.com')) {
+      if (u.hostname === 'player.vimeo.com') {
+        // Already an embed URL — use as-is
+        return `<iframe src="${url}" frameborder="0" allowfullscreen style="width:100%;aspect-ratio:16/9;border-radius:8px;"></iframe>`;
+      }
+      const parts = u.pathname.split('/').filter(Boolean);
+      const videoId = parts.find(p => /^\d+$/.test(p));
+      const hash = parts.find(p => /^[a-f0-9]+$/i.test(p) && !/^\d+$/.test(p));
+      if (videoId) {
+        const embedUrl = hash
+          ? `https://player.vimeo.com/video/${videoId}?h=${hash}`
+          : `https://player.vimeo.com/video/${videoId}`;
+        return `<iframe src="${embedUrl}" frameborder="0" allowfullscreen style="width:100%;aspect-ratio:16/9;border-radius:8px;"></iframe>`;
+      }
+    }
 
     // Google Drive
     if (u.hostname.includes('drive.google.com')) {

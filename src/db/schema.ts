@@ -76,6 +76,7 @@ export const submissions = pgTable('submissions', {
   availableInPerson: boolean('available_in_person').notNull().default(false),
   filmmakerNotes: text('filmmaker_notes'),
   adminNotes: text('admin_notes'),
+  sortOrder: integer('sort_order').notNull().default(0),
   status: varchar('status', { length: 50 }).notNull().default('pending'), // 'pending' | 'approved' | 'rejected' | 'future'
   rejectionReason: text('rejection_reason'),
   reviewedAt: timestamp('reviewed_at'),
