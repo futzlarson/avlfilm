@@ -1,4 +1,6 @@
 ## Next
+- DB backup: needs to handle other tables
+- Login as user (and back out)
 - Proxies
   - Analytics
     - Proxy Solution Using Rewrites in vercel.json
