@@ -1,13 +1,14 @@
 ---
 // Internal imports
 import { db } from '@db';
-import { spotlightEvents, submissions, reviews } from '@db/schema';
+import { spotlightEvents, submissions, reviews, filmmakers } from '@db/schema';
 import { formatDuration, calculateTotalRuntime } from '@lib/film-utils';
+import { formatDate } from '@lib/datetime';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import AdminNav from '@components/AdminNav.astro';
 
 // External packages
-import { eq, desc, asc, count, sql } from 'drizzle-orm';
+import { eq, desc, asc } from 'drizzle-orm';
 
 // Get selected filters from query params
 const selectedEventId = Astro.url.searchParams.get('event');
@@ -25,7 +26,7 @@ if (selectedEventId) {
 }
 
 // Run all queries in parallel
-const [allEvents, allSubmissions, reviewSummaries] = await Promise.all([
+const [allEvents, allSubmissions, allReviews] = await Promise.all([
   db.select({
     id: spotlightEvents.id,
     title: spotlightEvents.title,
@@ -37,12 +38,12 @@ const [allEvents, allSubmissions, reviewSummaries] = await Promise.all([
 
   db.select({
     submissionId: reviews.submissionId,
-    totalVotes: count(reviews.vote),
-    upVotes: sql<number>`count(case when ${reviews.vote} = 'up' then 1 end)`,
-    downVotes: sql<number>`count(case when ${reviews.vote} = 'down' then 1 end)`,
+    adminName: filmmakers.name,
+    vote: reviews.vote,
+    createdAt: reviews.createdAt,
   })
   .from(reviews)
-  .groupBy(reviews.submissionId),
+  .innerJoin(filmmakers, eq(reviews.adminId, filmmakers.id)),
 ]);
 
 // Filter by status client-side if needed (simpler for small datasets)
@@ -62,7 +63,19 @@ const stats = {
 const approvedSubs = allSubmissions.filter(s => s.status === 'approved');
 const totalRuntime = calculateTotalRuntime(approvedSubs);
 
-const reviewMap = new Map(reviewSummaries.map(r => [r.submissionId, r]));
+// Build review map with voter details for tooltips
+const reviewMap = new Map<number, { upVotes: number; downVotes: number; tooltip: string }>();
+for (const r of allReviews) {
+  if (!reviewMap.has(r.submissionId)) {
+    reviewMap.set(r.submissionId, { upVotes: 0, downVotes: 0, tooltip: '' });
+  }
+  const entry = reviewMap.get(r.submissionId)!;
+  if (r.vote === 'up') entry.upVotes++;
+  if (r.vote === 'down') entry.downVotes++;
+  const emoji = r.vote === 'up' ? '👍' : r.vote === 'down' ? '👎' : '💬';
+  const date = formatDate(r.createdAt, { month: 'short', day: 'numeric' });
+  entry.tooltip += `${entry.tooltip ? '\n' : ''}${r.adminName} ${emoji} — ${date}`;
+}
 ---
 
 <BaseLayout title="Admin - Submissions">
@@ -73,55 +86,65 @@ const reviewMap = new Map(reviewSummaries.map(r => [r.submissionId, r]));
   <AdminNav currentPage="submissions" />
 
   <div class="admin-section">
-    <h2 style="margin-top: 0; margin-bottom: 1rem">Submission Review</h2>
+    <div class="header-stats-container">
+      <div class="header-left">
+        <h2 style="margin: 0">Submission Review</h2>
+        <div class="filters">
+          <div class="filter-group">
+            <label for="event-filter">Event:</label>
+            <select id="event-filter">
+              <option value="">All Events</option>
+              {allEvents.map((ev) => (
+                <option value={ev.id} selected={selectedEventId === String(ev.id)}>{ev.title}</option>
+              ))}
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="status-filter">Status:</label>
+            <select id="status-filter">
+              {['all', 'pending', 'approved', 'rejected', 'future'].map((s) => (
+                <option value={s} selected={selectedStatus === s}>{s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
 
-    <!-- Filters -->
-    <div class="filters">
-      <div class="filter-group">
-        <label for="event-filter">Event:</label>
-        <select id="event-filter">
-          <option value="">All Events</option>
-          {allEvents.map((ev) => (
-            <option value={ev.id} selected={selectedEventId === String(ev.id)}>{ev.title}</option>
-          ))}
-        </select>
-      </div>
-      <div class="filter-group">
-        <label for="status-filter">Status:</label>
-        <select id="status-filter">
-          {['all', 'pending', 'approved', 'rejected', 'future'].map((s) => (
-            <option value={s} selected={selectedStatus === s}>{s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}</option>
-          ))}
-        </select>
-      </div>
+      {selectedEventId && (
+        <div class="stats-section">
+          <table class="stats-table runtime-table">
+            <thead>
+              <tr>
+                <th>Runtime</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="runtime-display">{formatDuration(totalRuntime)}</td>
+              </tr>
+            </tbody>
+          </table>
+          <table class="stats-table">
+            <thead>
+              <tr>
+                {stats.pending > 0 && <th>Pending</th>}
+                {stats.approved > 0 && <th>Approved</th>}
+                {stats.rejected > 0 && <th>Rejected</th>}
+                {stats.future > 0 && <th>Future</th>}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                {stats.pending > 0 && <td class="pending">{stats.pending}</td>}
+                {stats.approved > 0 && <td class="approved">{stats.approved}</td>}
+                {stats.rejected > 0 && <td class="rejected">{stats.rejected}</td>}
+                {stats.future > 0 && <td class="future">{stats.future}</td>}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
-
-    <!-- Stats -->
-    {selectedEventId && (
-      <div class="stats-section">
-        <div class="runtime-display">{formatDuration(totalRuntime)}</div>
-        <table class="stats-table">
-          <thead>
-            <tr>
-              <th>Total</th>
-              <th>Pending</th>
-              <th>Approved</th>
-              <th>Rejected</th>
-              <th>Future</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>{stats.total}</td>
-              <td class="pending">{stats.pending}</td>
-              <td class="approved">{stats.approved}</td>
-              <td class="rejected">{stats.rejected}</td>
-              <td class="future">{stats.future}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    )}
 
     <!-- Submissions Table -->
     {filteredSubmissions.length === 0 ? (
@@ -135,6 +158,7 @@ const reviewMap = new Map(reviewSummaries.map(r => [r.submissionId, r]));
             <th>Filmmaker</th>
             <th>Genre</th>
             <th>Length</th>
+            <th>Submitted</th>
             <th>Status</th>
             <th>Notes</th>
             <th>Votes</th>
@@ -167,11 +191,27 @@ const reviewMap = new Map(reviewSummaries.map(r => [r.submissionId, r]));
                 </td>
                 <td>{sub.filmGenre === 'Other' ? sub.filmGenreOther : sub.filmGenre}</td>
                 <td>{formatDuration(sub.filmLength)}</td>
-                <td><span class={`status-badge ${sub.status}`}>{sub.status}</span></td>
-                <td class="notes-cell">{sub.adminNotes || '—'}</td>
+                <td class="submitted-cell">{formatDate(sub.createdAt, { month: 'short', day: 'numeric' })}</td>
+                <td>
+                  {sub.status === 'approved' && sub.fullResVideoUrl ? (
+                    <span class="status-badge link">&#10003; Link</span>
+                  ) : (
+                    <span class={`status-badge ${sub.status}`}>{sub.status}</span>
+                  )}
+                </td>
+                <td class="notes-cell">
+                  {sub.adminNotes ? (
+                    <span class="has-tooltip">&#128221;<span class="tooltip">{sub.adminNotes}</span></span>
+                  ) : '—'}
+                </td>
                 <td class="votes-cell">
                   {rv ? (
-                    <span>{rv.upVotes} up / {rv.downVotes} down</span>
+                    <span class="has-tooltip votes-display">
+                      {rv.upVotes > 0 && <span>&#128077;</span>}
+                      {rv.downVotes > 0 && <span>&#128078;</span>}
+                      {rv.upVotes === 0 && rv.downVotes === 0 && <span>&#128172;</span>}
+                      <span class="tooltip">{rv.tooltip}</span>
+                    </span>
                   ) : (
                     <span class="no-votes">—</span>
                   )}
@@ -179,14 +219,67 @@ const reviewMap = new Map(reviewSummaries.map(r => [r.submissionId, r]));
               </tr>
             );
           })}
+          {selectedEventId && (
+            <tr class="action-row">
+              <td></td>
+              <td colspan="5"></td>
+              <td colspan="3">
+                <button class="btn-secondary" id="request-files-btn" type="button">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                  Request Files
+                </button>
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     )}
   </div>
 
+  <!-- Confirmation Modal -->
+  <div id="request-files-modal" class="modal">
+    <div class="modal-overlay"></div>
+    <div class="modal-content modal-small">
+      <button class="modal-close">&times;</button>
+      <div class="modal-body">
+        <h2>Request Files</h2>
+        <p id="modal-message"></p>
+        <div class="table-wrapper">
+          <table id="modal-email-table" class="modal-table">
+            <thead>
+              <tr>
+                <th>Film Title</th>
+                <th>Email</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="modal-email-list"></tbody>
+          </table>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-secondary" id="modal-cancel-btn">Cancel</button>
+          <button class="btn-primary" id="modal-confirm-btn">Send Emails</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </BaseLayout>
 
+<script is:inline id="submissions-data" type="application/json" set:html={JSON.stringify({
+  approvedWithoutFiles: allSubmissions
+    .filter(s => s.status === 'approved' && !s.fullResVideoUrl && selectedEventId && s.eventId === Number(selectedEventId))
+    .map(s => ({ id: s.id, email: s.submitterEmail, filmTitle: s.filmTitle, status: s.status }))
+})}></script>
+
 <script>
+  import { setupModal } from '@lib/modal';
+
+  // Setup modal
+  const requestFilesModal = setupModal('request-files-modal');
+
   // Filter navigation
   const eventFilter = document.getElementById('event-filter') as HTMLSelectElement;
   const statusFilter = document.getElementById('status-filter') as HTMLSelectElement;
@@ -200,6 +293,87 @@ const reviewMap = new Map(reviewSummaries.map(r => [r.submissionId, r]));
 
   eventFilter.addEventListener('change', applyFilters);
   statusFilter.addEventListener('change', applyFilters);
+
+  // Request files for all approved submissions without full-res video
+  const requestFilesBtn = document.getElementById('request-files-btn');
+  if (requestFilesBtn && requestFilesModal) {
+    requestFilesBtn.addEventListener('click', () => {
+      const data = JSON.parse(document.getElementById('submissions-data')?.textContent || '{}');
+      const submissions = data.approvedWithoutFiles || [];
+
+      if (submissions.length === 0) {
+        alert('No approved submissions need file requests.');
+        return;
+      }
+
+      // Populate modal
+      const modalMessage = document.getElementById('modal-message')!;
+      const modalEmailList = document.getElementById('modal-email-list')!;
+
+      modalMessage.textContent = `Send file request emails to ${submissions.length} filmmaker${submissions.length > 1 ? 's' : ''}?`;
+      modalEmailList.innerHTML = submissions.map((s: any) =>
+        `<tr>
+          <td>${s.filmTitle}</td>
+          <td>${s.email}</td>
+          <td><span class="status-badge ${s.status}">${s.status}</span></td>
+        </tr>`
+      ).join('');
+
+      requestFilesModal.open();
+    });
+
+    // Cancel button
+    document.getElementById('modal-cancel-btn')?.addEventListener('click', () => {
+      requestFilesModal?.close();
+    });
+
+    // Confirm button
+    document.getElementById('modal-confirm-btn')?.addEventListener('click', async () => {
+      const data = JSON.parse(document.getElementById('submissions-data')?.textContent || '{}');
+      const submissions = data.approvedWithoutFiles || [];
+
+      const btn = document.getElementById('modal-confirm-btn') as HTMLButtonElement;
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+
+      try {
+        const results = await Promise.all(
+          submissions.map((s: any) =>
+            fetch('/admin/api/submissions/request-file', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ submissionId: s.id }),
+            })
+          )
+        );
+
+        const allSuccessful = results.every(r => r.ok);
+        if (!allSuccessful) {
+          throw new Error('Some emails failed to send');
+        }
+
+        // Update the Request Files button
+        const requestBtn = document.getElementById('request-files-btn') as HTMLButtonElement;
+        const reqOriginalText = requestBtn.textContent;
+        requestBtn.textContent = `✓ ${submissions.length} Email${submissions.length > 1 ? 's' : ''} Sent`;
+        requestBtn.style.background = '#10b981';
+
+        requestFilesModal?.close();
+
+        setTimeout(() => {
+          requestBtn.textContent = reqOriginalText;
+          requestBtn.style.background = '';
+        }, 3000);
+      } catch (err) {
+        console.error('Failed to send file requests', err);
+        alert('Failed to send some file request emails');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    });
+  }
 
   // Drag and drop reordering
   const tbody = document.querySelector('.submissions-table tbody') as HTMLTableSectionElement | null;
@@ -267,10 +441,24 @@ const reviewMap = new Map(reviewSummaries.map(r => [r.submissionId, r]));
 </script>
 
 <style>
+  .header-stats-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
   .filters {
     display: flex;
     gap: 1.5rem;
-    margin-bottom: 1.5rem;
     flex-wrap: wrap;
   }
 
@@ -294,12 +482,10 @@ const reviewMap = new Map(reviewSummaries.map(r => [r.submissionId, r]));
 
   .stats-section {
     display: flex;
-    align-items: center;
     gap: 1.5rem;
-    margin-bottom: 1.5rem;
   }
 
-  .runtime-display {
+  .runtime-table .runtime-display {
     font-size: 2rem;
     font-weight: 700;
     color: #111827;
@@ -313,7 +499,7 @@ const reviewMap = new Map(reviewSummaries.map(r => [r.submissionId, r]));
   }
 
   .stats-table th {
-    padding: 0.25rem 0.75rem;
+    padding: 0.15rem 0.75rem 0;
     font-weight: 600;
     color: #6b7280;
     text-align: center;
@@ -323,7 +509,7 @@ const reviewMap = new Map(reviewSummaries.map(r => [r.submissionId, r]));
   }
 
   .stats-table td {
-    padding: 0.25rem 0.75rem;
+    padding: 0 0.75rem 0.25rem;
     text-align: center;
     font-weight: 700;
     font-size: 1.1rem;
@@ -333,6 +519,15 @@ const reviewMap = new Map(reviewSummaries.map(r => [r.submissionId, r]));
   .stats-table .approved { color: #065f46; }
   .stats-table .rejected { color: #991b1b; }
   .stats-table .future { color: #1e40af; }
+
+  .action-row td {
+    border-bottom: none !important;
+    padding-top: 1rem;
+  }
+
+  .submissions-table tr:has(+ .action-row) td {
+    border-bottom: none;
+  }
 
   .drag-col {
     width: 2rem;
@@ -391,17 +586,20 @@ const reviewMap = new Map(reviewSummaries.map(r => [r.submissionId, r]));
   }
 
   .notes-cell {
-    font-size: 0.85rem;
+    text-align: center;
+    font-size: 1rem;
+  }
+
+  .submitted-cell {
     color: #6b7280;
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .no-votes {
-    color: #9ca3af;
-    font-style: italic;
+  .votes-display {
+    white-space: nowrap;
+    display: inline-flex;
+    gap: 0.35rem;
+    font-size: 1rem;
   }
 
   .email-icon {
@@ -438,9 +636,74 @@ const reviewMap = new Map(reviewSummaries.map(r => [r.submissionId, r]));
     text-decoration: underline;
   }
 
-  .empty-state {
-    text-align: center;
-    padding: 3rem;
-    color: #9ca3af;
+  /* Modal styles */
+  :global(.modal-small) {
+    max-width: 650px;
+  }
+
+  :global(.modal-body) {
+    padding: 2rem;
+  }
+
+  :global(.modal-body h2) {
+    margin: 0 0 1rem;
+    font-size: 1.5rem;
+    color: #111827;
+  }
+
+  :global(.modal-body p) {
+    margin: 0 0 1rem;
+    color: #374151;
+  }
+
+  :global(#request-files-modal .table-wrapper) {
+    max-height: 350px;
+    overflow-y: auto;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  :global(#request-files-modal .modal-table) {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  :global(#request-files-modal .modal-table th),
+  :global(#request-files-modal .modal-table td) {
+    padding: 0.65rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  :global(#request-files-modal .modal-table th) {
+    position: sticky;
+    top: 0;
+    font-weight: 600;
+    color: #6b7280;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: white;
+    z-index: 1;
+  }
+
+  :global(#request-files-modal .modal-table tbody tr:hover) {
+    background: #f9fafb;
+  }
+
+  :global(#request-files-modal .modal-table td:nth-child(2)) {
+    color: #6b7280;
+  }
+
+  :global(#request-files-modal .modal-table td:first-child) {
+    font-weight: 500;
+  }
+
+  :global(.modal-actions) {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
   }
 </style>

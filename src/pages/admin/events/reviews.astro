@@ -3,7 +3,7 @@
 import { db } from '@db';
 import { submissions, reviews, filmmakers } from '@db/schema';
 import { formatDuration } from '@lib/film-utils';
-import { formatDate, DATE_LONG, DATE_LONG_NO_YEAR } from '@lib/datetime';
+import { formatDate, formatTime, DATE_LONG, DATE_LONG_NO_YEAR } from '@lib/datetime';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import AdminNav from '@components/AdminNav.astro';
 
@@ -229,7 +229,7 @@ function getDownloadUrl(url: string): { url: string; service: string } {
                 <div class="review-header">
                   <strong>{r.adminName}</strong>
                   <span class="vote-icon">{r.vote === 'up' ? '👍' : r.vote === 'down' ? '👎' : '💬'}</span>
-                  <small>{formatDate(r.createdAt, DATE_LONG_NO_YEAR)}</small>
+                  <small>{formatTime(r.createdAt)} {formatDate(r.createdAt, DATE_LONG_NO_YEAR)}</small>
                 </div>
                 {r.comment && <p class="review-comment">{r.comment}</p>}
               </div>
@@ -259,21 +259,23 @@ function getDownloadUrl(url: string): { url: string; service: string } {
           <button class="vote-btn" data-vote="down" id="vote-down">👎</button>
         </div>
         <textarea id="review-comment" placeholder="Add a comment..." rows="4">{myReview?.comment || ''}</textarea>
-        <button class="btn-primary" id="submit-review-btn">Submit Review</button>
-        <div id="review-message" class="form-message" style="display: none;"></div>
+        <div id="review-message" class="autosave-status"></div>
       </div>
 
       <!-- Final Decision -->
       <div class="decision-section">
         <h3>Final Decision</h3>
-        <div class="form-group">
+        <div class="form-group status-inline-group">
           <label for="status-select">Status</label>
-          <select id="status-select">
-            <option value="pending" selected={submission.status === 'pending'}>Pending</option>
-            <option value="approved" selected={submission.status === 'approved'}>Approved</option>
-            <option value="rejected" selected={submission.status === 'rejected'}>Rejected</option>
-            <option value="future" selected={submission.status === 'future'}>Future</option>
-          </select>
+          <div class="status-inline">
+            <select id="status-select">
+              <option value="pending" selected={submission.status === 'pending'}>Pending</option>
+              <option value="approved" selected={submission.status === 'approved'}>Approved</option>
+              <option value="rejected" selected={submission.status === 'rejected'}>Rejected</option>
+              <option value="future" selected={submission.status === 'future'}>Future</option>
+            </select>
+            <button class="btn-primary" id="update-status-btn">Update Status</button>
+          </div>
         </div>
         <div class="form-group" id="rejection-reason-group" style={submission.status === 'rejected' ? '' : 'display: none;'}>
           <label for="rejection-reason">Rejection Reason <span class="required">*</span></label>
@@ -283,7 +285,6 @@ function getDownloadUrl(url: string): { url: string; service: string } {
           <label for="admin-notes">Admin Notes</label>
           <textarea id="admin-notes" rows="2" placeholder="Internal notes...">{submission.adminNotes || ''}</textarea>
         </div>
-        <button class="btn-primary" id="update-status-btn">Update Status</button>
         <div id="status-message" class="form-message" style="display: none;"></div>
       </div>
     </div>
@@ -319,29 +320,18 @@ function getDownloadUrl(url: string): { url: string; service: string } {
     toggleRejectionReason((e.target as HTMLSelectElement).value);
   });
 
-  // Vote buttons
-  document.querySelectorAll('.vote-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const vote = (btn as HTMLElement).dataset.vote!;
-      if (currentVote === vote) {
-        currentVote = null;
-        btn.classList.remove('active');
-      } else {
-        currentVote = vote;
-        document.querySelectorAll('.vote-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-      }
-    });
-  });
-
-  // Submit review
+  // Autosave review
   const reviewMsgEl = document.getElementById('review-message') as HTMLDivElement;
+  const reviewCommentEl = document.getElementById('review-comment') as HTMLTextAreaElement;
+  let isSaving = false;
 
-  document.getElementById('submit-review-btn')?.addEventListener('click', async () => {
-    const comment = (document.getElementById('review-comment') as HTMLTextAreaElement).value;
-    const btn = document.getElementById('submit-review-btn') as HTMLButtonElement;
-    btn.disabled = true;
-    hideFormMessage(reviewMsgEl);
+  async function saveReview() {
+    if (isSaving) return;
+    isSaving = true;
+    reviewMsgEl.textContent = 'Saving...';
+    reviewMsgEl.className = 'autosave-status saving';
+
+    const comment = reviewCommentEl.value;
 
     try {
       const res = await fetch('/admin/api/reviews/vote', {
@@ -356,16 +346,40 @@ function getDownloadUrl(url: string): { url: string; service: string } {
       const result = await res.json();
       if (!res.ok) throw new Error(result.error);
 
-      // Reload to show updated reviews
-      window.location.reload();
+      reviewMsgEl.textContent = 'Saved';
+      reviewMsgEl.className = 'autosave-status saved';
+      setTimeout(() => {
+        reviewMsgEl.textContent = '';
+        reviewMsgEl.className = 'autosave-status';
+      }, 2000);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to submit review';
-      showFormMessage(reviewMsgEl, message, 'error');
-      window.Rollbar?.error('Failed to submit review', err);
+      const message = err instanceof Error ? err.message : 'Failed to save';
+      reviewMsgEl.textContent = message;
+      reviewMsgEl.className = 'autosave-status error';
+      window.Rollbar?.error('Failed to autosave review', err);
     } finally {
-      btn.disabled = false;
+      isSaving = false;
     }
+  }
+
+  // Vote buttons
+  document.querySelectorAll('.vote-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const vote = (btn as HTMLElement).dataset.vote!;
+      if (currentVote === vote) {
+        currentVote = null;
+        btn.classList.remove('active');
+      } else {
+        currentVote = vote;
+        document.querySelectorAll('.vote-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      saveReview();
+    });
   });
+
+  // Save on blur
+  reviewCommentEl.addEventListener('blur', saveReview);
 
   // Update status
   const statusMsgEl = document.getElementById('status-message') as HTMLDivElement;
@@ -683,7 +697,25 @@ function getDownloadUrl(url: string): { url: string; service: string } {
   }
 
   .my-review-section textarea {
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .autosave-status {
+    font-size: 0.8rem;
+    min-height: 1.2rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .autosave-status.saving {
+    color: #6b7280;
+  }
+
+  .autosave-status.saved {
+    color: #059669;
+  }
+
+  .autosave-status.error {
+    color: #dc2626;
   }
 
   .form-group {
@@ -699,6 +731,21 @@ function getDownloadUrl(url: string): { url: string; service: string } {
     font-weight: 600;
     margin-bottom: 0.35rem;
     font-size: 0.9rem;
+  }
+
+  .status-inline {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .status-inline select {
+    flex: 0 1 auto;
+    min-width: 140px;
+  }
+
+  .status-inline button {
+    white-space: nowrap;
   }
 
   .required {
@@ -761,13 +808,6 @@ function getDownloadUrl(url: string): { url: string; service: string } {
     color: #374151;
     line-height: 1.4;
     font-size: 0.8rem;
-  }
-
-  .no-votes {
-    color: #9ca3af;
-    font-style: italic;
-    text-align: center;
-    padding: 1rem;
   }
 
   :global(.film-link) {

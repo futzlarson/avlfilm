@@ -10,6 +10,15 @@ export function formatDate(date: Date, format: Intl.DateTimeFormatOptions = DATE
   return date.toLocaleDateString('en-US', format);
 }
 
+/** Formats a Date to time string (e.g., "12:07am") */
+export function formatTime(date: Date): string {
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  }).toLowerCase();
+}
+
 /**
  * Converts a Date to datetime-local input format (YYYY-MM-DDTHH:MM)
  * Adjusts for timezone offset to display local time
