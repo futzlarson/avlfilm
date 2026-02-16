@@ -308,6 +308,80 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
     display: none !important;
   }
 
+  /* Admin checkbox styling */
+  :global(.admin-display) {
+    display: inline;
+  }
+
+  :global(.checkbox-wrapper) {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  :global(.filmmaker-card.editing .admin-display) {
+    display: none !important;
+  }
+
+  :global(.filmmaker-card.editing .checkbox-wrapper) {
+    display: flex !important;
+  }
+
+  :global(.checkbox-wrapper input[type="checkbox"]) {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    cursor: pointer;
+    accent-color: var(--color-primary);
+    flex-shrink: 0;
+    border: 2px solid #6b7280;
+    border-radius: 4px;
+    background: white;
+    appearance: auto;
+    -webkit-appearance: checkbox;
+    -moz-appearance: checkbox;
+  }
+
+  :global(.checkbox-wrapper span) {
+    font-weight: 500;
+    color: #374151;
+  }
+
+  /* Timestamps row - always visible in view mode */
+  :global(.timestamps-row) {
+    display: table-row !important;
+  }
+
+  :global(.filmmaker-card.editing .timestamps-row) {
+    display: none !important;
+  }
+
+  :global(.timestamps-grid) {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  :global(.timestamp-row) {
+    display: contents;
+  }
+
+  :global(.timestamp-label) {
+    font-weight: 600;
+    color: #6b7280;
+    text-align: right;
+  }
+
+  :global(.timestamp-value) {
+    color: #1a1a1a;
+  }
+
+  :global(.days-ago) {
+    color: #6b7280;
+    font-size: 0.8125rem;
+  }
+
   @media (max-width: 768px) {
     .admin-header {
       flex-direction: column;
@@ -371,6 +445,10 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
     const socialDisplays = formEl?.querySelectorAll('.social-display') as NodeListOf<HTMLElement>;
     const socialInputs = formEl?.querySelectorAll('input[name="website"], input[name="instagram"], input[name="youtube"], input[name="facebook"]') as NodeListOf<HTMLInputElement>;
 
+    // Get admin display and checkbox
+    const adminDisplay = formEl?.querySelector('.admin-display') as HTMLElement;
+    const adminCheckbox = formEl?.querySelector('.checkbox-wrapper') as HTMLElement;
+
     if (!formEl || !editActionsEl || !viewActionsEl || !inputs) return;
 
     const isEditing = !inputs[0].hasAttribute('readonly');
@@ -395,6 +473,11 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
       socialInputs?.forEach(input => {
         input.style.display = 'none';
       });
+      // Show admin display, hide checkbox
+      if (adminDisplay && adminCheckbox) {
+        adminDisplay.style.display = 'inline';
+        adminCheckbox.style.display = 'none';
+      }
       editActionsEl.style.setProperty('display', 'none');
       viewActionsEl.style.setProperty('display', 'flex');
       // Hide empty rows in display mode (but keep status row visible)
@@ -421,6 +504,11 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
       socialInputs?.forEach(input => {
         input.style.display = 'block';
       });
+      // Hide admin display, show checkbox
+      if (adminDisplay && adminCheckbox) {
+        adminDisplay.style.display = 'none';
+        adminCheckbox.style.display = 'flex';
+      }
       editActionsEl.style.setProperty('display', 'flex');
       viewActionsEl.style.setProperty('display', 'none');
       // Show all rows in edit mode, including status and empty ones
@@ -507,7 +595,9 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
     }
 
     const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
+    const data: any = Object.fromEntries(formData.entries());
+    // Handle checkbox - if not checked, it won't be in formData
+    data.isAdmin = formData.has('isAdmin');
     await updateFilmmaker(id, data);
   }
 

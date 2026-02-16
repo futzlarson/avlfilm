@@ -40,3 +40,14 @@ export function subtractDays(date: Date, days: number): string {
   result.setMinutes(result.getMinutes() - result.getTimezoneOffset());
   return result.toISOString().slice(0, 16);
 }
+
+/**
+ * Returns the number of days between a past date and now
+ * Returns null if date is null or undefined
+ */
+export function getDaysAgo(date: Date | null): number | null {
+  if (!date) return null;
+  const now = new Date();
+  const diffMs = now.getTime() - new Date(date).getTime();
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+}

@@ -2,6 +2,7 @@
 // Internal imports
 import type { Filmmaker } from '@db/schema';
 import { isValidHttpUrl, normalizeInstagramUrls, normalizeYoutubeUrl, getInstagramDisplayText } from '@utils/url';
+import { formatDate, getDaysAgo } from '@lib/datetime';
 
 interface Props {
   filmmaker: Filmmaker;
@@ -120,6 +121,45 @@ const facebookLink = renderSimpleLink(f.facebook);
         <td>Bio</td>
         <td><textarea name="bio" rows="3" readonly>{f.bio || ''}</textarea></td>
       </tr>
+      <tr data-field="isAdmin">
+        <td>Admin</td>
+        <td>
+          <span class="admin-display">
+            {f.isAdmin ? 'Yes' : 'No'}
+          </span>
+          <label class="checkbox-wrapper" style="display: none;">
+            <input type="checkbox" name="isAdmin" checked={f.isAdmin} />
+            <span>Grant admin access</span>
+          </label>
+        </td>
+      </tr>
+      {!showApproveButton && (
+        <tr data-field="timestamps" class="timestamps-row">
+          <td>Timestamps</td>
+          <td class="timestamps-grid">
+            <div class="timestamp-row">
+              <span class="timestamp-label">Created:</span>
+              <span class="timestamp-value">{f.createdAt ? formatDate(f.createdAt, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—'}</span>
+            </div>
+            <div class="timestamp-row">
+              <span class="timestamp-label">Updated:</span>
+              <span class="timestamp-value">{f.updatedAt ? formatDate(f.updatedAt, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—'}</span>
+            </div>
+            <div class="timestamp-row">
+              <span class="timestamp-label">Last Login:</span>
+              <span class="timestamp-value">
+                {f.lastLoginAt ? (
+                  <>
+                    {formatDate(f.lastLoginAt, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                    {' '}
+                    <span class="days-ago">({getDaysAgo(f.lastLoginAt)} days ago)</span>
+                  </>
+                ) : 'Never'}
+              </span>
+            </div>
+          </td>
+        </tr>
+      )}
       {!showApproveButton && (
         <tr data-field="status">
           <td>Status</td>
