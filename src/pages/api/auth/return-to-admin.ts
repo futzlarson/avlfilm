@@ -17,29 +17,24 @@ export const POST: APIRoute = async (context) => {
       return errorResponse('Not impersonating a user', 400);
     }
 
-    // Get original admin user
-    const [adminUser] = await db
+    // Get original user
+    const [originalUser] = await db
       .select()
       .from(filmmakers)
       .where(eq(filmmakers.id, parseInt(impersonatorId)));
 
-    if (!adminUser) {
-      return errorResponse('Admin user not found', 404);
+    if (!originalUser) {
+      return errorResponse('Original user not found', 404);
     }
 
-    // Verify the impersonator is actually an admin
-    if (!adminUser.isAdmin) {
-      return errorResponse('Invalid impersonator - admin access required', 403);
-    }
-
-    // Sign JWT for admin user
+    // Sign JWT for original user
     const token = await signToken({
-      userId: adminUser.id,
-      email: adminUser.email,
-      isAdmin: adminUser.isAdmin,
+      userId: originalUser.id,
+      email: originalUser.email,
+      isAdmin: originalUser.isAdmin,
     });
 
-    // Restore auth token to admin
+    // Restore auth token to original user
     context.cookies.set('auth_token', token, {
       httpOnly: true,
       secure: import.meta.env.PROD,
@@ -54,11 +49,11 @@ export const POST: APIRoute = async (context) => {
     });
 
     return successResponse({
-      message: 'Returned to admin account',
+      message: 'Returned to original account',
       user: {
-        id: adminUser.id,
-        name: adminUser.name,
-        email: adminUser.email,
+        id: originalUser.id,
+        name: originalUser.name,
+        email: originalUser.email,
       },
     });
   } catch (error) {
