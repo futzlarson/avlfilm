@@ -1,3 +1,6 @@
+## Sat
+- Review: History of send requests?
+
 ## Next
 - DB backup: needs to handle other tables
 - Login as user (and back out)
@@ -13,7 +16,9 @@
 ## Later
 - Incorrect time? https://calendar.google.com/calendar/u/1/r/eventedit?text=WNC+FIlmmaker+Kick+Off&dates=20260201T140000Z/20260201T153000Z&details=We'll+be+having+our+first+in-person+meeting+at+Frog+Level+Brewery.+If+anyone+has+a+movie+idea+or+script,+bring+it+on.+Frog+Level+has+food+and+drink+available.+All+ages+are+invited.%0ANo+cost.+We+will+just+get+together+and+talk+about+making+some+movies+in+WNC.+&location=Frog+Level+Brewing
 - Admin:
-  - Events ignore: FREE Kids Movie! [17069740] | Casual chat + coffee or more, Sunday mornings 10-noon [312846915]
+  - Events
+    - Ignore: FREE Kids Movie! [17069740] | Casual chat + coffee or more, Sunday mornings 10-noon [312846915]
+    - Way to only see events I haven't already seen
 - og:image
 
 ## Logo

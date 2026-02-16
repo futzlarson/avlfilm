@@ -340,7 +340,7 @@ const { filmmakers } = Astro.props;
   }
 </style>
 
-<script is:inline id="filmmaker-data" type="application/json" set:html={JSON.stringify(filmmakers)}></script>
+<script id="filmmaker-data" type="application/json" set:html={JSON.stringify(filmmakers)}></script>
 
 <script>
   import type { PublicFilmmaker } from '@db/schema';
