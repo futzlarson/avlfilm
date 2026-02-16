@@ -291,7 +291,7 @@ function getDownloadUrl(url: string): { url: string; service: string } {
   </div>
 </BaseLayout>
 
-<script id="submission-data" type="application/json" set:html={JSON.stringify({
+<script is:inline id="submission-data" type="application/json" set:html={JSON.stringify({
   submissionId: submission.id,
   userId: user?.userId,
   initialVote: myReview?.vote || null

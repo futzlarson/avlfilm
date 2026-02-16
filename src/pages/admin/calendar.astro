@@ -67,8 +67,8 @@ try {
 </BaseLayout>
 
 {/* Pass data to client */}
-<script id="events-data" type="application/json" set:html={JSON.stringify(events)}></script>
-<script id="added-events-data" type="application/json" set:html={JSON.stringify(Array.from(addedEventIds))}></script>
+<script is:inline id="events-data" type="application/json" set:html={JSON.stringify(events)}></script>
+<script is:inline id="added-events-data" type="application/json" set:html={JSON.stringify(Array.from(addedEventIds))}></script>
 
 <script>
   import { marked } from 'marked';

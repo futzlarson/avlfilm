@@ -268,7 +268,7 @@ for (const r of allReviews) {
 
 </BaseLayout>
 
-<script id="submissions-data" type="application/json" set:html={JSON.stringify({
+<script is:inline id="submissions-data" type="application/json" set:html={JSON.stringify({
   approvedWithoutFiles: allSubmissions
     .filter(s => s.status === 'approved' && !s.fullResVideoUrl && selectedEventId && s.eventId === Number(selectedEventId))
     .map(s => ({ id: s.id, email: s.submitterEmail, filmTitle: s.filmTitle, status: s.status }))
