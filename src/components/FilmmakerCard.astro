@@ -7,9 +7,10 @@ import { formatDate, getDaysAgo } from '@lib/datetime';
 interface Props {
   filmmaker: Filmmaker;
   showApproveButton?: boolean;
+  currentUserId?: number;
 }
 
-const { filmmaker: f, showApproveButton = false } = Astro.props;
+const { filmmaker: f, showApproveButton = false, currentUserId } = Astro.props;
 
 // Helper to render simple social links (website, facebook)
 const renderSimpleLink = (url: string | null) => {
@@ -183,6 +184,9 @@ const facebookLink = renderSimpleLink(f.facebook);
       )}
       <button type="button" class="btn btn-edit" onclick={`${showApproveButton ? 'toggleEditPending' : 'toggleEditAll'}(${f.id})`}>Edit</button>
       <button type="button" class="btn btn-archive" onclick={`archiveFilmmaker(${f.id})`}>Archive</button>
+      {currentUserId !== f.id && (
+        <button type="button" class="btn btn-login" onclick={`loginAsFilmmaker(${f.id})`}>Login</button>
+      )}
     </div>
 
     <div class="edit-actions" style="display: none;">
