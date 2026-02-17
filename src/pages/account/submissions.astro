@@ -112,8 +112,8 @@ function displayStatus(status: string): string {
               </div>
               {sub.status === 'approved' && (
                 <>
-                  <p class="status-message approved-message">
-                    This film will be shown on {formatDate(sub.eventDate, DATE_LONG)}.
+                  <p class="status-message">
+                    This film will be shown on <strong>{formatDate(sub.eventDate, DATE_LONG)}</strong>.
                   </p>
                   <div class="video-upload-section">
                     <label for={`video-url-${sub.id}`} class="upload-label">
@@ -175,11 +175,22 @@ function displayStatus(status: string): string {
         }
 
         // Basic URL validation
+        let parsedUrl: URL;
         try {
-          new URL(url);
+          parsedUrl = new URL(url);
         } catch {
           showFormMessage(messageEl, 'Please enter a valid URL', 'error');
           messageEl.className = 'url-message error'; // Maintain url-message prefix
+          return;
+        }
+
+        // Reject YouTube links — we need a downloadable file, not a streaming link
+        const host = parsedUrl.hostname.replace(/^www\./, '');
+        if (host === 'youtube.com' || host === 'youtu.be') {
+          const linkStyle = 'color: #991b1b; text-decoration: underline;';
+          messageEl.innerHTML = `YouTube links are not accepted. Please upload your file to <a href="https://drive.google.com" target="_blank" style="${linkStyle}">Google Drive</a>, <a href="https://www.dropbox.com" target="_blank" style="${linkStyle}">Dropbox</a>, or <a href="https://wetransfer.com" target="_blank" style="${linkStyle}">WeTransfer</a> and share that link instead.`;
+          messageEl.className = 'url-message error';
+          messageEl.style.display = 'block';
           return;
         }
 
@@ -376,13 +387,6 @@ function displayStatus(status: string): string {
     border-radius: var(--radius-md);
     border-left: 3px solid #e5e7eb;
     line-height: 1.5;
-  }
-
-  .approved-message {
-    color: #065f46;
-    font-weight: 500;
-    background: #ecfdf5;
-    border-left-color: #10b981;
   }
 
   .video-upload-section {
