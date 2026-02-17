@@ -1,6 +1,6 @@
 import type { Filmmaker } from '@db/schema';
 
-import { BUTTON_STYLE, COLORS, TABLE_CELL_STYLE, TABLE_HEADER_STYLE, userEmailTemplate } from './templates';
+import { BUTTON_STYLE, HEADING_STYLE, TABLE_CELL_STYLE, TABLE_HEADER_STYLE, userEmailTemplate } from './templates';
 
 export const metadata = {
   name: 'Filmmaker Submission',
@@ -20,7 +20,7 @@ export type FilmmakerSubmission = Pick<
 
 export function generate(data: FilmmakerSubmission): string {
   return userEmailTemplate(`
-    <h2 style="color: ${COLORS.text}; margin-top: 0;">New Filmmaker Directory Submission</h2>
+    <h2 style="${HEADING_STYLE}">New Filmmaker Directory Submission</h2>
     <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
       <tr>
         <td style="${TABLE_HEADER_STYLE}">NAME</td>

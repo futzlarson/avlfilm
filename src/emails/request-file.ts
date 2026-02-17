@@ -1,4 +1,4 @@
-import { BUTTON_STYLE, COLORS, PARAGRAPH_STYLE, userEmailTemplate } from './templates';
+import { BUTTON_STYLE, HEADING_STYLE, PARAGRAPH_STYLE, userEmailTemplate } from './templates';
 
 export const metadata = {
   name: 'Request Full-Resolution File',
@@ -21,7 +21,7 @@ export function generate(
   signupUrl: string | null = null
 ): string {
   return userEmailTemplate(`
-    <h2 style="color: ${COLORS.text}; margin-top: 0;">Congratulations! Your Film Has Been Selected</h2>
+    <h2 style="${HEADING_STYLE}">Congratulations! Your Film Has Been Selected</h2>
 
     <p style="${PARAGRAPH_STYLE}">Hi ${filmmakerName},</p>
 

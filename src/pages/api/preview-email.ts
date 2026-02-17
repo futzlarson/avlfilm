@@ -146,7 +146,11 @@ export const GET: APIRoute = async (context) => {
   const emailHtml = generateEmailHtml(type, origin, scenario);
   const subject = getEmailSubject(type);
 
-  // Wrap email with a "Send Test Email" button at the top
+  // Escape email HTML for use in iframe srcdoc attribute
+  const srcdocHtml = emailHtml.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+
+  // Wrap email in an iframe (srcdoc) so it renders in its own document context,
+  // matching how real email clients parse the HTML.
   const wrappedHtml = `
     <!DOCTYPE html>
     <html>
@@ -171,11 +175,6 @@ export const GET: APIRoute = async (context) => {
           margin: 0 0 8px 0;
           font-size: 24px;
           color: #1f2937;
-        }
-        .preview-header p {
-          margin: 0;
-          font-size: 14px;
-          color: #666;
         }
         .preview-controls {
           position: fixed;
@@ -208,9 +207,10 @@ export const GET: APIRoute = async (context) => {
         }
         .status-msg.success { color: #059669; }
         .status-msg.error { color: #dc2626; }
-        .email-preview {
-          background: white;
-          padding: 20px;
+        .email-frame {
+          width: 100%;
+          border: none;
+          display: block;
           border-radius: 8px;
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
@@ -254,50 +254,57 @@ export const GET: APIRoute = async (context) => {
         <div id="status" class="status-msg"></div>
       </div>
 
-      <div class="email-preview">
-        ${emailHtml}
-      </div>
+      <iframe
+        id="email-frame"
+        class="email-frame"
+        srcdoc="${srcdocHtml}"
+      ></iframe>
 
-        <script>
-          function changeScenario(scenario) {
-            const url = new URL(window.location.href);
-            url.searchParams.set('scenario', scenario);
-            window.location.href = url.toString();
-          }
+      <script>
+        // Auto-resize iframe to fit email content
+        const frame = document.getElementById('email-frame');
+        frame.addEventListener('load', () => {
+          frame.style.height = frame.contentDocument.documentElement.scrollHeight + 'px';
+        });
 
-          async function sendTestEmail() {
-            const btn = document.querySelector('.send-test-btn');
-            const status = document.getElementById('status');
+        function changeScenario(scenario) {
+          const url = new URL(window.location.href);
+          url.searchParams.set('scenario', scenario);
+          window.location.href = url.toString();
+        }
 
-            btn.disabled = true;
-            btn.textContent = 'Sending...';
-            status.textContent = '';
-            status.className = 'status-msg';
+        async function sendTestEmail() {
+          const btn = document.querySelector('.send-test-btn');
+          const status = document.getElementById('status');
 
-            try {
-              const response = await fetch(window.location.href, {
-                method: 'POST'
-              });
+          btn.disabled = true;
+          btn.textContent = 'Sending...';
+          status.textContent = '';
+          status.className = 'status-msg';
 
-              const data = await response.json();
+          try {
+            const response = await fetch(window.location.href, {
+              method: 'POST'
+            });
 
-              if (response.ok) {
-                status.textContent = '✓ Sent to ADMIN_EMAIL';
-                status.className = 'status-msg success';
-              } else {
-                status.textContent = '✗ ' + (data.error || 'Failed to send');
-                status.className = 'status-msg error';
-              }
-            } catch (error) {
-              status.textContent = '✗ Network error';
+            const data = await response.json();
+
+            if (response.ok) {
+              status.textContent = '✓ Sent to ADMIN_EMAIL';
+              status.className = 'status-msg success';
+            } else {
+              status.textContent = '✗ ' + (data.error || 'Failed to send');
               status.className = 'status-msg error';
-            } finally {
-              btn.disabled = false;
-              btn.textContent = 'Send Test Email';
             }
+          } catch (error) {
+            status.textContent = '✗ Network error';
+            status.className = 'status-msg error';
+          } finally {
+            btn.disabled = false;
+            btn.textContent = 'Send Test Email';
           }
-        </script>
-      </div>
+        }
+      </script>
     </body>
     </html>
   `;
@@ -317,6 +324,7 @@ export const POST: APIRoute = async (context) => {
   }
 
   const type = context.url.searchParams.get('type') as EmailType;
+  const scenario = context.url.searchParams.get('scenario') || undefined;
   const { origin } = context.url;
 
   if (!type || !emails[type]) {
@@ -329,7 +337,7 @@ export const POST: APIRoute = async (context) => {
   }
 
   try {
-    const emailHtml = generateEmailHtml(type, origin);
+    const emailHtml = generateEmailHtml(type, origin, scenario);
     const resend = new Resend(import.meta.env.RESEND_API_KEY);
 
     await resend.emails.send({

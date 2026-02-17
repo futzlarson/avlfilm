@@ -16,23 +16,19 @@ export const COLORS = {
   textLight: '#666',
 } as const;
 
-// Common gradients
-export const GRADIENT = `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryDark} 100%)`;
-
 // Button styles
 export const BUTTON_STYLE = `
-  background: ${GRADIENT};
+  background-color: ${COLORS.primary};
   color: ${COLORS.white};
   padding: 14px 32px;
   text-decoration: none;
   border-radius: 50px;
   font-weight: 600;
   display: inline-block;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 `.replace(/\s+/g, ' ').trim();
 
 export const TEXT_BUTTON_STYLE = `
-  background: ${GRADIENT};
+  background-color: ${COLORS.primary};
   color: ${COLORS.white};
   padding: 14px 28px;
   text-decoration: none;
@@ -59,8 +55,9 @@ export const TABLE_CELL_STYLE = `
 `.replace(/\s+/g, ' ').trim();
 
 // Text styles
-export const PARAGRAPH_STYLE = `font-size: 16px; line-height: 1.6; color: ${COLORS.text};`;
-export const SMALL_TEXT_STYLE = `color: ${COLORS.textLight}; font-size: 14px; line-height: 1.6;`;
+export const HEADING_STYLE = `color: ${COLORS.text}; margin-top: 0; font-size: 24px;`;
+export const PARAGRAPH_STYLE = `font-size: 16px; line-height: 1.6; color: ${COLORS.text}; margin: 0 0 16px 0;`;
+export const SMALL_TEXT_STYLE = `color: ${COLORS.textLight}; font-size: 14px; line-height: 1.6; margin: 0 0 16px 0;`;
 export const LINK_STYLE = `color: ${COLORS.primary}; font-weight: 600;`;
 
 /**
@@ -77,10 +74,10 @@ export function userEmailTemplate(content: string): string {
 </head>
 <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: ${COLORS.gray100};">
   <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-    <div style="background: ${GRADIENT}; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+    <div style="background-color: ${COLORS.primary}; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
       <h1 style="color: ${COLORS.white}; margin: 0; font-size: 28px;">AVL Film</h1>
     </div>
-    <div style="background: ${COLORS.white}; padding: 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <div style="background: ${COLORS.white}; padding: 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-size: 16px;">
       ${content}
     </div>
     ${FOOTER}

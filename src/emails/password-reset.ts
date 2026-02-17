@@ -1,4 +1,4 @@
-import { BUTTON_STYLE, COLORS, PARAGRAPH_STYLE, SMALL_TEXT_STYLE, userEmailTemplate } from './templates';
+import { BUTTON_STYLE, HEADING_STYLE, LINK_STYLE, PARAGRAPH_STYLE, SMALL_TEXT_STYLE, userEmailTemplate } from './templates';
 
 export const metadata = {
   name: 'Password Reset',
@@ -12,7 +12,7 @@ export function generate(
   resetUrl: string
 ): string {
   return userEmailTemplate(`
-    <h2 style="color: ${COLORS.text}; margin-top: 0;">Set Your Password</h2>
+    <h2 style="${HEADING_STYLE}">Set Your Password</h2>
     <p style="${PARAGRAPH_STYLE}">
       Hi ${name},
     </p>
@@ -29,7 +29,7 @@ export function generate(
     </p>
     <p style="${SMALL_TEXT_STYLE} margin-top: 30px;">
       If the button doesn't work, copy and paste this link into your browser:<br>
-      <a href="${resetUrl}" style="color: ${COLORS.primary}; word-break: break-all;">${resetUrl}</a>
+      <a href="${resetUrl}" style="${LINK_STYLE} word-break: break-all;">${resetUrl}</a>
     </p>
   `);
 }

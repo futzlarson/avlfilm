@@ -1,4 +1,4 @@
-import { BUTTON_STYLE, COLORS, TABLE_CELL_STYLE, TABLE_HEADER_STYLE, userEmailTemplate } from './templates';
+import { BUTTON_STYLE, HEADING_STYLE, LINK_STYLE, TABLE_CELL_STYLE, TABLE_HEADER_STYLE, userEmailTemplate } from './templates';
 
 export const metadata = {
   name: 'Event Submission',
@@ -19,7 +19,7 @@ export interface EventSubmission {
 
 export function generate(data: EventSubmission): string {
   return userEmailTemplate(`
-    <h2 style="color: ${COLORS.text}; margin-top: 0;">New Event Submission</h2>
+    <h2 style="${HEADING_STYLE}">New Event Submission</h2>
     <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
       <tr>
         <td style="${TABLE_HEADER_STYLE}">TITLE</td>
@@ -46,7 +46,7 @@ export function generate(data: EventSubmission): string {
       ${data.link ? `
       <tr>
         <td style="${TABLE_HEADER_STYLE}">LINK</td>
-        <td style="${TABLE_CELL_STYLE}"><a href="${data.link}" style="color: ${COLORS.primary};">${data.link}</a></td>
+        <td style="${TABLE_CELL_STYLE}"><a href="${data.link}" style="${LINK_STYLE}">${data.link}</a></td>
       </tr>
       ` : ''}
     </table>

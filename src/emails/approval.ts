@@ -1,4 +1,4 @@
-import { BUTTON_STYLE, COLORS, PARAGRAPH_STYLE, userEmailTemplate } from './templates';
+import { BUTTON_STYLE, HEADING_STYLE, LINK_STYLE, PARAGRAPH_STYLE, userEmailTemplate } from './templates';
 
 export const metadata = {
   name: 'Filmmaker Approval',
@@ -16,7 +16,7 @@ export function generate(
   origin: string
 ): string {
   return userEmailTemplate(`
-    <h2 style="color: ${COLORS.text}; margin-top: 0;">Welcome to the AVL Film Directory!</h2>
+    <h2 style="${HEADING_STYLE}">Welcome to the AVL Film Directory!</h2>
 
     <p style="${PARAGRAPH_STYLE}">Hi ${name},</p>
 
@@ -29,7 +29,7 @@ export function generate(
     </p>
 
     <p style="${PARAGRAPH_STYLE}">
-      Other filmmakers and <a href="${origin}/production">production companies</a> can now discover your work and connect with you through the directory.
+      Other filmmakers and <a href="${origin}/production" style="${LINK_STYLE}">production companies</a> can now discover your work and connect with you through the directory.
     </p>
 
     <div style="text-align: center; margin: 30px 0;">
