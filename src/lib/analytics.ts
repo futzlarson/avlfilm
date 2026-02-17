@@ -8,7 +8,19 @@
 
 import { nanoid } from 'nanoid';
 
-import { logWarning } from './rollbar';
+// Lazy import rollbar to avoid breaking when blocked by ad blockers
+function safeLogWarning(message: string, metadata?: Record<string, unknown>): void {
+  try {
+    import('./rollbar').then(({ logWarning }) => {
+      logWarning(message, metadata);
+    }).catch(() => {
+      // Rollbar blocked by ad blocker - use console fallback
+      console.warn(message, metadata);
+    });
+  } catch {
+    console.warn(message, metadata);
+  }
+}
 
 function getOrCreateVisitorId(): string {
   const key = 'analytics_visitor_id';
@@ -61,6 +73,6 @@ export function track(eventName: string, properties?: Record<string, unknown>): 
   }).catch(error => {
     // Silently fail - analytics shouldn't break user experience
     // Log as warning since this isn't critical
-    logWarning('Analytics tracking failed', { error, service: 'analytics' });
+    safeLogWarning('Analytics tracking failed', { error, service: 'analytics' });
   });
 }

@@ -18,10 +18,12 @@ export const POST: APIRoute = async (context) => {
     }
 
     // Get original user
+    const impersonatorIdNum = parseInt(impersonatorId, 10);
+
     const [originalUser] = await db
       .select()
       .from(filmmakers)
-      .where(eq(filmmakers.id, parseInt(impersonatorId)));
+      .where(eq(filmmakers.id, impersonatorIdNum));
 
     if (!originalUser) {
       return errorResponse('Original user not found', 404);
