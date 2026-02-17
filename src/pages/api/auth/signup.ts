@@ -66,7 +66,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       path: '/',
     });
 
-    sendSlackNotification(`Password set for ${user.name} (${user.email}) via standard signup`);
+    await sendSlackNotification(`Password set for ${user.name} (${user.email}) via standard signup`);
 
     return successResponse({
       user: {

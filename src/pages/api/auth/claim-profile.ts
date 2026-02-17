@@ -24,7 +24,7 @@ export const POST: APIRoute = async ({ request, url }) => {
 
     // Always return success (don't reveal if email exists)
     if (!user) {
-      sendSlackNotification(`Email not found claiming profile: ${email}`);
+      await sendSlackNotification(`Email not found claiming profile: ${email}`);
 
       return successResponse({
         message: 'If that email exists in our directory, a link has been sent',

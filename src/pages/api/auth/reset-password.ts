@@ -40,7 +40,7 @@ export const POST: APIRoute = async ({ request }) => {
       .where(eq(filmmakers.resetToken, token));
 
     if (!user) {
-      sendSlackNotification(`Invalid or expired reset token: ${token}`);
+      await sendSlackNotification(`Invalid or expired reset token: ${token}`);
       return errorResponse('Invalid or expired reset token', 400);
     }
 
@@ -61,7 +61,7 @@ export const POST: APIRoute = async ({ request }) => {
       .where(eq(filmmakers.id, user.id));
 
     const sourceLabel = SOURCE_LABELS[source] || 'unknown';
-    sendSlackNotification(`Password set for ${user.name} (${user.email}) via ${sourceLabel}`);
+    await sendSlackNotification(`Password set for ${user.name} (${user.email}) via ${sourceLabel}`);
 
     return successResponse({ message: 'Password reset successful' });
   } catch (error) {

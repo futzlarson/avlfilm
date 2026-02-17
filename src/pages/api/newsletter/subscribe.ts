@@ -12,8 +12,8 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Bot prevention: honeypot check
     if (website) {
-      // Notify Slack about caught bot (don't await - fire and forget)
-      sendSlackNotification(`🤖 Bot caught in newsletter signup: ${email}`);
+      // Notify Slack about caught bot
+      await sendSlackNotification(`🤖 Bot caught in newsletter signup: ${email}`);
 
       // Silently reject bot submission (looks like success to bot)
       return successResponse({ message: 'Successfully subscribed to newsletter!' });

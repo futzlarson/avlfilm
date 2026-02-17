@@ -104,10 +104,10 @@ export const POST: APIRoute = async (context) => {
       })
       .returning();
 
-    // Notify Slack (don't block response on failure)
+    // Notify Slack
     const siteUrl = import.meta.env.SITE || 'https://avlfilm.com';
     const eventUrl = `${siteUrl}/events/${event.slug}/submit`;
-    sendSlackNotification(
+    await sendSlackNotification(
       `${submitterName.trim()} submitted "${filmTitle.trim()}" (${formatDuration(durationSeconds)}) for <${eventUrl}|${event.title}>`
     );
 
