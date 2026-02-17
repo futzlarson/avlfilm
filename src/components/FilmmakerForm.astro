@@ -167,9 +167,6 @@ const { roleAliasMap, canonicalRoles } = buildRoleData();
 
   <div class={isEdit ? 'form-actions-profile' : ''}>
     <button type="submit" class="btn-primary">{isEdit ? 'Save Changes' : 'Submit'}</button>
-    {isEdit && (
-      <button type="button" id="logout-btn" class="btn-secondary">Log Out</button>
-    )}
   </div>
 </form>
 
@@ -641,11 +638,6 @@ const { roleAliasMap, canonicalRoles } = buildRoleData();
     });
   }
 
-  async function handleLogout() {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    window.location.href = '/';
-  }
-
   // Astro scripts run after DOM is ready, no need for DOMContentLoaded
   // Move to next field when Enter is pressed in input fields
   form?.addEventListener('keydown', (e) => {
@@ -672,7 +664,6 @@ const { roleAliasMap, canonicalRoles } = buildRoleData();
   if (isEdit) {
     updateSelectedRoles();
     form?.addEventListener('submit', handleEditSubmit);
-    document.getElementById('logout-btn')?.addEventListener('click', handleLogout);
   } else {
     setupEmailValidation();
     form?.addEventListener('submit', handleCreateSubmit);

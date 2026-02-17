@@ -1,0 +1,81 @@
+---
+interface Props {
+  currentPage: 'profile' | 'submissions';
+}
+
+const { currentPage } = Astro.props;
+---
+
+<nav class="account-nav">
+  <a href="/account/profile" class:list={['account-link', { active: currentPage === 'profile' }]}>
+    My Profile
+  </a>
+  <a href="/account/submissions" class:list={['account-link', { active: currentPage === 'submissions' }]}>
+    My Submissions
+  </a>
+  <button id="account-nav-logout" class="account-link logout-btn">Log Out</button>
+</nav>
+
+<script>
+  document.getElementById('account-nav-logout')?.addEventListener('click', async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.href = '/';
+  });
+</script>
+
+<style>
+  .account-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 2rem;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .account-link {
+    color: #666;
+    text-decoration: none;
+    font-weight: 500;
+    padding-bottom: 0.4rem;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .account-link:hover {
+    color: #333;
+  }
+
+  .account-link.active {
+    color: #333;
+    font-weight: 600;
+    border-bottom-color: var(--color-primary);
+  }
+
+  .logout-btn {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-size: inherit;
+    font-family: inherit;
+    padding: 0 0 0.4rem 0;
+    color: #ef4444;
+    vertical-align: baseline;
+  }
+
+  .logout-btn:hover {
+    color: #dc2626;
+  }
+
+  @media (max-width: 768px) {
+    .account-nav {
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .account-link {
+      font-size: 0.875rem;
+      white-space: nowrap;
+    }
+  }
+</style>

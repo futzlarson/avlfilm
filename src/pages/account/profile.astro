@@ -1,6 +1,7 @@
 ---
 // Internal imports
 import { findUserById } from '@lib/auth';
+import AccountNav from '@components/AccountNav.astro';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import FilmmakerForm from '@components/FilmmakerForm.astro';
 
@@ -38,8 +39,9 @@ try {
   title="Edit Profile"
   description="Manage your AVL Film filmmaker profile."
 >
-  <h1>Edit Your Profile</h1>
-  <p class="intro">Update your information in the AVL Film directory. <a href="/account/submissions">View your submissions</a></p>
+  <h1>My Account</h1>
+  <AccountNav currentPage="profile" />
+  <p class="intro" style="margin-top: 0">This is your information as it appears in the AVL Film directory.</p>
 
   {filmmaker.status === 'pending' && (
     <div class="alert alert-info" style="display: inline-block">

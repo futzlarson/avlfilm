@@ -5,6 +5,7 @@ import { submissions, spotlightEvents } from '@db/schema';
 import { formatDuration } from '@lib/film-utils';
 import { formatDate, DATE_SHORT, DATE_LONG } from '@lib/datetime';
 import { findUserById } from '@lib/auth';
+import AccountNav from '@components/AccountNav.astro';
 import BaseLayout from '@layouts/BaseLayout.astro';
 
 // External packages
@@ -63,7 +64,8 @@ function displayStatus(status: string): string {
   description="View your film submission history."
 >
   <h1>My Submissions</h1>
-  <p class="intro">Track the status of your film submissions. <a href="/account/profile">Edit your profile</a></p>
+  <AccountNav currentPage="submissions" />
+  <p class="intro" style="margin-top: 0">Track the status of your film submissions.</p>
 
   {mySubmissions.length === 0 ? (
     <div class="empty-state">
