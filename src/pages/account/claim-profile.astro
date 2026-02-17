@@ -9,7 +9,7 @@ if (user) {
 }
 
 const email = Astro.url.searchParams.get('email') || '';
-const source = Astro.url.searchParams.get('source') || '';
+const source = Astro.url.searchParams.get('source') || 'email_match';
 ---
 
 <BaseLayout
