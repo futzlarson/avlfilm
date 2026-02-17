@@ -14,7 +14,7 @@ const isImpersonating = !!impersonatorId && !!currentUser;
   <div class="banner impersonation-banner">
     <div class="banner-content">
       <span class="impersonation-text">Logged in as <strong>{currentUser.email}</strong></span>
-      <button id="return-to-admin-btn" class="return-btn">Return to Admin Account</button>
+      <button id="return-to-user-btn" class="return-btn">Return to Admin Account</button>
     </div>
   </div>
 )}
@@ -100,12 +100,13 @@ const isImpersonating = !!impersonatorId && !!currentUser;
 </style>
 
 <script>
-  const returnBtn = document.getElementById('return-to-admin-btn');
+  const returnBtn = document.getElementById('return-to-user-btn');
   if (returnBtn) {
     returnBtn.addEventListener('click', async () => {
       try {
-        const response = await fetch('/api/auth/return-to-admin', {
+        const response = await fetch('/api/auth/return-to-user', {
           method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
         });
 
         if (response.ok) {
