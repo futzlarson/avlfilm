@@ -137,7 +137,7 @@ export const GET: APIRoute = async (context) => {
 
   const type = context.url.searchParams.get('type') as EmailType;
   const scenario = context.url.searchParams.get('scenario') || undefined;
-  const { origin } = context.url;
+  const origin = import.meta.env.SITE_URL || 'https://avlfilm.com';
 
   if (!type || !emails[type]) {
     return errorResponse('Invalid email type');
@@ -170,6 +170,13 @@ export const GET: APIRoute = async (context) => {
           border-radius: 8px;
           margin-bottom: 20px;
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 16px;
+        }
+        .preview-header-left {
+          flex: 1;
         }
         .preview-header h1 {
           margin: 0 0 8px 0;
@@ -177,10 +184,8 @@ export const GET: APIRoute = async (context) => {
           color: #1f2937;
         }
         .preview-controls {
-          position: fixed;
-          top: 20px;
-          right: 20px;
-          z-index: 9999;
+          flex-shrink: 0;
+          text-align: right;
         }
         .send-test-btn {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -236,22 +241,23 @@ export const GET: APIRoute = async (context) => {
     </head>
     <body>
       <div class="preview-header">
-        <h1>${subject}</h1>
-        ${type === 'requestFile' ? `
-        <div class="scenario-selector">
-          <label for="scenario">Scenario:</label>
-          <select id="scenario" onchange="changeScenario(this.value)">
-            <option value="claimed" ${scenario === 'claimed' ? 'selected' : ''}>Filmmaker has claimed account</option>
-            <option value="unclaimed" ${scenario === 'unclaimed' ? 'selected' : ''}>In directory, unclaimed account</option>
-            <option value="not-in-directory" ${!scenario || scenario === 'not-in-directory' ? 'selected' : ''}>Not in directory</option>
-          </select>
+        <div class="preview-header-left">
+          <h1>${subject}</h1>
+          ${type === 'requestFile' ? `
+          <div class="scenario-selector">
+            <label for="scenario">Scenario:</label>
+            <select id="scenario" onchange="changeScenario(this.value)">
+              <option value="claimed" ${scenario === 'claimed' ? 'selected' : ''}>Filmmaker has claimed account</option>
+              <option value="unclaimed" ${scenario === 'unclaimed' ? 'selected' : ''}>In directory, unclaimed account</option>
+              <option value="not-in-directory" ${!scenario || scenario === 'not-in-directory' ? 'selected' : ''}>Not in directory</option>
+            </select>
+          </div>
+          ` : ''}
         </div>
-        ` : ''}
-      </div>
-
-      <div class="preview-controls">
-        <button class="send-test-btn" onclick="sendTestEmail()">Send Test Email</button>
-        <div id="status" class="status-msg"></div>
+        <div class="preview-controls">
+          <button class="send-test-btn" onclick="sendTestEmail()">Send Test Email</button>
+          <div id="status" class="status-msg"></div>
+        </div>
       </div>
 
       <iframe
@@ -284,13 +290,15 @@ export const GET: APIRoute = async (context) => {
 
           try {
             const response = await fetch(window.location.href, {
-              method: 'POST'
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({}),
             });
 
             const data = await response.json();
 
             if (response.ok) {
-              status.textContent = '✓ Sent to ADMIN_EMAIL';
+              status.textContent = '✓ Sent to ${import.meta.env.ADMIN_EMAIL}';
               status.className = 'status-msg success';
             } else {
               status.textContent = '✗ ' + (data.error || 'Failed to send');
@@ -325,7 +333,7 @@ export const POST: APIRoute = async (context) => {
 
   const type = context.url.searchParams.get('type') as EmailType;
   const scenario = context.url.searchParams.get('scenario') || undefined;
-  const { origin } = context.url;
+  const origin = import.meta.env.SITE_URL || 'https://avlfilm.com';
 
   if (!type || !emails[type]) {
     return errorResponse('Invalid email type');
