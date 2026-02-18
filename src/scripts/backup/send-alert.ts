@@ -12,7 +12,7 @@ async function sendAlert() {
 
   try {
     await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+      from: process.env.RESEND_FROM_EMAIL!,
       to: process.env.ADMIN_EMAIL || 'admin@example.com',
       subject: 'Database Backup Failed - AVL Film',
       text: backupAlertEmail.generate(timestamp, runUrl),

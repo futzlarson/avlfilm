@@ -44,8 +44,8 @@ export async function sendPasswordResetEmail(
   const resetUrl = `${siteUrl}/account/reset-password?token=${resetToken}${sourceParam}`;
 
   await resend.emails.send({
-    from:
-      import.meta.env.RESEND_FROM_EMAIL || 'AVL Film <onboarding@resend.dev>',
+    from: import.meta.env.RESEND_FROM_EMAIL,
+    replyTo: import.meta.env.ADMIN_EMAIL,
     to: user.email,
     subject,
     html: passwordResetEmail.generate(user.name, resetUrl),

@@ -69,7 +69,7 @@ export const POST: APIRoute = async (context) => {
         );
 
         await resend.emails.send({
-          from: import.meta.env.RESEND_FROM_EMAIL || 'AVL Film <onboarding@resend.dev>',
+          from: import.meta.env.RESEND_FROM_EMAIL,
           replyTo: import.meta.env.ADMIN_EMAIL,
           to: filmmaker.email,
           subject: approvalEmail.metadata.subject,

@@ -40,7 +40,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Send email notification
     await resend.emails.send({
-      from: import.meta.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+      from: import.meta.env.RESEND_FROM_EMAIL,
       replyTo: email,
       to: import.meta.env.ADMIN_EMAIL,
       subject: productionCompanySubmissionEmail.metadata.subject,

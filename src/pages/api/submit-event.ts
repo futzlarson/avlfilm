@@ -80,7 +80,7 @@ export const POST: APIRoute = async ({ request }) => {
         };
 
         await resend.emails.send({
-          from: 'AVL Film <onboarding@resend.dev>',
+          from: import.meta.env.RESEND_FROM_EMAIL,
           to: import.meta.env.ADMIN_EMAIL,
           subject: eventSubmissionEmail.metadata.subject,
           html: eventSubmissionEmail.generate(eventData),
