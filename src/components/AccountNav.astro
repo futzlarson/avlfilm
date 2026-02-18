@@ -18,8 +18,12 @@ const { currentPage } = Astro.props;
 
 <script>
   document.getElementById('account-nav-logout')?.addEventListener('click', async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    window.location.href = '/';
+    const res = await fetch('/api/auth/logout', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+    if (res.ok) {
+      window.location.href = '/';
+    } else {
+      alert('Logout failed. Please try again.');
+    }
   });
 </script>
 
