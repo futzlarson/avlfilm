@@ -350,6 +350,7 @@ export const POST: APIRoute = async (context) => {
 
     await resend.emails.send({
       from: import.meta.env.RESEND_FROM_EMAIL,
+      replyTo: import.meta.env.ADMIN_EMAIL,
       to: adminEmail,
       subject: `[TEST] ${emails[type].metadata.subject}`,
       html: emailHtml,

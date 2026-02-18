@@ -89,7 +89,7 @@ try {
           {emailEntries.map(([key, email]) => (
             <tr>
               <td>
-                <a href={`/api/preview-email?type=${key}`} target="_blank">
+                <a href={`/api/preview-email?type=${key}`}>
                   {email.metadata.name}
                 </a>
               </td>
