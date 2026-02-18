@@ -13,7 +13,7 @@ import { Resend } from 'resend';
 
 const resend = new Resend(import.meta.env.RESEND_API_KEY);
 
-export const POST: APIRoute = async ({ request, url }) => {
+export const POST: APIRoute = async ({ request, site }) => {
   try {
     const body = await request.json();
     const { name, email, phone, roles, company, website, instagram, youtube, facebook, gear, bio, notes, newsletter } = body;
@@ -67,7 +67,7 @@ export const POST: APIRoute = async ({ request, url }) => {
             ...filmmaker,
             notes,
             newsletter: subscribeToNewsletterRequested,
-            adminUrl: `${url.origin}/admin/filmmakers`,
+            adminUrl: `${site!.origin}/admin/filmmakers`,
           }),
         });
       } catch (emailError) {
@@ -83,7 +83,7 @@ export const POST: APIRoute = async ({ request, url }) => {
           email: filmmaker.email,
           name: filmmaker.name
         },
-        origin: url.origin,
+        site: site!,
         subject: 'Welcome to AVL Film - Set Your Password',
         source: 'new_filmmaker',
       });
