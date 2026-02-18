@@ -11,7 +11,6 @@ import { eq } from 'drizzle-orm';
 import { Resend } from 'resend';
 
 export const POST: APIRoute = async (context) => {
-  const { site } = context;
   try {
     await requireAdmin(context);
 
@@ -49,7 +48,7 @@ export const POST: APIRoute = async (context) => {
     }
 
     // Generate email
-    const origin = site!.origin;
+    const origin = import.meta.env.SITE_URL || 'https://avlfilm.com';
     const submissionsUrl = `${origin}/account/submissions`;
     const eventDateFormatted = submission.eventDate.toLocaleDateString('en-US', {
       weekday: 'long',

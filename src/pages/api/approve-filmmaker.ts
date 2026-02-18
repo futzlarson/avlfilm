@@ -13,7 +13,7 @@ import { Resend } from 'resend';
 const resend = new Resend(import.meta.env.RESEND_API_KEY);
 
 export const POST: APIRoute = async (context) => {
-  const { request, site } = context;
+  const { request } = context;
 
   // Require admin authentication
   try {
@@ -65,7 +65,7 @@ export const POST: APIRoute = async (context) => {
         const emailHtml = approvalEmail.generate(
           filmmaker.name,
           filmmaker.roles,
-          site!.origin,
+          import.meta.env.SITE_URL || 'https://avlfilm.com',
         );
 
         await resend.emails.send({

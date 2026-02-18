@@ -5,7 +5,7 @@ import { sendPasswordResetEmail } from '@lib/send-reset-email';
 // Astro types
 import type { APIRoute } from 'astro';
 
-export const POST: APIRoute = async ({ request, site }) => {
+export const POST: APIRoute = async ({ request }) => {
   try {
     const { email } = await request.json();
 
@@ -26,7 +26,6 @@ export const POST: APIRoute = async ({ request, site }) => {
     // Send password reset email
     await sendPasswordResetEmail({
       user: { id: user.id, email: user.email, name: user.name },
-      site: site!,
       source: 'forgot_password',
     });
 

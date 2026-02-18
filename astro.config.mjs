@@ -3,7 +3,7 @@ import vercel from '@astrojs/vercel';
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  site: process.env.SITE_URL || 'https://avlfilm.com',
+  site: 'https://avlfilm.com',
   output: 'server',
   adapter: vercel(),
   integrations: [

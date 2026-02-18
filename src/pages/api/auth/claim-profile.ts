@@ -7,7 +7,7 @@ import { sendSlackNotification } from '@lib/slack';
 // Astro types
 import type { APIRoute } from 'astro';
 
-export const POST: APIRoute = async ({ request, site }) => {
+export const POST: APIRoute = async ({ request }) => {
   try {
     const { email, source } = await request.json();
 
@@ -49,7 +49,6 @@ export const POST: APIRoute = async ({ request, site }) => {
     // Send password setup email
     await sendPasswordResetEmail({
       user: { id: user.id, email: user.email, name: user.name },
-      site: site!,
       subject: 'Set Your Password - AVL Film',
       source: claimSource,
     });
