@@ -1,8 +1,8 @@
 // Internal imports
 import { db } from '@db/index';
-import { filmmakers,siteSettings } from '@db/schema';
+import { events, filmmakers, reviews, siteSettings, spotlightEvents, submissions } from '@db/schema';
 // External packages
-import { desc,eq, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 async function checkChanges() {
   try {
@@ -16,23 +16,32 @@ async function checkChanges() {
       ? new Date(backupLogResult[0].updatedAt)
       : new Date(0);
 
-    // Get the most recent change from filmmakers table using a single efficient query
-    // Use GREATEST to find the most recent timestamp between created_at and updated_at
-    const mostRecentFilmmaker = await db
-      .select({
-        mostRecentChange: sql<Date>`GREATEST(${filmmakers.createdAt}, ${filmmakers.updatedAt})`,
-      })
-      .from(filmmakers)
-      .orderBy(desc(sql`GREATEST(${filmmakers.createdAt}, ${filmmakers.updatedAt})`))
-      .limit(1);
+    // Find the most recent change across every tracked table.
+    // siteSettings/events only have one timestamp column; the rest take GREATEST(created, updated).
+    const tableQueries = await Promise.all([
+      db.select({ ts: sql<Date | null>`MAX(${siteSettings.updatedAt})` }).from(siteSettings),
+      db.select({ ts: sql<Date | null>`MAX(${events.createdAt})` }).from(events),
+      db.select({ ts: sql<Date | null>`MAX(GREATEST(${filmmakers.createdAt}, ${filmmakers.updatedAt}))` }).from(filmmakers),
+      db.select({ ts: sql<Date | null>`MAX(GREATEST(${spotlightEvents.createdAt}, ${spotlightEvents.updatedAt}))` }).from(spotlightEvents),
+      db.select({ ts: sql<Date | null>`MAX(GREATEST(${submissions.createdAt}, ${submissions.updatedAt}))` }).from(submissions),
+      db.select({ ts: sql<Date | null>`MAX(GREATEST(${reviews.createdAt}, ${reviews.updatedAt}))` }).from(reviews),
+    ]);
 
-    if (mostRecentFilmmaker.length === 0) {
-      console.log('SKIP_BACKUP=true');
-      console.log('No filmmakers in database');
-      process.exit(0);
+    let lastChangeTime: Date | null = null;
+    for (const result of tableQueries) {
+      const ts = result[0]?.ts;
+      if (!ts) continue;
+      const date = new Date(ts);
+      if (!lastChangeTime || date > lastChangeTime) {
+        lastChangeTime = date;
+      }
     }
 
-    const lastChangeTime = new Date(mostRecentFilmmaker[0].mostRecentChange);
+    if (!lastChangeTime) {
+      console.log('SKIP_BACKUP=true');
+      console.log('No data in any tracked table');
+      process.exit(0);
+    }
 
     if (lastChangeTime <= lastBackupTime) {
       console.log('SKIP_BACKUP=true');
