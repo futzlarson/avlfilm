@@ -11,6 +11,7 @@ export interface AvlGoEvent {
   location?: string;
   url?: string;
   source?: string;
+  organizer?: string;
   tags?: string[];
   imageUrl?: string;
 }
