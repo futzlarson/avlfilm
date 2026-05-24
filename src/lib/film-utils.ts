@@ -34,6 +34,20 @@ export function formatDuration(totalSeconds: number): string {
 }
 
 /**
+ * Format a runtime, rounded UP to the next whole minute, as a compact
+ * string like "1h20m", "2h", or "45m". Used for the schedule runtime total.
+ */
+export function formatRuntime(totalSeconds: number): string {
+  const totalMinutes = Math.ceil(totalSeconds / 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours > 0) {
+    return minutes > 0 ? `${hours}h${minutes}m` : `${hours}h`;
+  }
+  return `${minutes}m`;
+}
+
+/**
  * Calculate total runtime for an array of submissions (in seconds)
  */
 export function calculateTotalRuntime(subs: Pick<Submission, 'filmLength'>[]): number {

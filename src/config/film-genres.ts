@@ -1,14 +1,14 @@
 export const FILM_GENRES = [
-  'Drama',
+  'Action',
+  'Animation',
   'Comedy',
   'Documentary',
-  'Horror',
-  'Sci-Fi',
-  'Animation',
-  'Thriller',
-  'Action',
-  'Romance',
+  'Drama',
   'Experimental',
+  'Horror',
+  'Romance',
+  'Sci-Fi',
+  'Thriller',
   'Other',
 ] as const;
 

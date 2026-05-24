@@ -2,10 +2,11 @@
 // Internal imports
 import { db } from '@db';
 import { spotlightEvents, submissions, reviews, filmmakers } from '@db/schema';
-import { formatDuration, calculateTotalRuntime } from '@lib/film-utils';
+import { formatDuration, formatRuntime, calculateTotalRuntime } from '@lib/film-utils';
 import { formatDate } from '@lib/datetime';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import AdminNav from '@components/AdminNav.astro';
+import SubmissionForm from '@components/SubmissionForm.astro';
 
 // External packages
 import { eq, desc, asc } from 'drizzle-orm';
@@ -46,20 +47,31 @@ const [allEvents, allSubmissions, allReviews] = await Promise.all([
   .innerJoin(filmmakers, eq(reviews.adminId, filmmakers.id)),
 ]);
 
+// Fetch the full selected event (needed to render the manual-entry form)
+let selectedEvent = null;
+if (selectedEventId) {
+  [selectedEvent] = await db
+    .select()
+    .from(spotlightEvents)
+    .where(eq(spotlightEvents.id, Number(selectedEventId)));
+}
+
 // Filter by status client-side if needed (simpler for small datasets)
 const filteredSubmissions = selectedStatus === 'all'
   ? allSubmissions
   : allSubmissions.filter(s => s.status === selectedStatus);
 
-// Calculate stats
+// Calculate stats (films only — breaks aren't submissions)
+const films = allSubmissions.filter(s => s.itemType !== 'break');
 const stats = {
-  total: allSubmissions.length,
-  pending: allSubmissions.filter(s => s.status === 'pending').length,
-  approved: allSubmissions.filter(s => s.status === 'approved').length,
-  rejected: allSubmissions.filter(s => s.status === 'rejected').length,
-  future: allSubmissions.filter(s => s.status === 'future').length,
+  total: films.length,
+  pending: films.filter(s => s.status === 'pending').length,
+  approved: films.filter(s => s.status === 'approved').length,
+  rejected: films.filter(s => s.status === 'rejected').length,
+  future: films.filter(s => s.status === 'future').length,
 };
 
+// Runtime includes breaks so it reflects the actual run-of-show length
 const approvedSubs = allSubmissions.filter(s => s.status === 'approved');
 const totalRuntime = calculateTotalRuntime(approvedSubs);
 
@@ -112,18 +124,6 @@ for (const r of allReviews) {
 
       {selectedEventId && (
         <div class="stats-section">
-          <table class="stats-table runtime-table">
-            <thead>
-              <tr>
-                <th>Runtime</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="runtime-display">{formatDuration(totalRuntime)}</td>
-              </tr>
-            </tbody>
-          </table>
           <table class="stats-table">
             <thead>
               <tr>
@@ -142,9 +142,46 @@ for (const r of allReviews) {
               </tr>
             </tbody>
           </table>
+          <table class="stats-table runtime-table">
+            <thead>
+              <tr>
+                <th>Runtime</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="runtime-display">{formatRuntime(totalRuntime)}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       )}
     </div>
+
+    {selectedEvent && (
+      <div class="table-actions">
+        <button class="btn-secondary" id="add-submission-btn" type="button">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Add Submission
+        </button>
+        <button class="btn-secondary" id="add-break-btn" type="button">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="3" width="2.5" height="10" rx="1.25" fill="currentColor"/>
+            <rect x="9.5" y="3" width="2.5" height="10" rx="1.25" fill="currentColor"/>
+          </svg>
+          Add Break
+        </button>
+        <button class="btn-secondary" id="request-files-btn" type="button">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="1.5" y="3" width="13" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M1.5 5L8 9.5L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Request Files
+        </button>
+      </div>
+    )}
 
     <!-- Submissions Table -->
     {filteredSubmissions.length === 0 ? (
@@ -166,6 +203,27 @@ for (const r of allReviews) {
         </thead>
         <tbody>
           {filteredSubmissions.map((sub) => {
+            if (sub.itemType === 'break') {
+              return (
+                <tr class="break-row" data-id={sub.id} draggable="true">
+                  <td class="drag-handle" title="Drag to reorder">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="6" cy="4" r="1.25" fill="currentColor"/>
+                      <circle cx="10" cy="4" r="1.25" fill="currentColor"/>
+                      <circle cx="6" cy="8" r="1.25" fill="currentColor"/>
+                      <circle cx="10" cy="8" r="1.25" fill="currentColor"/>
+                      <circle cx="6" cy="12" r="1.25" fill="currentColor"/>
+                      <circle cx="10" cy="12" r="1.25" fill="currentColor"/>
+                    </svg>
+                  </td>
+                  <td colspan="3"><span class="break-label">{sub.filmTitle}</span></td>
+                  <td class="break-duration">{formatDuration(sub.filmLength)}</td>
+                  <td colspan="4" class="break-actions">
+                    <button class="break-delete" type="button" data-break-id={sub.id} title="Remove break">&times;</button>
+                  </td>
+                </tr>
+              );
+            }
             const rv = reviewMap.get(sub.id);
             return (
               <tr data-id={sub.id} draggable="true">
@@ -192,11 +250,15 @@ for (const r of allReviews) {
                 <td>{sub.filmGenre === 'Other' ? sub.filmGenreOther : sub.filmGenre}</td>
                 <td>{formatDuration(sub.filmLength)}</td>
                 <td class="submitted-cell">{formatDate(sub.createdAt, { month: 'short', day: 'numeric' })}</td>
-                <td>
-                  {sub.status === 'approved' && sub.fullResVideoUrl ? (
-                    <span class="status-badge link">&#10003; Link</span>
-                  ) : (
-                    <span class={`status-badge ${sub.status}`}>{sub.status}</span>
+                <td class="status-cell">
+                  <select class={`status-select ${sub.status}`} data-id={sub.id} data-current={sub.status} aria-label="Status">
+                    <option value="pending" selected={sub.status === 'pending'}>Pending</option>
+                    <option value="approved" selected={sub.status === 'approved'}>Approved</option>
+                    <option value="rejected" selected={sub.status === 'rejected'}>Rejected</option>
+                    <option value="future" selected={sub.status === 'future'}>Future</option>
+                  </select>
+                  {sub.status === 'approved' && sub.fullResVideoUrl && (
+                    <span class="link-indicator" title="Full-res video link on file">&#128279;</span>
                   )}
                 </td>
                 <td class="notes-cell">
@@ -219,20 +281,6 @@ for (const r of allReviews) {
               </tr>
             );
           })}
-          {selectedEventId && (
-            <tr class="action-row">
-              <td></td>
-              <td colspan="5"></td>
-              <td colspan="3">
-                <button class="btn-secondary" id="request-files-btn" type="button">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  </svg>
-                  Request Files
-                </button>
-              </td>
-            </tr>
-          )}
         </tbody>
       </table>
     )}
@@ -266,19 +314,174 @@ for (const r of allReviews) {
     </div>
   </div>
 
+  <!-- Add Submission Modal -->
+  {selectedEvent && (
+    <div id="add-submission-modal" class="modal">
+      <div class="modal-overlay"></div>
+      <div class="modal-content modal-small">
+        <button class="modal-close">&times;</button>
+        <div class="modal-body">
+          <h2>Add Submission &mdash; {selectedEvent.title}</h2>
+          <SubmissionForm
+            event={selectedEvent}
+            action="/admin/api/submissions/create"
+            adminMode={true}
+            submitLabel="Add Submission"
+          />
+        </div>
+      </div>
+    </div>
+  )}
+
+  <!-- Add Break Modal -->
+  {selectedEvent && (
+    <div id="add-break-modal" class="modal">
+      <div class="modal-overlay"></div>
+      <div class="modal-content modal-small">
+        <button class="modal-close">&times;</button>
+        <div class="modal-body">
+          <h2>Add Break</h2>
+          <form id="break-form" class="break-form" data-event-id={selectedEvent.id}>
+            <div class="form-group">
+              <label for="break-label">Label</label>
+              <input type="text" id="break-label" name="label" required placeholder="Intermission, Q&amp;A, Setup..." />
+            </div>
+            <div class="form-group">
+              <label for="break-duration">Duration (minutes)</label>
+              <input type="number" id="break-duration" name="durationMinutes" required min="1" step="1" placeholder="15" />
+            </div>
+            <div id="break-message" class="form-message" style="display: none;"></div>
+            <div class="modal-actions">
+              <button type="button" class="btn-secondary" id="break-cancel-btn">Cancel</button>
+              <button type="submit" class="btn-primary" id="break-submit-btn">Add Break</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  )}
+
 </BaseLayout>
 
 <script is:inline id="submissions-data" type="application/json" set:html={JSON.stringify({
   approvedWithoutFiles: allSubmissions
-    .filter(s => s.status === 'approved' && !s.fullResVideoUrl && selectedEventId && s.eventId === Number(selectedEventId))
+    .filter(s => s.status === 'approved' && s.itemType !== 'break' && !s.fullResVideoUrl && selectedEventId && s.eventId === Number(selectedEventId))
     .map(s => ({ id: s.id, email: s.submitterEmail, filmTitle: s.filmTitle, status: s.status }))
 })}></script>
 
 <script>
   import { setupModal } from '@lib/modal';
+  import { showFormMessage } from '@lib/form-utils';
 
-  // Setup modal
+  // Setup modals
   const requestFilesModal = setupModal('request-files-modal');
+  const addSubmissionModal = setupModal('add-submission-modal');
+  const addBreakModal = setupModal('add-break-modal');
+
+  // Open the Add Submission modal
+  document.getElementById('add-submission-btn')?.addEventListener('click', () => {
+    addSubmissionModal?.open();
+  });
+
+  // Add Break modal
+  document.getElementById('add-break-btn')?.addEventListener('click', () => {
+    addBreakModal?.open();
+  });
+  document.getElementById('break-cancel-btn')?.addEventListener('click', () => {
+    addBreakModal?.close();
+  });
+
+  const breakForm = document.getElementById('break-form') as HTMLFormElement | null;
+  if (breakForm) {
+    const breakMessage = document.getElementById('break-message') as HTMLDivElement;
+    const breakSubmitBtn = document.getElementById('break-submit-btn') as HTMLButtonElement;
+
+    breakForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      breakSubmitBtn.disabled = true;
+      breakSubmitBtn.textContent = 'Adding...';
+      breakMessage.style.display = 'none';
+
+      const formData = new FormData(breakForm);
+      try {
+        const res = await fetch('/admin/api/submissions/break', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            eventId: Number(breakForm.dataset.eventId),
+            label: formData.get('label'),
+            durationMinutes: Number(formData.get('durationMinutes')),
+          }),
+        });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error || 'Failed to add break');
+        window.location.reload();
+      } catch (err) {
+        showFormMessage(breakMessage, err instanceof Error ? err.message : 'Something went wrong', 'error');
+        breakSubmitBtn.disabled = false;
+        breakSubmitBtn.textContent = 'Add Break';
+      }
+    });
+  }
+
+  // Delete a break
+  document.querySelectorAll('.break-delete').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const id = Number((btn as HTMLElement).dataset.breakId);
+      if (!confirm('Remove this break from the schedule?')) return;
+      try {
+        const res = await fetch('/admin/api/submissions/break', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id }),
+        });
+        if (!res.ok) throw new Error('Failed to delete break');
+        window.location.reload();
+      } catch (err) {
+        console.error('Failed to delete break', err);
+        alert('Failed to delete break');
+      }
+    });
+  });
+
+  // Inline status updates
+  document.querySelectorAll('.status-select').forEach((el) => {
+    const select = el as HTMLSelectElement;
+    select.addEventListener('change', async () => {
+      const id = Number(select.dataset.id);
+      const previous = select.dataset.current!;
+      const status = select.value;
+
+      // The endpoint requires a reason when rejecting
+      let rejectionReason: string | null = null;
+      if (status === 'rejected') {
+        rejectionReason = prompt('Rejection reason (required):');
+        if (!rejectionReason || !rejectionReason.trim()) {
+          select.value = previous;
+          return;
+        }
+      }
+
+      select.disabled = true;
+      try {
+        const res = await fetch('/admin/api/submissions/update-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, status, rejectionReason }),
+        });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error || 'Failed to update status');
+        // Reload so runtime, stats, the status filter, and link indicator stay in sync
+        window.location.reload();
+      } catch (err) {
+        console.error('Failed to update status', err);
+        alert(err instanceof Error ? err.message : 'Failed to update status');
+        select.value = previous;
+        select.disabled = false;
+      }
+    });
+  });
 
   // Filter navigation
   const eventFilter = document.getElementById('event-filter') as HTMLSelectElement;
@@ -388,39 +591,43 @@ for (const r of allReviews) {
       e.dataTransfer!.effectAllowed = 'move';
     });
 
+    const clearDropMarkers = () =>
+      tbody.querySelectorAll('.drop-before, .drop-after').forEach((el) => el.classList.remove('drop-before', 'drop-after'));
+
     tbody.addEventListener('dragend', () => {
       if (dragRow) dragRow.classList.remove('dragging');
       dragRow = null;
-      document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+      clearDropMarkers();
     });
 
     tbody.addEventListener('dragover', (e) => {
       e.preventDefault();
       e.dataTransfer!.dropEffect = 'move';
       const targetRow = (e.target as HTMLElement).closest('tr') as HTMLTableRowElement;
-      if (!targetRow || targetRow === dragRow) return;
+      // Ignore non-draggable rows (e.g. the Request Files action row has no data-id)
+      if (!targetRow || targetRow === dragRow || !targetRow.dataset.id) return;
 
-      document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-      targetRow.classList.add('drag-over');
-
-      const rows = [...tbody.querySelectorAll('tr')];
-      const dragIdx = rows.indexOf(dragRow!);
-      const targetIdx = rows.indexOf(targetRow);
-
-      if (dragIdx < targetIdx) {
-        targetRow.after(dragRow!);
-      } else {
-        targetRow.before(dragRow!);
-      }
+      // Line goes on the side of the row the cursor is closest to — that's the
+      // insertion point. No live reflow, so the line never desyncs from the drop.
+      const rect = targetRow.getBoundingClientRect();
+      const after = e.clientY > rect.top + rect.height / 2;
+      clearDropMarkers();
+      targetRow.classList.add(after ? 'drop-after' : 'drop-before');
     });
 
     tbody.addEventListener('drop', async (e) => {
       e.preventDefault();
-      document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
 
-      const rows = [...tbody.querySelectorAll('tr')];
+      // Commit the move at the marked insertion point
+      const beforeEl = tbody.querySelector('tr.drop-before');
+      const afterEl = tbody.querySelector('tr.drop-after');
+      if (dragRow && beforeEl) beforeEl.before(dragRow);
+      else if (dragRow && afterEl) afterEl.after(dragRow);
+      clearDropMarkers();
+
+      const rows = [...tbody.querySelectorAll('tr[data-id]')];
       const order = rows.map((row, i) => ({
-        id: Number(row.dataset.id),
+        id: Number((row as HTMLElement).dataset.id),
         sortOrder: i,
       }));
 
@@ -485,6 +692,13 @@ for (const r of allReviews) {
     gap: 1.5rem;
   }
 
+  .table-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
   .runtime-table .runtime-display {
     font-size: 2rem;
     font-weight: 700;
@@ -520,15 +734,6 @@ for (const r of allReviews) {
   .stats-table .rejected { color: #991b1b; }
   .stats-table .future { color: #1e40af; }
 
-  .action-row td {
-    border-bottom: none !important;
-    padding-top: 1rem;
-  }
-
-  .submissions-table tr:has(+ .action-row) td {
-    border-bottom: none;
-  }
-
   .drag-col {
     width: 2rem;
   }
@@ -552,8 +757,12 @@ for (const r of allReviews) {
     opacity: 0.4;
   }
 
-  .submissions-table tr.drag-over td {
-    border-top: 2px solid var(--color-primary);
+  .submissions-table tr.drop-before td {
+    box-shadow: inset 0 2px 0 0 var(--color-primary);
+  }
+
+  .submissions-table tr.drop-after td {
+    box-shadow: inset 0 -2px 0 0 var(--color-primary);
   }
 
   .submissions-table {
@@ -595,6 +804,31 @@ for (const r of allReviews) {
     white-space: nowrap;
   }
 
+  .status-cell {
+    white-space: nowrap;
+  }
+
+  .status-select {
+    padding: 0.3rem 0.45rem;
+    border: 1px solid #d1d5db;
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: white;
+  }
+
+  .status-select.pending { color: #92400e; }
+  .status-select.approved { color: #065f46; }
+  .status-select.rejected { color: #991b1b; }
+  .status-select.future { color: #1e40af; }
+
+  .link-indicator {
+    margin-left: 0.35rem;
+    font-size: 0.85rem;
+  }
+
   .votes-display {
     white-space: nowrap;
     display: inline-flex;
@@ -634,6 +868,66 @@ for (const r of allReviews) {
 
   .submissions-table td a:hover {
     text-decoration: underline;
+  }
+
+  /* Break rows */
+  .break-row td {
+    background: #fffbeb;
+  }
+
+  .break-label {
+    font-weight: 600;
+    color: #92400e;
+  }
+
+  /* Aligns with the films' Length column */
+  .break-duration {
+    color: #92400e;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .break-actions {
+    text-align: right;
+  }
+
+  .break-delete {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    font-size: 1.4rem;
+    line-height: 1;
+    padding: 0 0.35rem;
+  }
+
+  .break-delete:hover {
+    color: #dc2626;
+  }
+
+  /* Break form */
+  .break-form .form-group {
+    margin-bottom: 1.1rem;
+  }
+
+  .break-form label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+  }
+
+  .break-form input {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    font-family: inherit;
+  }
+
+  .break-form input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
   }
 
   /* Modal styles */

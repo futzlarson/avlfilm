@@ -92,6 +92,13 @@
       "when": 1770681600000,
       "tag": "0012_add_sort_order",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1779561466000,
+      "tag": "0013_add_item_type",
+      "breakpoints": true
     }
   ]
 }

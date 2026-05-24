@@ -64,6 +64,8 @@ export const submissions = pgTable('submissions', {
     .references(() => spotlightEvents.id, { onDelete: 'cascade' }),
   filmmakerId: integer('filmmaker_id')
     .references(() => filmmakers.id, { onDelete: 'set null' }),
+  // 'film' = a real submission; 'break' = a schedule break (reuses filmTitle as label, filmLength as duration)
+  itemType: varchar('item_type', { length: 20 }).notNull().default('film'),
   submitterName: varchar('submitter_name', { length: 255 }).notNull(),
   submitterEmail: varchar('submitter_email', { length: 255 }).notNull(),
   filmTitle: varchar('film_title', { length: 255 }).notNull(),

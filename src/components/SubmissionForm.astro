@@ -9,9 +9,23 @@ interface Props {
   prefillName?: string;
   prefillEmail?: string;
   isLoggedIn?: boolean;
+  /** Endpoint to POST to. Defaults to the public submit endpoint. */
+  action?: string;
+  /** Admin manual-entry mode: reloads the page on success instead of showing a thank-you. */
+  adminMode?: boolean;
+  /** Submit button label. */
+  submitLabel?: string;
 }
 
-const { event, prefillName = '', prefillEmail = '', isLoggedIn = false } = Astro.props;
+const {
+  event,
+  prefillName = '',
+  prefillEmail = '',
+  isLoggedIn = false,
+  action = '/api/submissions/submit',
+  adminMode = false,
+  submitLabel = 'Submit Film',
+} = Astro.props;
 
 const eventDateFormatted = formatDate(event.eventDate, DATE_LONG);
 ---
@@ -20,14 +34,16 @@ const eventDateFormatted = formatDate(event.eventDate, DATE_LONG);
   <input type="hidden" name="eventId" value={event.id} />
 
   <div class="form-group">
-    <label for="submitterName">Name <span class="required">*</span></label>
+    <label for="submitterName">Filmmaker Name <span class="required">*</span></label>
     <input type="text" id="submitterName" name="submitterName" required value={prefillName} />
   </div>
 
-  <div class="form-group">
-    <label for="submitterEmail">Email <span class="required">*</span></label>
-    <input type="email" id="submitterEmail" name="submitterEmail" required value={prefillEmail} />
-  </div>
+  {!adminMode && (
+    <div class="form-group">
+      <label for="submitterEmail">Email <span class="required">*</span></label>
+      <input type="email" id="submitterEmail" name="submitterEmail" required value={prefillEmail} />
+    </div>
+  )}
 
   <div class="form-group">
     <label for="filmTitle">Film Title <span class="required">*</span></label>
@@ -88,13 +104,16 @@ const eventDateFormatted = formatDate(event.eventDate, DATE_LONG);
 
   <div id="form-message" class="form-message" style="display: none;"></div>
 
-  <button type="submit" class="btn-primary btn-large" id="submit-btn">Submit Film</button>
+  <button type="submit" class="btn-primary btn-large" id="submit-btn">{submitLabel}</button>
 </form>
 
 <script is:inline id="submission-event-data" type="application/json" set:html={JSON.stringify({
   eventId: event.id,
   slug: event.slug,
   isLoggedIn,
+  action,
+  adminMode,
+  submitLabel,
 })}></script>
 
 <script>
@@ -137,7 +156,7 @@ const eventDateFormatted = formatDate(event.eventDate, DATE_LONG);
     };
 
     try {
-      const res = await fetch('/api/submissions/submit', {
+      const res = await fetch(meta.action || '/api/submissions/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -147,6 +166,12 @@ const eventDateFormatted = formatDate(event.eventDate, DATE_LONG);
 
       if (!res.ok) {
         throw new Error(result.error || 'Submission failed');
+      }
+
+      // Admin manual-entry mode: reload so the new row + stats appear in the table
+      if (meta.adminMode) {
+        window.location.reload();
+        return;
       }
 
       // Replace form with success message
@@ -160,7 +185,7 @@ const eventDateFormatted = formatDate(event.eventDate, DATE_LONG);
     } catch (err) {
       showFormMessage(messageEl, err instanceof Error ? err.message : 'Something went wrong', 'error');
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Submit Film';
+      submitBtn.textContent = meta.submitLabel || 'Submit Film';
     }
   });
 </script>

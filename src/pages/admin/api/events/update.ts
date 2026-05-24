@@ -76,11 +76,12 @@ export const DELETE: APIRoute = async (context) => {
       return errorResponse('Event ID is required', 400);
     }
 
-    // Check for existing submissions
+    // Check for existing film submissions (breaks are schedule scaffolding and
+    // cascade-delete with the event, so they shouldn't block deletion)
     const [subCount] = await db
       .select({ value: count() })
       .from(submissions)
-      .where(eq(submissions.eventId, id));
+      .where(and(eq(submissions.eventId, id), eq(submissions.itemType, 'film')));
 
     if (subCount && subCount.value > 0) {
       return errorResponse('Cannot delete an event that has submissions', 400);

@@ -7,7 +7,7 @@ import AdminNav from '@components/AdminNav.astro';
 import EventForm from '@components/admin/EventForm.astro';
 
 // External packages
-import { eq, count } from 'drizzle-orm';
+import { and, eq, count } from 'drizzle-orm';
 
 const { id } = Astro.params;
 
@@ -22,7 +22,7 @@ const [eventResult, [subCount]] = await Promise.all([
     .where(eq(spotlightEvents.id, Number(id))),
   db.select({ value: count() })
     .from(submissions)
-    .where(eq(submissions.eventId, Number(id))),
+    .where(and(eq(submissions.eventId, Number(id)), eq(submissions.itemType, 'film'))),
 ]);
 
 const [event] = eventResult;
