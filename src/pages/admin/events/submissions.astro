@@ -5,17 +5,33 @@ import { spotlightEvents, submissions, reviews, filmmakers } from '@db/schema';
 import { formatDuration, formatRuntime, calculateTotalRuntime } from '@lib/film-utils';
 import { formatDate } from '@lib/datetime';
 import BaseLayout from '@layouts/BaseLayout.astro';
-import AdminNav from '@components/AdminNav.astro';
 import SubmissionForm from '@components/SubmissionForm.astro';
 
 // External packages
 import { eq, desc, asc } from 'drizzle-orm';
 
-// Get selected filters from query params
-const selectedEventId = Astro.url.searchParams.get('event');
 const selectedStatus = Astro.url.searchParams.get('status') || 'all';
 
-// Build submission query (conditionally filtered)
+// Events first, so we can default to the most recent event when none is
+// specified — showing every event's films mixed together is confusing
+const allEvents = await db
+  .select({
+    id: spotlightEvents.id,
+    title: spotlightEvents.title,
+    eventDate: spotlightEvents.eventDate,
+  })
+  .from(spotlightEvents)
+  .orderBy(desc(spotlightEvents.eventDate));
+
+const requestedEventId = Astro.url.searchParams.get('event');
+if (!requestedEventId && allEvents.length > 0) {
+  const params = new URLSearchParams(Astro.url.searchParams);
+  params.set('event', String(allEvents[0].id));
+  return Astro.redirect(`/admin/events/submissions?${params.toString()}`);
+}
+const selectedEventId = requestedEventId;
+
+// Build submission query (filtered to the selected event)
 let submissionsQuery = db
   .select()
   .from(submissions)
@@ -26,15 +42,8 @@ if (selectedEventId) {
   submissionsQuery = submissionsQuery.where(eq(submissions.eventId, Number(selectedEventId)));
 }
 
-// Run all queries in parallel
-const [allEvents, allSubmissions, allReviews] = await Promise.all([
-  db.select({
-    id: spotlightEvents.id,
-    title: spotlightEvents.title,
-  })
-  .from(spotlightEvents)
-  .orderBy(desc(spotlightEvents.eventDate)),
-
+// Run remaining queries in parallel
+const [allSubmissions, allReviews] = await Promise.all([
   submissionsQuery,
 
   db.select({
@@ -71,6 +80,14 @@ const stats = {
   future: films.filter(s => s.status === 'future').length,
 };
 
+// Non-zero status counts for the segmented distribution bar
+const statusCounts = [
+  { key: 'pending', label: 'Pending', count: stats.pending },
+  { key: 'approved', label: 'Approved', count: stats.approved },
+  { key: 'rejected', label: 'Rejected', count: stats.rejected },
+  { key: 'future', label: 'Future', count: stats.future },
+].filter(s => s.count > 0);
+
 // Runtime includes breaks so it reflects the actual run-of-show length
 const approvedSubs = allSubmissions.filter(s => s.status === 'approved');
 const totalRuntime = calculateTotalRuntime(approvedSubs);
@@ -92,22 +109,18 @@ for (const r of allReviews) {
 
 <BaseLayout title="Admin - Submissions">
   <div class="admin-header">
-    <h1>Admin</h1>
+    <h1>Submissions</h1>
   </div>
-
-  <AdminNav currentPage="submissions" />
 
   <div class="admin-section">
     <div class="header-stats-container">
       <div class="header-left">
-        <h2 style="margin: 0">Submission Review</h2>
         <div class="filters">
           <div class="filter-group">
             <label for="event-filter">Event:</label>
             <select id="event-filter">
-              <option value="">All Events</option>
               {allEvents.map((ev) => (
-                <option value={ev.id} selected={selectedEventId === String(ev.id)}>{ev.title}</option>
+                <option value={ev.id} selected={selectedEventId === String(ev.id)}>{ev.title} — {formatDate(ev.eventDate, { month: 'short', day: 'numeric', year: 'numeric' })}</option>
               ))}
             </select>
           </div>
@@ -120,28 +133,48 @@ for (const r of allReviews) {
             </select>
           </div>
         </div>
+        {selectedEvent && (
+          <div class="table-actions">
+            <button class="btn-secondary" id="add-submission-btn" type="button">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              Add Submission
+            </button>
+            <button class="btn-secondary" id="add-break-btn" type="button">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="4" y="3" width="2.5" height="10" rx="1.25" fill="currentColor"/>
+                <rect x="9.5" y="3" width="2.5" height="10" rx="1.25" fill="currentColor"/>
+              </svg>
+              Add Break
+            </button>
+            <button class="btn-secondary" id="request-files-btn" type="button">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1.5" y="3" width="13" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M1.5 5L8 9.5L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Request Files
+            </button>
+          </div>
+        )}
       </div>
 
       {selectedEventId && (
         <div class="stats-section">
-          <table class="stats-table">
-            <thead>
-              <tr>
-                {stats.pending > 0 && <th>Pending</th>}
-                {stats.approved > 0 && <th>Approved</th>}
-                {stats.rejected > 0 && <th>Rejected</th>}
-                {stats.future > 0 && <th>Future</th>}
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                {stats.pending > 0 && <td class="pending">{stats.pending}</td>}
-                {stats.approved > 0 && <td class="approved">{stats.approved}</td>}
-                {stats.rejected > 0 && <td class="rejected">{stats.rejected}</td>}
-                {stats.future > 0 && <td class="future">{stats.future}</td>}
-              </tr>
-            </tbody>
-          </table>
+          {statusCounts.length > 0 && (
+            <div class="seg-stats">
+              <div class="seg-bar">
+                {statusCounts.map((s) => (
+                  <span class={`seg ${s.key}`} style={`flex: ${s.count}`}></span>
+                ))}
+              </div>
+              <div class="seg-legend">
+                {statusCounts.map((s) => (
+                  <span><i class={`dot ${s.key}`}></i>{s.label} {s.count}</span>
+                ))}
+              </div>
+            </div>
+          )}
           <table class="stats-table runtime-table">
             <thead>
               <tr>
@@ -157,31 +190,6 @@ for (const r of allReviews) {
         </div>
       )}
     </div>
-
-    {selectedEvent && (
-      <div class="table-actions">
-        <button class="btn-secondary" id="add-submission-btn" type="button">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8 2V8M8 8V14M8 8H14M8 8H2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-          Add Submission
-        </button>
-        <button class="btn-secondary" id="add-break-btn" type="button">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="4" y="3" width="2.5" height="10" rx="1.25" fill="currentColor"/>
-            <rect x="9.5" y="3" width="2.5" height="10" rx="1.25" fill="currentColor"/>
-          </svg>
-          Add Break
-        </button>
-        <button class="btn-secondary" id="request-files-btn" type="button">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="1.5" y="3" width="13" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M1.5 5L8 9.5L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          Request Files
-        </button>
-      </div>
-    )}
 
     <!-- Submissions Table -->
     {filteredSubmissions.length === 0 ? (
@@ -665,8 +673,9 @@ for (const r of allReviews) {
 
   .filters {
     display: flex;
-    gap: 1.5rem;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
   }
 
   .filter-group {
@@ -689,14 +698,15 @@ for (const r of allReviews) {
 
   .stats-section {
     display: flex;
+    align-items: center;
     gap: 1.5rem;
   }
 
   .table-actions {
     display: flex;
-    justify-content: flex-end;
     gap: 0.75rem;
-    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    margin: 0.5rem 0;
   }
 
   .runtime-table .runtime-display {
@@ -729,10 +739,52 @@ for (const r of allReviews) {
     font-size: 1.1rem;
   }
 
-  .stats-table .pending { color: #92400e; }
-  .stats-table .approved { color: #065f46; }
-  .stats-table .rejected { color: #991b1b; }
-  .stats-table .future { color: #1e40af; }
+  /* Segmented status distribution */
+  .seg-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    min-width: 240px;
+  }
+
+  .seg-bar {
+    display: flex;
+    gap: 2px;
+    height: 12px;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .seg.pending { background: #d97706; }
+  .seg.approved { background: #065f46; }
+  .seg.rejected { background: #dc2626; }
+  .seg.future { background: #1e40af; }
+
+  .seg-legend {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    font-size: 0.8rem;
+    color: #374151;
+  }
+
+  .seg-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .seg-legend .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot.pending { background: #d97706; }
+  .dot.approved { background: #065f46; }
+  .dot.rejected { background: #dc2626; }
+  .dot.future { background: #1e40af; }
 
   .drag-col {
     width: 2rem;
@@ -819,9 +871,9 @@ for (const r of allReviews) {
     background: white;
   }
 
-  .status-select.pending { color: #92400e; }
+  .status-select.pending { color: #d97706; }
   .status-select.approved { color: #065f46; }
-  .status-select.rejected { color: #991b1b; }
+  .status-select.rejected { color: #dc2626; }
   .status-select.future { color: #1e40af; }
 
   .link-indicator {
