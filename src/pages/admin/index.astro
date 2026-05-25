@@ -5,7 +5,6 @@ import { siteSettings } from '@db/schema';
 import { emails } from '@emails';
 import { logError } from '@lib/rollbar';
 import BaseLayout from '@layouts/BaseLayout.astro';
-import AdminNav from '@components/AdminNav.astro';
 
 // External packages
 import { inArray } from 'drizzle-orm';
@@ -33,10 +32,8 @@ try {
 
 <BaseLayout title="Admin Dashboard">
   <div class="admin-header">
-    <h1>Admin</h1>
+    <h1>Dashboard</h1>
   </div>
-
-  <AdminNav currentPage="dashboard" />
 
   <div class="admin-section">
     <h2 style="margin-top: 0">Banner Settings</h2>

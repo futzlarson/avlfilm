@@ -5,7 +5,6 @@ import { filmmakers } from '@db/schema';
 import type { Filmmaker } from '@db/schema';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import FilmmakerCard from '@components/FilmmakerCard.astro';
-import AdminNav from '@components/AdminNav.astro';
 
 // Get current user
 const currentUser = Astro.locals.user;
@@ -25,10 +24,8 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
 
 <BaseLayout title="Admin - Filmmakers">
   <div class="admin-header">
-    <h1>Admin</h1>
+    <h1>Filmmakers</h1>
   </div>
-
-  <AdminNav currentPage="filmmakers" />
 
   {pendingFilmmakers.length > 0 && (
     <div class="admin-section">
@@ -40,7 +37,7 @@ const pendingFilmmakers = allFilmmakers.filter(f => f.status === 'pending');
   )}
 
   <div class="admin-section">
-    <h2>Filmmaker Search</h2>
+    <h2>Search</h2>
     <div class="search-bar">
       <input
         type="text"

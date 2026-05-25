@@ -5,7 +5,6 @@ import { submissions, reviews, filmmakers } from '@db/schema';
 import { formatDuration } from '@lib/film-utils';
 import { formatDate, formatTime, DATE_LONG, DATE_LONG_NO_YEAR } from '@lib/datetime';
 import BaseLayout from '@layouts/BaseLayout.astro';
-import AdminNav from '@components/AdminNav.astro';
 
 // External packages
 import { eq, desc } from 'drizzle-orm';
@@ -136,10 +135,8 @@ function getDownloadUrl(url: string): { url: string; service: string } {
 
 <BaseLayout title={`Review: ${submission.filmTitle}`}>
   <div class="admin-header">
-    <h1>Admin</h1>
+    <h1>Submissions</h1>
   </div>
-
-  <AdminNav currentPage="submissions" />
 
   <div class="admin-section">
     <h2 style="margin-top: 0">{submission.filmTitle}</h2>

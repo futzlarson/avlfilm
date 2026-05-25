@@ -1,0 +1,428 @@
+---
+// Living design reference — useful as a baseline for a visual overhaul.
+// Color chips read from the live CSS variables; the hex beside each is the
+// documented value (from global.css :root), shown for quick copy/reference.
+
+const brand = [
+  { name: '--color-primary', value: '#667eea' },
+  { name: '--color-primary-dark', value: '#764ba2' },
+  { name: '--color-primary-light', value: '#64b5f6' },
+];
+
+const textColors = [
+  { name: '--color-text-primary', value: '#1a1a1a', label: 'Headings' },
+  { name: '--color-text-secondary', value: '#1f2937', label: 'Strong body' },
+  { name: '--color-text-medium', value: '#4b5563', label: 'Medium' },
+  { name: '--color-text-light', value: '#666666', label: 'Body' },
+  { name: '--color-text-muted', value: '#6b7280', label: 'Muted / captions' },
+];
+
+const surfaces = [
+  { name: '--color-bg-card', value: '#ffffff', label: 'Card' },
+  { name: '--color-bg-subtle', value: '#f9fafb', label: 'Subtle' },
+  { name: '--color-bg-light', value: '#f5f5f5', label: 'Light' },
+];
+
+const statusAlerts = [
+  { label: 'Success', bg: '--color-success-bg', text: '--color-success-text', border: '--color-success-border' },
+  { label: 'Error', bg: '--color-error-bg', text: '--color-error-text', border: '--color-error-border' },
+  { label: 'Info', bg: '--color-info-bg', text: '--color-info-text', border: '--color-info-border' },
+];
+
+const spacing = ['xs', 'sm', 'md', 'lg', 'xl', '2xl'];
+const radii = ['sm', 'md', 'lg', 'xl'];
+const shadows = ['md', 'card'];
+const statusBadges: { cls: string; label?: string; usedOn: string; meaning: string }[] = [
+  { cls: 'pending', usedOn: 'Submissions', meaning: 'Awaiting review — default for new submissions' },
+  { cls: 'approved', usedOn: 'Submissions', meaning: 'Accepted into the lineup' },
+  { cls: 'rejected', usedOn: 'Submissions', meaning: 'Declined (with a rejection reason)' },
+  { cls: 'future', usedOn: 'Submissions', meaning: 'Held for a future event' },
+  { cls: 'link', label: '✓ Link', usedOn: 'Submissions', meaning: 'Approved film that has a full-res video link on file' },
+  { cls: 'upcoming', usedOn: 'Events', meaning: 'Open / not yet happened' },
+  { cls: 'reviewing', usedOn: 'Events', meaning: 'Submissions are being reviewed' },
+  { cls: 'scheduled', usedOn: 'Events', meaning: 'Lineup finalized & scheduled' },
+  { cls: 'past', usedOn: 'Events', meaning: 'Event has already happened' },
+];
+---
+
+<section class="admin-section style-guide">
+  <p class="sg-note">
+    The design tokens &amp; elements actually used across the site, shown in context. Everything renders from the
+    live CSS variables. Handy as a baseline for a visual overhaul.
+  </p>
+
+  <h3 class="sg-heading">Colors</h3>
+
+  <h4 class="sg-subheading">Brand &amp; accent</h4>
+  <div class="sg-row sg-row-wrap">
+    {brand.map((c) => (
+      <div class="swatch">
+        <div class="swatch-chip" style={`background: var(${c.name});`}></div>
+        <code class="swatch-name">{c.name}</code>
+        <code class="swatch-value">{c.value}</code>
+      </div>
+    ))}
+    <div class="swatch">
+      <div class="swatch-chip" style="background: var(--gradient-primary);"></div>
+      <code class="swatch-name">--gradient-primary</code>
+      <code class="swatch-value">primary → dark</code>
+    </div>
+  </div>
+
+  <h4 class="sg-subheading">Text</h4>
+  <div class="sg-text-samples">
+    {textColors.map((t) => (
+      <p class="sg-text-sample" style={`color: var(${t.name});`}>
+        {t.label} — the quick brown fox <span class="sg-dim">{t.name} · {t.value}</span>
+      </p>
+    ))}
+    <p class="sg-text-sample" style="color: var(--color-primary);">
+      Link / accent — the quick brown fox <span class="sg-dim">--color-primary · #667eea</span>
+    </p>
+  </div>
+
+  <h4 class="sg-subheading">Surfaces &amp; borders</h4>
+  <div class="sg-row sg-row-wrap">
+    {surfaces.map((s) => (
+      <div class="sg-surface" style={`background: var(${s.name});`}>
+        <strong>{s.label}</strong>
+        <code class="sg-dim">{s.name}</code>
+        <code class="sg-dim">{s.value}</code>
+      </div>
+    ))}
+  </div>
+
+  <h4 class="sg-subheading">Status</h4>
+  <div class="sg-alerts">
+    {statusAlerts.map((a) => (
+      <div class="sg-alert" style={`background: var(${a.bg}); color: var(${a.text}); border-color: var(${a.border});`}>
+        <strong>{a.label}.</strong> Message text using its bg / text / border tokens.
+      </div>
+    ))}
+  </div>
+
+  <h3 class="sg-heading">Typography</h3>
+  <div class="sg-type">
+    <h1>Heading 1</h1>
+    <h2>Heading 2</h2>
+    <h3>Heading 3</h3>
+    <p class="intro">Intro lead text (.intro) — slightly larger introductory copy.</p>
+    <p>Body text. The quick brown fox jumps over the lazy dog. Here is an <a href="#sg">inline link</a>.</p>
+    <h2 class="section-heading">Section heading (.section-heading)</h2>
+  </div>
+
+  <h3 class="sg-heading">Buttons</h3>
+  <div class="sg-row">
+    <button class="btn-primary" type="button">Primary</button>
+    <button class="btn-primary btn-large" type="button">Primary Large</button>
+    <button class="btn-secondary" type="button">Secondary</button>
+    <button class="btn-gradient" type="button">Gradient</button>
+    <button class="btn-primary" type="button" disabled>Disabled</button>
+  </div>
+
+  <h3 class="sg-heading">Badges</h3>
+  <table class="sg-table">
+    <thead>
+      <tr><th>Badge</th><th>Used on</th><th>Meaning</th></tr>
+    </thead>
+    <tbody>
+      {statusBadges.map((b) => (
+        <tr>
+          <td><span class={`status-badge ${b.cls}`}>{b.label || b.cls}</span></td>
+          <td>{b.usedOn}</td>
+          <td>{b.meaning}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+
+  <h3 class="sg-heading">Spacing</h3>
+  <div class="sg-scale">
+    {spacing.map((s) => (
+      <div class="sg-scale-row">
+        <code class="sg-token">--spacing-{s}</code>
+        <div class="sg-bar" style={`width: var(--spacing-${s});`}></div>
+      </div>
+    ))}
+  </div>
+
+  <h3 class="sg-heading">Border radius</h3>
+  <div class="sg-row sg-row-wrap">
+    {radii.map((r) => (
+      <div class="sg-tile">
+        <div class="sg-radius-box" style={`border-radius: var(--radius-${r});`}></div>
+        <code class="sg-token">--radius-{r}</code>
+      </div>
+    ))}
+  </div>
+
+  <h3 class="sg-heading">Shadows</h3>
+  <div class="sg-row sg-row-wrap">
+    {shadows.map((sh) => (
+      <div class="sg-tile">
+        <div class="sg-shadow-box" style={`box-shadow: var(--shadow-${sh});`}></div>
+        <code class="sg-token">--shadow-{sh}</code>
+      </div>
+    ))}
+  </div>
+
+  <h3 class="sg-heading">Form elements</h3>
+  <div class="sg-forms">
+    <input type="text" placeholder="Text input" />
+    <select>
+      <option value="">Select a genre</option>
+      <option>Comedy</option>
+      <option>Drama</option>
+      <option>Documentary</option>
+      <option>Experimental</option>
+    </select>
+    <textarea rows="2" placeholder="Textarea"></textarea>
+    <label class="sg-check"><input type="checkbox" checked /> Checkbox</label>
+    <span class="sg-required-demo">Required field <span class="sg-required">*</span></span>
+  </div>
+</section>
+
+<style>
+  .style-guide {
+    margin-top: 2rem;
+  }
+
+  .sg-note {
+    color: var(--color-text-muted);
+    margin-top: 0;
+    max-width: 60ch;
+  }
+
+  .sg-heading {
+    margin: 3.5rem 0 1.25rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+    font-size: 1.1rem;
+  }
+
+  .sg-subheading {
+    margin: 2rem 0 0.85rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+  }
+
+  /* First subsection sits closer to its section heading */
+  .sg-heading + .sg-subheading {
+    margin-top: 1rem;
+  }
+
+  /* Colors */
+  .swatch {
+    width: 150px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--color-bg-card);
+  }
+
+  .swatch-chip {
+    height: 56px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .swatch-name,
+  .swatch-value {
+    display: block;
+    padding: 0.1rem 0.55rem;
+    font-size: 0.72rem;
+  }
+
+  .swatch-name {
+    padding-top: 0.45rem;
+    color: var(--color-text-secondary);
+  }
+
+  .swatch-value {
+    padding-bottom: 0.45rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+  }
+
+  /* Text color samples */
+  .sg-text-samples {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .sg-text-sample {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .sg-dim {
+    color: var(--color-text-muted);
+    font-weight: 400;
+    font-size: 0.72rem;
+  }
+
+  /* Surface panels */
+  .sg-surface {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 150px;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+
+  .sg-surface strong {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+  }
+
+  /* Badge table */
+  .sg-table {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 640px;
+    font-size: 0.9rem;
+  }
+
+  .sg-table th,
+  .sg-table td {
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: middle;
+  }
+
+  .sg-table th {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+  }
+
+  .sg-table td:first-child {
+    white-space: nowrap;
+  }
+
+  /* Status alerts */
+  .sg-alerts {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    max-width: 540px;
+  }
+
+  .sg-alert {
+    padding: 0.75rem 1rem;
+    border: 1px solid;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+  }
+
+  /* Typography */
+  .sg-type > * {
+    margin: 0.4rem 0;
+  }
+
+  /* Rows of elements */
+  .sg-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .sg-row-wrap {
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+
+  /* Spacing scale */
+  .sg-scale {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .sg-scale-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .sg-token {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    min-width: 9rem;
+  }
+
+  .sg-bar {
+    height: 1.1rem;
+    background: var(--gradient-primary);
+    border-radius: var(--radius-sm);
+  }
+
+  /* Radius + shadow tiles */
+  .sg-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .sg-radius-box {
+    width: 72px;
+    height: 72px;
+    background: var(--gradient-primary);
+  }
+
+  .sg-shadow-box {
+    width: 72px;
+    height: 72px;
+    background: var(--color-bg-card);
+    border-radius: var(--radius-md);
+  }
+
+  /* Forms */
+  .sg-forms {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    max-width: 700px;
+  }
+
+  .sg-forms input[type='text'],
+  .sg-forms select,
+  .sg-forms textarea {
+    padding: 0.5rem 0.65rem;
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-size: 0.9rem;
+  }
+
+  .sg-forms textarea {
+    flex: 1 1 100%;
+    resize: vertical;
+  }
+
+  .sg-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+  }
+
+  .sg-required-demo {
+    font-weight: 600;
+    color: var(--color-text-secondary);
+  }
+
+  .sg-required {
+    color: var(--color-required);
+  }
+</style>

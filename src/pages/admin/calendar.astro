@@ -4,7 +4,6 @@ import { getSkippedOrganizers } from '@lib/calendar-skip';
 import { getAddedEventIds } from '@lib/redis-calendar';
 import type { AvlGoEvent } from '@app-types/avlgo-event';
 import BaseLayout from '@layouts/BaseLayout.astro';
-import AdminNav from '@components/AdminNav.astro';
 
 // Fetch all events from AVL GO API
 const API_URL = 'https://www.avlgo.com/api/export/json?search=film,movie';
@@ -43,10 +42,8 @@ try {
 
 <BaseLayout title="Admin - AVL GO Events">
   <div class="admin-header">
-    <h1>Admin</h1>
+    <h1>Calendar</h1>
   </div>
-
-  <AdminNav currentPage="calendar" />
 
   <div class="admin-section">
     {error ? (

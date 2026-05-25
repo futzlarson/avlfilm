@@ -4,7 +4,6 @@ import { db } from '@db';
 import { spotlightEvents, submissions } from '@db/schema';
 import { formatDate, DATE_SHORT } from '@lib/datetime';
 import BaseLayout from '@layouts/BaseLayout.astro';
-import AdminNav from '@components/AdminNav.astro';
 import EventForm from '@components/admin/EventForm.astro';
 
 // External packages
@@ -30,14 +29,11 @@ const eventsWithCounts = await db
 
 <BaseLayout title="Admin - Spotlight Events">
   <div class="admin-header">
-    <h1>Admin</h1>
+    <h1>Spotlight Events</h1>
   </div>
-
-  <AdminNav currentPage="spotlight" />
 
   <div class="admin-section">
     <div class="section-header">
-      <h2 style="margin: 0">Spotlight Events</h2>
       <button class="btn-primary" id="toggle-create-btn">Create New Event</button>
     </div>
 
@@ -106,7 +102,7 @@ const eventsWithCounts = await db
 <style>
   .section-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     margin-bottom: 1.5rem;
   }

@@ -3,7 +3,6 @@
 import { db } from '@db';
 import { spotlightEvents, submissions } from '@db/schema';
 import BaseLayout from '@layouts/BaseLayout.astro';
-import AdminNav from '@components/AdminNav.astro';
 import EventForm from '@components/admin/EventForm.astro';
 
 // External packages
@@ -37,10 +36,8 @@ const submissionUrl = `/events/${event.slug}/submit`;
 
 <BaseLayout title={`Edit - ${event.title}`}>
   <div class="admin-header">
-    <h1>Admin</h1>
+    <h1>Spotlight Events</h1>
   </div>
-
-  <AdminNav currentPage="spotlight" />
 
   <div class="admin-section">
     <div class="section-header">
