@@ -76,8 +76,12 @@ const isEdit = mode === 'edit';
   const eventDateInput = document.getElementById('event-date') as HTMLInputElement;
   const deadlineInput = document.getElementById('event-deadline') as HTMLInputElement;
 
-  // Auto-generate slug from title (only on create, and only if user hasn't customized)
-  let slugCustomized = mode === 'edit';
+  // Auto-generate slug from title. In edit mode we keep syncing as long as the
+  // saved slug looks auto-generated from the saved title — if it diverges, the
+  // user customized it and we leave it alone.
+  let slugCustomized = mode === 'edit'
+    ? slugInput.value !== generateSlug(titleInput.value)
+    : false;
   slugInput.addEventListener('input', () => { slugCustomized = true; });
   titleInput.addEventListener('input', () => {
     if (!slugCustomized) {
