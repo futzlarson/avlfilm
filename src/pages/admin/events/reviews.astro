@@ -51,7 +51,7 @@ const myReview = reviewsList.find(r => r.adminId === user?.userId);
 function displayStatus(status: string): string {
   switch (status) {
     case 'approved': return 'Approved';
-    case 'rejected': return 'Rejected';
+    case 'rejected': return 'Not Selected';
     case 'future': return 'Future';
     case 'pending': return 'Pending';
     default: return status;
@@ -268,7 +268,7 @@ function getDownloadUrl(url: string): { url: string; service: string } {
             <select id="status-select">
               <option value="pending" selected={submission.status === 'pending'}>Pending</option>
               <option value="approved" selected={submission.status === 'approved'}>Approved</option>
-              <option value="rejected" selected={submission.status === 'rejected'}>Rejected</option>
+              <option value="rejected" selected={submission.status === 'rejected'}>Not Selected</option>
               <option value="future" selected={submission.status === 'future'}>Future</option>
             </select>
             <button class="btn-primary" id="update-status-btn">Update Status</button>

@@ -35,7 +35,7 @@ const shadows = ['md', 'card'];
 const statusBadges: { cls: string; label?: string; usedOn: string; meaning: string }[] = [
   { cls: 'pending', usedOn: 'Submissions', meaning: 'Awaiting review — default for new submissions' },
   { cls: 'approved', usedOn: 'Submissions', meaning: 'Accepted into the lineup' },
-  { cls: 'rejected', usedOn: 'Submissions', meaning: 'Declined (with a rejection reason)' },
+  { cls: 'rejected', label: 'Not Selected', usedOn: 'Submissions', meaning: 'Declined (with a rejection reason)' },
   { cls: 'future', usedOn: 'Submissions', meaning: 'Held for a future event' },
   { cls: 'link', label: '✓ Link', usedOn: 'Submissions', meaning: 'Approved film that has a full-res video link on file' },
   { cls: 'upcoming', usedOn: 'Events', meaning: 'Open / not yet happened' },

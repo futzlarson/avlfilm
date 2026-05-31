@@ -70,6 +70,59 @@ export const POST: APIRoute = async (context) => {
   }
 };
 
+export const PATCH: APIRoute = async (context) => {
+  try {
+    await requireAdmin(context);
+
+    const body = await context.request.json();
+    const { id, durationMinutes, label } = body;
+
+    if (!id) {
+      return errorResponse('Break ID is required', 400);
+    }
+
+    const updates: { filmLength?: number; filmTitle?: string } = {};
+
+    if (durationMinutes !== undefined) {
+      const minutes = Number(durationMinutes);
+      if (!Number.isFinite(minutes) || minutes <= 0) {
+        return errorResponse('Duration must be a positive number of minutes', 400);
+      }
+      updates.filmLength = Math.round(minutes * 60);
+    }
+
+    if (label !== undefined) {
+      const trimmed = String(label).trim();
+      if (!trimmed) {
+        return errorResponse('Label cannot be empty', 400);
+      }
+      updates.filmTitle = trimmed;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return errorResponse('No changes provided', 400);
+    }
+
+    // Scope the update to breaks so this endpoint can never touch a film
+    const [updated] = await db
+      .update(submissions)
+      .set(updates)
+      .where(and(eq(submissions.id, id), eq(submissions.itemType, 'break')))
+      .returning();
+
+    if (!updated) {
+      return errorResponse('Break not found', 404);
+    }
+
+    return successResponse({ break: updated });
+  } catch (error) {
+    if (error instanceof Error && (error.message === 'Unauthorized' || error.message === 'Forbidden')) {
+      return errorResponse(error.message, error.message === 'Unauthorized' ? 401 : 403);
+    }
+    return errorResponse('Failed to update break', 500, error);
+  }
+};
+
 export const DELETE: APIRoute = async (context) => {
   try {
     await requireAdmin(context);

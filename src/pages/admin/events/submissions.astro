@@ -84,7 +84,7 @@ const stats = {
 const statusCounts = [
   { key: 'pending', label: 'Pending', count: stats.pending },
   { key: 'approved', label: 'Approved', count: stats.approved },
-  { key: 'rejected', label: 'Rejected', count: stats.rejected },
+  { key: 'rejected', label: 'Not Selected', count: stats.rejected },
   { key: 'future', label: 'Future', count: stats.future },
 ].filter(s => s.count > 0);
 
@@ -105,6 +105,19 @@ for (const r of allReviews) {
   const date = formatDate(r.createdAt, { month: 'short', day: 'numeric' });
   entry.tooltip += `${entry.tooltip ? '\n' : ''}${r.adminName} ${emoji} — ${date}`;
 }
+
+// Hide Notes / Votes columns if nothing in the current view has any.
+// Notes are per-submission; votes are tracked via the review map.
+const filmRows = filteredSubmissions.filter(s => s.itemType !== 'break');
+const showNotesCol = filmRows.some(s => !!s.adminNotes);
+const showVotesCol = filmRows.some(s => reviewMap.has(s.id));
+
+// Trailing colspan for break rows: covers Status + (Notes?) + (Votes?)
+const breakTrailingColspan = 1 + (showNotesCol ? 1 : 0) + (showVotesCol ? 1 : 0);
+
+// Admin-entered manual submissions default to this email when no real one was
+// supplied — suppress the mailto icon so it doesn't look like a real contact.
+const ADMIN_DEFAULT_SUBMITTER_EMAIL = 'avlfilmgroup@gmail.com';
 ---
 
 <BaseLayout title="Admin - Submissions">
@@ -127,8 +140,14 @@ for (const r of allReviews) {
           <div class="filter-group">
             <label for="status-filter">Status:</label>
             <select id="status-filter">
-              {['all', 'pending', 'approved', 'rejected', 'future'].map((s) => (
-                <option value={s} selected={selectedStatus === s}>{s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}</option>
+              {[
+                { value: 'all', label: 'All' },
+                { value: 'pending', label: 'Pending' },
+                { value: 'approved', label: 'Approved' },
+                { value: 'rejected', label: 'Not Selected' },
+                { value: 'future', label: 'Future' },
+              ].map((s) => (
+                <option value={s.value} selected={selectedStatus === s.value}>{s.label}</option>
               ))}
             </select>
           </div>
@@ -203,10 +222,9 @@ for (const r of allReviews) {
             <th>Filmmaker</th>
             <th>Genre</th>
             <th>Length</th>
-            <th>Submitted</th>
             <th>Status</th>
-            <th>Notes</th>
-            <th>Votes</th>
+            {showNotesCol && <th>Notes</th>}
+            {showVotesCol && <th>Votes</th>}
           </tr>
         </thead>
         <tbody>
@@ -224,9 +242,30 @@ for (const r of allReviews) {
                       <circle cx="10" cy="12" r="1.25" fill="currentColor"/>
                     </svg>
                   </td>
-                  <td colspan="3"><span class="break-label">{sub.filmTitle}</span></td>
-                  <td class="break-duration">{formatDuration(sub.filmLength)}</td>
-                  <td colspan="4" class="break-actions">
+                  <td colspan="3">
+                    <input
+                      type="text"
+                      class="break-label-input"
+                      data-break-id={sub.id}
+                      data-current={sub.filmTitle}
+                      value={sub.filmTitle}
+                      aria-label="Break label"
+                    />
+                  </td>
+                  <td class="break-duration">
+                    <input
+                      type="number"
+                      class="break-duration-input"
+                      data-break-id={sub.id}
+                      data-current={Math.round(sub.filmLength / 60)}
+                      value={Math.round(sub.filmLength / 60)}
+                      min="1"
+                      step="1"
+                      aria-label="Break duration in minutes"
+                    />
+                    <span class="break-duration-unit">min</span>
+                  </td>
+                  <td colspan={breakTrailingColspan} class="break-actions">
                     <button class="break-delete" type="button" data-break-id={sub.id} title="Remove break">&times;</button>
                   </td>
                 </tr>
@@ -248,44 +287,49 @@ for (const r of allReviews) {
                 <td class="title-cell"><a href={`/admin/events/reviews?id=${sub.id}`}>{sub.filmTitle}</a></td>
                 <td>
                   {sub.submitterName}
-                  <a href={`mailto:${sub.submitterEmail}`} class="email-icon" title={sub.submitterEmail}>
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="1.5" y="3" width="13" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-                      <path d="M1.5 5L8 9.5L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                  </a>
+                  {sub.submitterEmail !== ADMIN_DEFAULT_SUBMITTER_EMAIL && (
+                    <a href={`mailto:${sub.submitterEmail}`} class="email-icon" title={sub.submitterEmail}>
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="1.5" y="3" width="13" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M1.5 5L8 9.5L14.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </a>
+                  )}
                 </td>
                 <td>{sub.filmGenre === 'Other' ? sub.filmGenreOther : sub.filmGenre}</td>
                 <td>{formatDuration(sub.filmLength)}</td>
-                <td class="submitted-cell">{formatDate(sub.createdAt, { month: 'short', day: 'numeric' })}</td>
                 <td class="status-cell">
                   <select class={`status-select ${sub.status}`} data-id={sub.id} data-current={sub.status} aria-label="Status">
                     <option value="pending" selected={sub.status === 'pending'}>Pending</option>
                     <option value="approved" selected={sub.status === 'approved'}>Approved</option>
-                    <option value="rejected" selected={sub.status === 'rejected'}>Rejected</option>
+                    <option value="rejected" selected={sub.status === 'rejected'}>Not Selected</option>
                     <option value="future" selected={sub.status === 'future'}>Future</option>
                   </select>
                   {sub.status === 'approved' && sub.fullResVideoUrl && (
                     <span class="link-indicator" title="Full-res video link on file">&#128279;</span>
                   )}
                 </td>
-                <td class="notes-cell">
-                  {sub.adminNotes ? (
-                    <span class="has-tooltip">&#128221;<span class="tooltip">{sub.adminNotes}</span></span>
-                  ) : '—'}
-                </td>
-                <td class="votes-cell">
-                  {rv ? (
-                    <span class="has-tooltip votes-display">
-                      {rv.upVotes > 0 && <span>&#128077;</span>}
-                      {rv.downVotes > 0 && <span>&#128078;</span>}
-                      {rv.upVotes === 0 && rv.downVotes === 0 && <span>&#128172;</span>}
-                      <span class="tooltip">{rv.tooltip}</span>
-                    </span>
-                  ) : (
-                    <span class="no-votes">—</span>
-                  )}
-                </td>
+                {showNotesCol && (
+                  <td class="notes-cell">
+                    {sub.adminNotes ? (
+                      <span class="has-tooltip">&#128221;<span class="tooltip">{sub.adminNotes}</span></span>
+                    ) : '—'}
+                  </td>
+                )}
+                {showVotesCol && (
+                  <td class="votes-cell">
+                    {rv ? (
+                      <span class="has-tooltip votes-display">
+                        {rv.upVotes > 0 && <span>&#128077;</span>}
+                        {rv.downVotes > 0 && <span>&#128078;</span>}
+                        {rv.upVotes === 0 && rv.downVotes === 0 && <span>&#128172;</span>}
+                        <span class="tooltip">{rv.tooltip}</span>
+                      </span>
+                    ) : (
+                      <span class="no-votes">—</span>
+                    )}
+                  </td>
+                )}
               </tr>
             );
           })}
@@ -431,6 +475,67 @@ for (const r of allReviews) {
       }
     });
   }
+
+  // Inline-edit a break field (label or duration). Commits on blur/Enter; Esc reverts.
+  function bindBreakInput(input: HTMLInputElement, buildPayload: (value: string) => Record<string, unknown> | null) {
+    const commit = async () => {
+      const previous = input.dataset.current!;
+      const value = input.value.trim();
+      if (value === previous) return;
+
+      const payload = buildPayload(value);
+      if (!payload) {
+        input.value = previous;
+        return;
+      }
+
+      input.disabled = true;
+      try {
+        const res = await fetch('/admin/api/submissions/break', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: Number(input.dataset.breakId), ...payload }),
+        });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error || 'Failed to update break');
+        // Reload so runtime + display stay in sync
+        window.location.reload();
+      } catch (err) {
+        console.error('Failed to update break', err);
+        alert(err instanceof Error ? err.message : 'Failed to update break');
+        input.value = previous;
+        input.disabled = false;
+      }
+    };
+
+    input.addEventListener('blur', commit);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        input.blur();
+      } else if (e.key === 'Escape') {
+        input.value = input.dataset.current!;
+        input.blur();
+      }
+    });
+    // Prevent drag from initiating when interacting with the input
+    input.addEventListener('mousedown', (e) => e.stopPropagation());
+  }
+
+  document.querySelectorAll('.break-duration-input').forEach((el) => {
+    bindBreakInput(el as HTMLInputElement, (value) => {
+      const minutes = Number(value);
+      if (!Number.isFinite(minutes) || minutes <= 0) return null;
+      return { durationMinutes: minutes };
+    });
+  });
+
+  document.querySelectorAll('.break-label-input').forEach((el) => {
+    bindBreakInput(el as HTMLInputElement, (value) => {
+      if (!value) return null;
+      return { label: value };
+    });
+  });
 
   // Delete a break
   document.querySelectorAll('.break-delete').forEach((btn) => {
@@ -851,11 +956,6 @@ for (const r of allReviews) {
     font-size: 1rem;
   }
 
-  .submitted-cell {
-    color: #6b7280;
-    white-space: nowrap;
-  }
-
   .status-cell {
     white-space: nowrap;
   }
@@ -932,10 +1032,72 @@ for (const r of allReviews) {
     color: #92400e;
   }
 
+  .break-label-input {
+    width: 100%;
+    padding: 0.2rem 0.4rem;
+    margin-left: -0.4rem;
+    border: 1px solid transparent;
+    background: transparent;
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: 600;
+    color: #92400e;
+  }
+
+  .break-label-input:hover {
+    border-color: #fde68a;
+  }
+
+  .break-label-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
   /* Aligns with the films' Length column */
   .break-duration {
     color: #92400e;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .break-duration-input {
+    width: 2.5rem;
+    padding: 0.2rem 0.35rem;
+    margin-left: -0.35rem;
+    border: 1px solid transparent;
+    background: transparent;
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    font-variant-numeric: tabular-nums;
+    text-align: left;
+    -moz-appearance: textfield;
+  }
+
+  .break-duration-input::-webkit-outer-spin-button,
+  .break-duration-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .break-duration-input:hover {
+    border-color: #fde68a;
+  }
+
+  .break-duration-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  .break-duration-unit {
+    font-size: 0.85rem;
+    opacity: 0.7;
   }
 
   .break-actions {
