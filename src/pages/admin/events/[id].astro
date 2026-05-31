@@ -32,6 +32,13 @@ if (!event) {
 
 const submissionCount = subCount?.value || 0;
 const submissionUrl = `/events/${event.slug}/submit`;
+
+// Revenue projection matrix — what the event takes home after a 20% venue cut.
+const VENUE_CUT = 0.20;
+const TICKET_PRICES = [10, 15, 20, 25, 30];
+const ATTENDEE_COUNTS = [25, 50, 75, 100];
+const fmtMoney = (n: number) =>
+  `$${Math.round(n).toLocaleString('en-US')}`;
 ---
 
 <BaseLayout title={`Edit - ${event.title}`}>
@@ -42,27 +49,101 @@ const submissionUrl = `/events/${event.slug}/submit`;
   <div class="admin-section">
     <div class="section-header">
       <h2 style="margin: 0">Edit Event: {event.title}</h2>
-      <a href="/admin/events" class="btn-sm">&larr; Back to Events</a>
+      <div class="header-actions">
+        <button type="button" class="btn-sm" id="revenue-projection-btn">Revenue Projection</button>
+        <a href="/admin/events" class="btn-sm">&larr; Back to Events</a>
+      </div>
     </div>
 
     <div class="event-meta">
-      <div class="meta-item">
-        <span class="meta-label">Submissions:</span>
+      <div class="meta-card meta-card-compact">
+        <div class="meta-label">Submissions</div>
         {submissionCount > 0 ? (
-          <a href={`/admin/events/submissions?event=${event.id}`}>{submissionCount} submissions</a>
+          <a class="meta-value" href={`/admin/events/submissions?event=${event.id}`}>
+            <span class="meta-number">{submissionCount}</span>
+          </a>
         ) : (
-          <span>0 submissions</span>
+          <div class="meta-value meta-empty">
+            <span class="meta-number">0</span>
+          </div>
         )}
       </div>
-      <div class="meta-item">
-        <span class="meta-label">Submission URL:</span>
-        <a href={submissionUrl} target="_blank">{submissionUrl}</a>
+      <div class="meta-card">
+        <div class="meta-label">Submission URL</div>
+        <div class="meta-value url-row">
+          <a href={submissionUrl} target="_blank" class="url-link">{submissionUrl}</a>
+          <button type="button" class="copy-btn" id="copy-submission-url" data-url={submissionUrl} title="Copy URL">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="5" y="5" width="8" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M3 11V3.5A1.5 1.5 0 0 1 4.5 2H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
 
     <EventForm mode="edit" event={event} />
   </div>
+
+  <!-- Revenue Projection Modal -->
+  <div id="revenue-projection-modal" class="modal">
+    <div class="modal-overlay"></div>
+    <div class="modal-content modal-small">
+      <button class="modal-close">&times;</button>
+      <div class="modal-body">
+        <h2>Revenue Projection</h2>
+        <p>Estimated take-home after a {Math.round(VENUE_CUT * 100)}% venue cut, by ticket price and attendance.</p>
+        <div class="table-wrapper">
+          <table class="projection-table">
+            <thead>
+              <tr>
+                <th>Ticket</th>
+                {ATTENDEE_COUNTS.map((n) => (<th>{n}</th>))}
+              </tr>
+            </thead>
+            <tbody>
+              {TICKET_PRICES.map((price) => (
+                <tr>
+                  <th>${price}</th>
+                  {ATTENDEE_COUNTS.map((n) => (
+                    <td>{fmtMoney(price * n * (1 - VENUE_CUT))}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 </BaseLayout>
+
+<script>
+  import { setupModal } from '@lib/modal';
+
+  const revenueModal = setupModal('revenue-projection-modal');
+  document.getElementById('revenue-projection-btn')?.addEventListener('click', () => {
+    revenueModal?.open();
+  });
+
+  const copyBtn = document.getElementById('copy-submission-url') as HTMLButtonElement | null;
+  copyBtn?.addEventListener('click', async () => {
+    const url = copyBtn.dataset.url;
+    if (!url) return;
+    try {
+      await navigator.clipboard.writeText(new URL(url, window.location.origin).toString());
+      const original = copyBtn.innerHTML;
+      copyBtn.classList.add('copied');
+      copyBtn.textContent = 'Copied';
+      setTimeout(() => {
+        copyBtn.classList.remove('copied');
+        copyBtn.innerHTML = original;
+      }, 1500);
+    } catch (err) {
+      console.error('Failed to copy URL', err);
+    }
+  });
+</script>
 
 <style>
   .section-header {
@@ -70,6 +151,14 @@ const submissionUrl = `/events/${event.slug}/submit`;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.5rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
   }
 
   .btn-sm {
@@ -80,6 +169,8 @@ const submissionUrl = `/events/${event.slug}/submit`;
     border-radius: var(--radius-md);
     color: #374151;
     text-decoration: none;
+    cursor: pointer;
+    font-family: inherit;
   }
 
   .btn-sm:hover {
@@ -88,19 +179,178 @@ const submissionUrl = `/events/${event.slug}/submit`;
 
   .event-meta {
     display: flex;
-    gap: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
     margin-bottom: 2rem;
-    padding: 1rem;
-    background: var(--color-bg-subtle);
+  }
+
+  .meta-card-compact {
+    min-width: 6rem;
+  }
+
+  .meta-card {
+    padding: 1rem 1.15rem;
+    background: white;
+    border: 1px solid #e5e7eb;
     border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    min-width: 0;
   }
 
   .meta-label {
+    font-size: 0.7rem;
     font-weight: 600;
-    margin-right: 0.5rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
   }
 
-  .event-meta a {
+  .meta-value {
+    color: #111827;
+    text-decoration: none;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  a.meta-value:hover .meta-number {
     color: var(--color-primary);
+  }
+
+  .meta-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .meta-suffix {
+    font-size: 0.85rem;
+    color: #6b7280;
+  }
+
+  .meta-empty .meta-number {
+    color: #9ca3af;
+  }
+
+  .url-row {
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .url-link {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-size: 0.95rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .url-link:hover {
+    text-decoration: underline;
+  }
+
+  .copy-btn {
+    flex-shrink: 0;
+    background: none;
+    border: 1px solid #e5e7eb;
+    border-radius: var(--radius-md);
+    color: #6b7280;
+    cursor: pointer;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.75rem;
+    font-family: inherit;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .copy-btn:hover {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+  }
+
+  .copy-btn.copied {
+    color: #065f46;
+    border-color: #065f46;
+  }
+
+  /* Revenue projection modal */
+  :global(#revenue-projection-modal .modal-small) {
+    max-width: 600px;
+  }
+
+  :global(#revenue-projection-modal .modal-body) {
+    padding: 2rem;
+  }
+
+  :global(#revenue-projection-modal h2) {
+    margin: 0 0 0.5rem;
+    font-size: 1.5rem;
+    color: #111827;
+  }
+
+  :global(#revenue-projection-modal p) {
+    margin: 0 0 1.25rem;
+    color: #6b7280;
+    font-size: 0.9rem;
+  }
+
+  :global(#revenue-projection-modal .table-wrapper) {
+    overflow-x: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: var(--radius-md);
+  }
+
+  .projection-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .projection-table th,
+  .projection-table td {
+    padding: 0.6rem 0.85rem;
+    text-align: right;
+    border-bottom: 1px solid #f3f4f6;
+    border-right: 1px solid #f3f4f6;
+    font-size: 0.9rem;
+  }
+
+  .projection-table tr:last-child th,
+  .projection-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .projection-table th:last-child,
+  .projection-table td:last-child {
+    border-right: none;
+  }
+
+  .projection-table thead th {
+    background: var(--color-bg-subtle);
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .projection-table tbody th {
+    background: #fafafa;
+    font-weight: 600;
+    color: #111827;
+    text-align: left;
+  }
+
+  .projection-table tbody td {
+    color: #111827;
   }
 </style>
