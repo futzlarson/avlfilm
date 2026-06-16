@@ -6,7 +6,7 @@ export const siteSettings = pgTable('site_settings', {
   key: varchar('key', { length: 255 }).notNull().unique(),
   value: text('value'),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}).enableRLS();
 
 export const filmmakers = pgTable('filmmakers', {
   id: serial('id').primaryKey(),
@@ -31,7 +31,7 @@ export const filmmakers = pgTable('filmmakers', {
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
   lastLoginAt: timestamp('last_login_at'),
-});
+}).enableRLS();
 
 export const events = pgTable('events', {
   id: serial('id').primaryKey(),
@@ -41,7 +41,7 @@ export const events = pgTable('events', {
   location: varchar('location', { length: 255 }), // "City, State" or timezone fallback
   userAgent: text('user_agent'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}).enableRLS();
 
 // ── Spotlight Events ─────────────────────────────────────────────────────────
 
@@ -55,7 +55,7 @@ export const spotlightEvents = pgTable('spotlight_events', {
   status: varchar('status', { length: 50 }).notNull().default('upcoming'), // 'upcoming' | 'reviewing' | 'scheduled' | 'past'
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}).enableRLS();
 
 export const submissions = pgTable('submissions', {
   id: serial('id').primaryKey(),
@@ -84,7 +84,7 @@ export const submissions = pgTable('submissions', {
   reviewedAt: timestamp('reviewed_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}).enableRLS();
 
 export const reviews = pgTable('reviews', {
   id: serial('id').primaryKey(),
@@ -100,7 +100,7 @@ export const reviews = pgTable('reviews', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => [
   unique().on(table.submissionId, table.adminId),
-]);
+]).enableRLS();
 
 // ── Type Definitions ─────────────────────────────────────────────────────────
 
