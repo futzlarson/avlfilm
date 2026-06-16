@@ -44,7 +44,7 @@ export const POST: APIRoute = async ({ request }) => {
       replyTo: email,
       to: import.meta.env.ADMIN_EMAIL,
       subject: productionCompanySubmissionEmail.metadata.subject,
-      text: productionCompanySubmissionEmail.generate(companyData),
+      html: productionCompanySubmissionEmail.generate(companyData),
     });
 
     return successResponse({ message: 'Submission received successfully' });

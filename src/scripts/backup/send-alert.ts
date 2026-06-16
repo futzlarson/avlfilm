@@ -15,7 +15,7 @@ async function sendAlert() {
       from: process.env.RESEND_FROM_EMAIL!,
       to: process.env.ADMIN_EMAIL || 'admin@example.com',
       subject: 'Database Backup Failed - AVL Film',
-      text: backupAlertEmail.generate(timestamp, runUrl),
+      html: backupAlertEmail.generate(timestamp, runUrl),
     });
     console.log('Failure notification sent');
   } catch (error) {
