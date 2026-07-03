@@ -9,6 +9,7 @@ const spotlight = await getUpcomingSpotlightEvent();
 const spotlightLuma = spotlight?.eventLink ? await getLumaEventSummary(spotlight.eventLink) : null;
 const spotlightTitle = spotlightLuma?.title || spotlight?.title || '';
 const spotlightCover = spotlightLuma?.coverImage || null;
+const spotlightTeaser = spotlightLuma?.teaser || null;
 const spotlightDate = spotlight
   ? spotlight.eventDate.toLocaleDateString('en-US', {
       weekday: 'long',
@@ -44,6 +45,7 @@ const spotlightDate = spotlight
         <p class="promo-eyebrow">✦ Upcoming Spotlight Event</p>
         <h2>{spotlightTitle}</h2>
         {spotlightDate && <p class="promo-date">{spotlightDate}</p>}
+        {spotlightTeaser && <p class="promo-desc">{spotlightTeaser}</p>}
       </div>
     </a>
   )}
@@ -177,6 +179,13 @@ const spotlightDate = spotlight
     font-weight: 600;
     font-size: 0.9rem;
     margin: 0;
+  }
+
+  .promo-desc {
+    color: #6b7280;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0.5rem 0 0;
   }
 
   @media (max-width: 768px) {
