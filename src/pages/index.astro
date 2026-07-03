@@ -9,7 +9,10 @@ const spotlight = await getUpcomingSpotlightEvent();
 const spotlightLuma = spotlight?.eventLink ? await getLumaEventSummary(spotlight.eventLink) : null;
 const spotlightTitle = spotlightLuma?.title || spotlight?.title || '';
 const spotlightCover = spotlightLuma?.coverImage || null;
-const spotlightTeaser = spotlightLuma?.teaser || null;
+// Prefer the first line of the real description (clean) over Luma's meta teaser,
+// which comes pre-truncated with an ellipsis.
+const firstBlock = spotlightLuma?.description?.[0]?.html;
+const spotlightTeaser = (firstBlock ? firstBlock.replace(/<[^>]*>/g, '') : spotlightLuma?.teaser) || null;
 const spotlightDate = spotlight
   ? spotlight.eventDate.toLocaleDateString('en-US', {
       weekday: 'long',
@@ -185,6 +188,10 @@ const spotlightDate = spotlight
     font-size: 0.9rem;
     line-height: 1.5;
     margin: 0.5rem 0 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   @media (max-width: 768px) {
