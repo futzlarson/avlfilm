@@ -31,7 +31,7 @@ const isEdit = mode === 'edit';
     <div class="form-group">
       <label for="event-link">
         Event Link
-        <span class="info-icon" tabindex="0" role="img" aria-label="Public event page (e.g. Luma). Powers the Spotlight page and its nav link." data-tooltip="Public event page (e.g. Luma). Powers the Spotlight page and its nav link.">i</span>
+        <span class="info-icon" tabindex="0" role="img" aria-label="Public event page (e.g. Luma). The Spotlight page pulls its title, description, cover image, and Tickets button from this link." data-tooltip="Public event page (e.g. Luma). The Spotlight page pulls its title, description, cover image, and Tickets button from this link.">i</span>
       </label>
       <input type="url" id="event-link" name="eventLink" placeholder="https://luma.com/..." value={isEdit ? (event?.eventLink || '') : ''} />
     </div>
