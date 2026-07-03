@@ -1,6 +1,24 @@
 ---
 // Internal imports
+import { getLumaEventSummary } from '@lib/luma';
+import { getUpcomingSpotlightEvent } from '@lib/spotlight-cache';
 import BaseLayout from '@layouts/BaseLayout.astro';
+
+// Promo for the next upcoming Spotlight event (hidden when there's none).
+const spotlight = await getUpcomingSpotlightEvent();
+const spotlightLuma = spotlight?.eventLink ? await getLumaEventSummary(spotlight.eventLink) : null;
+const spotlightTitle = spotlightLuma?.title || spotlight?.title || '';
+const spotlightCover = spotlightLuma?.coverImage || null;
+const spotlightDate = spotlight
+  ? spotlight.eventDate.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZone: 'UTC', // Times are stored as the entered wall-clock in UTC
+    })
+  : '';
 ---
 
 <BaseLayout
@@ -10,6 +28,22 @@ import BaseLayout from '@layouts/BaseLayout.astro';
   <h1>Welcome to AVL Film</h1>
 
   <p class="intro">AVL Film exists to nurture the independent film scene in Asheville and throughout Western North Carolina by creating pathways for filmmakers to collaborate, connect, and build community.</p>
+
+  {spotlight && (
+    <a href="/spotlight" class="spotlight-promo">
+      {spotlightCover && (
+        <div class="promo-cover">
+          <img src={spotlightCover} alt={spotlightTitle} loading="lazy" />
+        </div>
+      )}
+      <div class="promo-body">
+        <p class="promo-eyebrow">✦ Upcoming Spotlight Event</p>
+        <h2>{spotlightTitle}</h2>
+        {spotlightDate && <p class="promo-date">{spotlightDate}</p>}
+        <span class="promo-cta">View details &amp; tickets →</span>
+      </div>
+    </a>
+  )}
 
   <div class="features-grid">
     <a href="/festivals" class="feature-card">
@@ -84,6 +118,85 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 </BaseLayout>
 
 <style>
+  .spotlight-promo {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 2rem 0;
+    border: 2px solid var(--color-primary);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    text-decoration: none;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+    transition: all 0.3s ease;
+  }
+
+  .spotlight-promo:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+  }
+
+  .promo-cover {
+    flex: 0 0 40%;
+    max-width: 300px;
+  }
+
+  .promo-cover img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .promo-body {
+    padding: 1.75rem 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .promo-eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin: 0 0 0.5rem;
+  }
+
+  .promo-body h2 {
+    margin: 0 0 0.4rem;
+    color: #1f2937;
+    font-size: 1.4rem;
+  }
+
+  .promo-date {
+    color: #6b7280;
+    font-weight: 600;
+    margin: 0 0 1rem;
+  }
+
+  .promo-cta {
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+
+  @media (max-width: 768px) {
+    .spotlight-promo {
+      flex-direction: column;
+    }
+
+    .promo-cover {
+      flex-basis: auto;
+      max-width: none;
+      max-height: 180px;
+    }
+
+    .promo-body {
+      padding: 1.25rem 1.5rem;
+    }
+  }
+
   .features-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
