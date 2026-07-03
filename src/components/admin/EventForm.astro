@@ -23,9 +23,16 @@ const isEdit = mode === 'edit';
     </div>
   </div>
 
-  <div class="form-group">
-    <label for="event-theme">Theme</label>
-    <input type="text" id="event-theme" name="theme" value={isEdit ? (event?.theme || '') : ''} />
+  <div class="form-row">
+    <div class="form-group">
+      <label for="event-theme">Theme</label>
+      <input type="text" id="event-theme" name="theme" value={isEdit ? (event?.theme || '') : ''} />
+    </div>
+    <div class="form-group">
+      <label for="event-link">Event Link</label>
+      <input type="url" id="event-link" name="eventLink" placeholder="https://luma.com/..." value={isEdit ? (event?.eventLink || '') : ''} />
+      <p class="field-hint">Public event page (e.g. Luma). Powers the Spotlight page and its nav link.</p>
+    </div>
   </div>
 
   <div class="form-row">
@@ -108,6 +115,7 @@ const isEdit = mode === 'edit';
       title: (form.querySelector('[name="title"]') as HTMLInputElement).value,
       slug: (form.querySelector('[name="slug"]') as HTMLInputElement).value || undefined,
       theme: (form.querySelector('[name="theme"]') as HTMLInputElement).value || null,
+      eventLink: (form.querySelector('[name="eventLink"]') as HTMLInputElement).value || null,
       eventDate: (form.querySelector('[name="eventDate"]') as HTMLInputElement).value,
       submissionDeadline: (form.querySelector('[name="submissionDeadline"]') as HTMLInputElement).value,
       status: (form.querySelector('[name="status"]') as HTMLSelectElement).value,
@@ -214,6 +222,12 @@ const isEdit = mode === 'edit';
 
   .required {
     color: #dc2626;
+  }
+
+  .field-hint {
+    margin: 0.35rem 0 0;
+    font-size: 0.8rem;
+    color: var(--color-text-light);
   }
 
   .form-actions {

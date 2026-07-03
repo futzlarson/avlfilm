@@ -3,6 +3,7 @@ import { db } from '@db';
 import { spotlightEvents, submissions } from '@db/schema';
 import { errorResponse, successResponse } from '@lib/api';
 import { requireAdmin } from '@lib/auth';
+import { invalidateSpotlightCache } from '@lib/spotlight-cache';
 // Astro types
 import type { APIRoute } from 'astro';
 // External packages
@@ -13,7 +14,7 @@ export const POST: APIRoute = async (context) => {
     await requireAdmin(context);
 
     const body = await context.request.json();
-    const { id, title, slug, theme, eventDate, submissionDeadline, status } = body;
+    const { id, title, slug, theme, eventLink, eventDate, submissionDeadline, status } = body;
 
     if (!id) {
       return errorResponse('Event ID is required', 400);
@@ -35,6 +36,7 @@ export const POST: APIRoute = async (context) => {
       updates.slug = slug;
     }
     if (theme !== undefined) updates.theme = theme || null;
+    if (eventLink !== undefined) updates.eventLink = eventLink || null;
     if (eventDate !== undefined) updates.eventDate = new Date(eventDate);
     if (submissionDeadline !== undefined) updates.submissionDeadline = new Date(submissionDeadline);
     if (status !== undefined) updates.status = status;
@@ -55,6 +57,8 @@ export const POST: APIRoute = async (context) => {
     if (!event) {
       return errorResponse('Event not found', 404);
     }
+
+    await invalidateSpotlightCache();
 
     return successResponse(event);
   } catch (error) {
@@ -88,6 +92,8 @@ export const DELETE: APIRoute = async (context) => {
     }
 
     await db.delete(spotlightEvents).where(eq(spotlightEvents.id, id));
+
+    await invalidateSpotlightCache();
 
     return successResponse({ deleted: true });
   } catch (error) {

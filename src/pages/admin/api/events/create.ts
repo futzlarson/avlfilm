@@ -4,6 +4,7 @@ import { spotlightEvents } from '@db/schema';
 import { errorResponse, successResponse } from '@lib/api';
 import { requireAdmin } from '@lib/auth';
 import { generateSlug } from '@lib/slug';
+import { invalidateSpotlightCache } from '@lib/spotlight-cache';
 // Astro types
 import type { APIRoute } from 'astro';
 // External packages
@@ -14,7 +15,7 @@ export const POST: APIRoute = async (context) => {
     await requireAdmin(context);
 
     const body = await context.request.json();
-    const { title, slug: customSlug, theme, eventDate, submissionDeadline, status } = body;
+    const { title, slug: customSlug, theme, eventLink, eventDate, submissionDeadline, status } = body;
 
     if (!title || !eventDate || !submissionDeadline) {
       return errorResponse('Title, event date, and submission deadline are required', 400);
@@ -44,11 +45,14 @@ export const POST: APIRoute = async (context) => {
         title,
         slug,
         theme: theme || null,
+        eventLink: eventLink || null,
         eventDate: date,
         submissionDeadline: deadline,
         status: status || 'upcoming',
       })
       .returning();
+
+    await invalidateSpotlightCache();
 
     return successResponse(event);
   } catch (error) {

@@ -1,0 +1,212 @@
+---
+// Internal imports
+import { getLumaEventSummary } from '@lib/luma';
+import { getUpcomingSpotlightEvent } from '@lib/spotlight-cache';
+import BaseLayout from '@layouts/BaseLayout.astro';
+
+const event = await getUpcomingSpotlightEvent();
+
+// No upcoming event — nothing to spotlight. The nav link is hidden in this case,
+// so a direct visit just goes home.
+if (!event) {
+  return Astro.redirect('/');
+}
+
+const luma = event.eventLink ? await getLumaEventSummary(event.eventLink) : null;
+
+const displayTitle = luma?.title || event.title;
+const teaser = luma?.teaser || null; // Short one-liner, used for SEO/OG only
+const descriptionBlocks = luma?.description ?? [];
+const coverImage = luma?.coverImage || null;
+
+// Event times are stored as the entered wall-clock (in UTC), so format in UTC
+// to show exactly what the admin typed — otherwise the server's timezone shifts it.
+const dateFormat = {
+  weekday: 'long',
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+  timeZone: 'UTC',
+} as const;
+const eventFormatted = event.eventDate.toLocaleDateString('en-US', dateFormat);
+
+const now = new Date();
+const daysToDeadline = Math.ceil((event.submissionDeadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+// Submissions are open only while the event is still accepting them ('upcoming')
+// and the deadline hasn't passed. Once the lineup is set the status moves on
+// ('reviewing' / 'scheduled' / 'past'), so the submit CTA drops off.
+const acceptingSubmissions = event.status === 'upcoming' && now < event.submissionDeadline;
+
+// Precompute the deadline note — comparison operators in the .astro template
+// confuse the JSX parser.
+const showDeadline = acceptingSubmissions && daysToDeadline >= 0;
+const deadlineDate = event.submissionDeadline.toLocaleDateString('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' });
+const daysLeftNote = daysToDeadline <= 30 ? ` — ${daysToDeadline} ${daysToDeadline === 1 ? 'day' : 'days'} left` : '';
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'Event',
+  name: displayTitle,
+  startDate: event.eventDate.toISOString(),
+  ...(teaser && { description: teaser }),
+  ...(coverImage && { image: coverImage }),
+  ...(event.eventLink && { url: event.eventLink }),
+  organizer: { '@type': 'Organization', name: 'AVL Film' },
+  eventStatus: 'https://schema.org/EventScheduled',
+  eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+  location: {
+    '@type': 'Place',
+    name: 'Asheville, NC',
+    address: { '@type': 'PostalAddress', addressLocality: 'Asheville', addressRegion: 'NC' },
+  },
+};
+---
+
+<BaseLayout
+  title={`Spotlight: ${displayTitle}`}
+  description={teaser || `Join AVL Film for ${displayTitle} in Asheville, NC.`}
+  ogImage={coverImage || undefined}
+  structuredData={structuredData}
+>
+  <div class="spotlight">
+    <p class="eyebrow">✦ Spotlight Event</p>
+
+    {coverImage && (
+      <div class="cover">
+        <img src={coverImage} alt={displayTitle} loading="eager" />
+      </div>
+    )}
+
+    <div class="details">
+      {event.theme && <p class="theme">{event.theme}</p>}
+      <h1>{displayTitle}</h1>
+      <p class="event-date">{eventFormatted}</p>
+
+      {descriptionBlocks.length > 0 ? (
+        <div class="description">
+          {descriptionBlocks.map((block) =>
+            block.type === 'heading'
+              ? <h2>{block.text}</h2>
+              : <p>{block.text}</p>
+          )}
+        </div>
+      ) : teaser && (
+        <p class="teaser">{teaser}</p>
+      )}
+
+      <div class="actions">
+        {event.eventLink && (
+          <a href={event.eventLink} class="btn-primary" target="_blank" rel="noopener">
+            View Event &amp; RSVP →
+          </a>
+        )}
+        {acceptingSubmissions && (
+          <a href={`/events/${event.slug}/submit`} class="btn-secondary">
+            Submit Your Film
+          </a>
+        )}
+      </div>
+
+      {showDeadline && (
+        <p class="deadline">Submissions close {deadlineDate}{daysLeftNote}</p>
+      )}
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .spotlight {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin: 0 0 1rem;
+  }
+
+  .cover {
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-bottom: 1.75rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .cover img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .theme {
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-light);
+    margin: 0 0 0.35rem;
+  }
+
+  h1 {
+    margin: 0 0 0.5rem;
+  }
+
+  .event-date {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-text-light);
+    margin: 0 0 1.5rem;
+  }
+
+  .teaser {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    margin: 0 0 1.75rem;
+  }
+
+  .description {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    margin: 0 0 2rem;
+  }
+
+  .description :global(h2) {
+    font-size: 1.2rem;
+    margin: 1.75rem 0 0.5rem;
+  }
+
+  .description :global(p) {
+    margin: 0 0 1rem;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .deadline {
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+    margin: 0;
+  }
+
+  @media (max-width: 768px) {
+    .actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .actions a {
+      text-align: center;
+    }
+  }
+</style>

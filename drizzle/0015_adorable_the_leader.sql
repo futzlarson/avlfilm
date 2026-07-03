@@ -1,0 +1,1 @@
+ALTER TABLE "spotlight_events" ADD COLUMN "event_link" varchar(500);

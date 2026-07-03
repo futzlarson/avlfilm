@@ -5,6 +5,7 @@ import '@styles/global.css';
 // Internal imports
 import Banner from '@components/Banner.astro';
 import RollbarClient from '@components/RollbarClient.astro';
+import { getUpcomingSpotlightEvent } from '@lib/spotlight-cache';
 
 // External packages
 import Analytics from '@vercel/analytics/astro';
@@ -18,11 +19,14 @@ interface Props {
   structuredData?: object;
 }
 
-const { title, description, keywords, structuredData } = Astro.props;
-const ogImage = 'https://avlfilm.com/community.jpg';
+const { title, description, keywords, ogImage: ogImageProp, structuredData } = Astro.props;
+const ogImage = ogImageProp || 'https://avlfilm.com/community.jpg';
 const defaultDescription = 'Connecting filmmakers and film enthusiasts across Western North Carolina with festivals, crew directories, events, and resources.';
 const finalDescription = description || defaultDescription;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site || Astro.url.origin);
+
+// Show the public Spotlight nav link only when there's an upcoming event.
+const hasUpcomingSpotlight = (await getUpcomingSpotlightEvent()) !== null;
 
 // Get user from middleware
 let user = Astro.locals.user;
@@ -97,6 +101,7 @@ const adminMenu: { href: string; label: string; icon: string; divider?: boolean 
         <a href="/" class="logo">AVL Film</a>
         <ul class="nav-links">
           <li class="home-link"><a href="/">Home</a></li>
+          {hasUpcomingSpotlight && <li><a href="/spotlight" class="spotlight-link">Spotlight</a></li>}
           <li><a href="/calendar">Calendar</a></li>
           <li><a href="/directory">Directory</a></li>
           <li><a href="/resources">Resources</a></li>

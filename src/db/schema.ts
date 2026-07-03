@@ -50,6 +50,7 @@ export const spotlightEvents = pgTable('spotlight_events', {
   title: varchar('title', { length: 255 }).notNull(),
   slug: varchar('slug', { length: 255 }).notNull().unique(),
   theme: varchar('theme', { length: 255 }),
+  eventLink: varchar('event_link', { length: 500 }), // External event page (e.g. Luma); powers the public Spotlight page
   eventDate: timestamp('event_date').notNull(),
   submissionDeadline: timestamp('submission_deadline').notNull(),
   status: varchar('status', { length: 50 }).notNull().default('upcoming'), // 'upcoming' | 'reviewing' | 'scheduled' | 'past'

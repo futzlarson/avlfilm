@@ -43,6 +43,8 @@ if (user) {
   }
 }
 
+// Event times are stored as the entered wall-clock (in UTC); format in UTC so
+// the displayed time matches what was typed, regardless of server timezone.
 const format = {
   weekday: 'long',
   year: 'numeric',
@@ -50,6 +52,7 @@ const format = {
   day: 'numeric',
   hour: 'numeric',
   minute: '2-digit',
+  timeZone: 'UTC',
 } as const;
 const eventFormatted = event.eventDate.toLocaleDateString('en-US', format);
 const deadlineFormatted = event.submissionDeadline.toLocaleDateString('en-US', format);
