@@ -31,7 +31,7 @@ const isEdit = mode === 'edit';
     <div class="form-group">
       <label for="event-link">
         Event Link
-        <span class="info-icon" tabindex="0" role="img" aria-label="Public event page (e.g. Luma). Powers the Spotlight page and its nav link." title="Public event page (e.g. Luma). Powers the Spotlight page and its nav link.">i</span>
+        <span class="info-icon" tabindex="0" role="img" aria-label="Public event page (e.g. Luma). Powers the Spotlight page and its nav link." data-tooltip="Public event page (e.g. Luma). Powers the Spotlight page and its nav link.">i</span>
       </label>
       <input type="url" id="event-link" name="eventLink" placeholder="https://luma.com/..." value={isEdit ? (event?.eventLink || '') : ''} />
     </div>
@@ -227,6 +227,7 @@ const isEdit = mode === 'edit';
   }
 
   .info-icon {
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -241,6 +242,35 @@ const isEdit = mode === 'edit';
     font-weight: 700;
     cursor: help;
     vertical-align: middle;
+  }
+
+  .info-icon::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: 240px;
+    padding: 0.5rem 0.65rem;
+    border-radius: 6px;
+    background: #1f2937;
+    color: #fff;
+    font-size: 0.75rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1.4;
+    text-align: left;
+    white-space: normal;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+    z-index: 10;
+  }
+
+  .info-icon:hover::after,
+  .info-icon:focus::after {
+    opacity: 1;
   }
 
   .form-actions {

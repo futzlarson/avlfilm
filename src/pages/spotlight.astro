@@ -83,15 +83,12 @@ const structuredData = {
     <div class="details">
       {event.theme && <p class="theme">{event.theme}</p>}
       <h1>{displayTitle}</h1>
-      <p class="event-date">{eventFormatted}</p>
-
-      {event.eventLink && (
-        <p class="top-cta">
-          <a href={event.eventLink} class="btn-primary" target="_blank" rel="noopener">
-            Tickets →
-          </a>
-        </p>
-      )}
+      <div class="date-row">
+        <span class="event-date">{eventFormatted}</span>
+        {event.eventLink && (
+          <a href={event.eventLink} class="btn-primary" target="_blank" rel="noopener">Tickets</a>
+        )}
+      </div>
 
       {descriptionBlocks.length > 0 ? (
         <div class="description">
@@ -108,7 +105,7 @@ const structuredData = {
       <div class="actions">
         {event.eventLink && (
           <a href={event.eventLink} class="btn-primary" target="_blank" rel="noopener">
-            Tickets →
+            Tickets
           </a>
         )}
         {acceptingSubmissions && (
@@ -166,15 +163,18 @@ const structuredData = {
     margin: 0 0 0.5rem;
   }
 
+  .date-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin: 0 0 1.75rem;
+  }
+
   .event-date {
     font-size: 1.1rem;
     font-weight: 600;
     color: var(--color-text-light);
-    margin: 0 0 1.25rem;
-  }
-
-  .top-cta {
-    margin: 0 0 1.75rem;
   }
 
   .teaser {
