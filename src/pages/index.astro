@@ -9,10 +9,13 @@ const spotlight = await getUpcomingSpotlightEvent();
 const spotlightLuma = spotlight?.eventLink ? await getLumaEventSummary(spotlight.eventLink) : null;
 const spotlightTitle = spotlightLuma?.title || spotlight?.title || '';
 const spotlightCover = spotlightLuma?.coverImage || null;
-// Prefer the first line of the real description (clean) over Luma's meta teaser,
-// which comes pre-truncated with an ellipsis.
-const firstBlock = spotlightLuma?.description?.[0]?.html;
-const spotlightTeaser = (firstBlock ? firstBlock.replace(/<[^>]*>/g, '') : spotlightLuma?.teaser) || null;
+// Pull the opening hook line + first paragraph from the real description as
+// plain text (Luma's meta teaser is pre-truncated; links aren't needed here).
+const spotlightBlocks = spotlightLuma?.description ?? [];
+const stripTags = (html: string) => html.replace(/<[^>]*>/g, '');
+const spotlightHook = spotlightBlocks[0] ? stripTags(spotlightBlocks[0].html) : spotlightLuma?.teaser || null;
+const spotlightIntro = spotlightBlocks.find((b, i) => i > 0 && b.type === 'paragraph');
+const spotlightIntroText = spotlightIntro ? stripTags(spotlightIntro.html) : null;
 const spotlightDate = spotlight
   ? spotlight.eventDate.toLocaleDateString('en-US', {
       weekday: 'long',
@@ -48,7 +51,8 @@ const spotlightDate = spotlight
         <p class="promo-eyebrow">✦ Upcoming Spotlight Event</p>
         <h2>{spotlightTitle}</h2>
         {spotlightDate && <p class="promo-date">{spotlightDate}</p>}
-        {spotlightTeaser && <p class="promo-desc">{spotlightTeaser}</p>}
+        {spotlightHook && <p class="promo-hook">{spotlightHook}</p>}
+        {spotlightIntroText && <p class="promo-desc">{spotlightIntroText}</p>}
       </div>
     </a>
   )}
@@ -183,13 +187,20 @@ const spotlightDate = spotlight
     margin: 0;
   }
 
+  .promo-hook {
+    color: #1f2937;
+    font-weight: 600;
+    line-height: 1.4;
+    margin: 0.6rem 0 0;
+  }
+
   .promo-desc {
     color: #6b7280;
     font-size: 0.9rem;
     line-height: 1.5;
-    margin: 0.5rem 0 0;
+    margin: 0.4rem 0 0;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
