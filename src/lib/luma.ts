@@ -7,7 +7,7 @@ const FETCH_TIMEOUT_MS = 5000;
 
 export interface LumaBlock {
   type: 'heading' | 'paragraph';
-  text: string;
+  html: string; // Sanitized inline HTML (text + <strong>/<em>/<a>/<br> only)
 }
 
 export interface LumaEventSummary {
@@ -47,10 +47,37 @@ function metaContent(html: string, key: string): string | null {
 // inside its __NEXT_DATA__ JSON. We render it to a small set of safe blocks so
 // our page controls the markup (no injecting Luma's raw HTML).
 
+interface PmMark {
+  type?: string;
+  attrs?: { href?: string };
+}
+
 interface PmNode {
   type?: string;
   text?: string;
+  marks?: PmMark[];
   content?: PmNode[];
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Only allow safe link protocols — blocks javascript:/data: hrefs.
+function safeHref(href: string | undefined): string | null {
+  if (!href) return null;
+  try {
+    const proto = new URL(href).protocol;
+    if (proto === 'http:' || proto === 'https:' || proto === 'mailto:') return href;
+  } catch {
+    /* invalid URL */
+  }
+  return null;
 }
 
 function findKey<T>(obj: unknown, key: string): T | null {
@@ -70,10 +97,24 @@ function findKey<T>(obj: unknown, key: string): T | null {
   return null;
 }
 
-function nodeText(node: PmNode): string {
-  if (node.type === 'text') return node.text ?? '';
-  if (node.type === 'hardBreak') return '\n';
-  return (node.content ?? []).map(nodeText).join('');
+// Render a text node to escaped HTML, applying its bold/italic/link marks.
+function textNodeHtml(node: PmNode): string {
+  let html = escapeHtml(node.text ?? '');
+  const marks = node.marks ?? [];
+  if (marks.some((m) => m.type === 'italic')) html = `<em>${html}</em>`;
+  if (marks.some((m) => m.type === 'bold')) html = `<strong>${html}</strong>`;
+  const link = marks.find((m) => m.type === 'link');
+  if (link) {
+    const href = safeHref(link.attrs?.href);
+    if (href) html = `<a href="${escapeHtml(href)}" target="_blank" rel="noopener">${html}</a>`;
+  }
+  return html;
+}
+
+function nodeHtml(node: PmNode): string {
+  if (node.type === 'text') return textNodeHtml(node);
+  if (node.type === 'hardBreak') return '<br>';
+  return (node.content ?? []).map(nodeHtml).join('');
 }
 
 function parseDescription(html: string): LumaBlock[] {
@@ -90,10 +131,12 @@ function parseDescription(html: string): LumaBlock[] {
 
   const blocks: LumaBlock[] = [];
   for (const node of doc.content) {
-    const text = nodeText(node).trim();
-    // Skip empties and decorative divider lines (e.g. a row of underscores).
-    if (!text || !/[a-z0-9]/i.test(text)) continue;
-    blocks.push({ type: node.type === 'heading' ? 'heading' : 'paragraph', text });
+    const html = nodeHtml(node).trim();
+    // Skip empties and decorative divider lines (e.g. a row of underscores) —
+    // check the visible text, ignoring tags.
+    const visible = html.replace(/<[^>]*>/g, '');
+    if (!visible || !/[a-z0-9]/i.test(visible)) continue;
+    blocks.push({ type: node.type === 'heading' ? 'heading' : 'paragraph', html });
   }
   return blocks;
 }

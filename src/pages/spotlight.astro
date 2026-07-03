@@ -89,8 +89,8 @@ const structuredData = {
         <div class="description">
           {descriptionBlocks.map((block) =>
             block.type === 'heading'
-              ? <h2>{block.text}</h2>
-              : <p>{block.text}</p>
+              ? <h2 set:html={block.html} />
+              : <p set:html={block.html} />
           )}
         </div>
       ) : teaser && (
@@ -184,6 +184,11 @@ const structuredData = {
 
   .description :global(p) {
     margin: 0 0 1rem;
+  }
+
+  .description :global(a) {
+    color: var(--color-primary);
+    text-decoration: underline;
   }
 
   .actions {
