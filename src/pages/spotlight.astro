@@ -85,6 +85,14 @@ const structuredData = {
       <h1>{displayTitle}</h1>
       <p class="event-date">{eventFormatted}</p>
 
+      {event.eventLink && (
+        <p class="top-cta">
+          <a href={event.eventLink} class="btn-primary" target="_blank" rel="noopener">
+            Tickets →
+          </a>
+        </p>
+      )}
+
       {descriptionBlocks.length > 0 ? (
         <div class="description">
           {descriptionBlocks.map((block) =>
@@ -100,7 +108,7 @@ const structuredData = {
       <div class="actions">
         {event.eventLink && (
           <a href={event.eventLink} class="btn-primary" target="_blank" rel="noopener">
-            View Event &amp; RSVP →
+            Tickets →
           </a>
         )}
         {acceptingSubmissions && (
@@ -162,7 +170,11 @@ const structuredData = {
     font-size: 1.1rem;
     font-weight: 600;
     color: var(--color-text-light);
-    margin: 0 0 1.5rem;
+    margin: 0 0 1.25rem;
+  }
+
+  .top-cta {
+    margin: 0 0 1.75rem;
   }
 
   .teaser {

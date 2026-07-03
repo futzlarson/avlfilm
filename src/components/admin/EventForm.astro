@@ -29,9 +29,11 @@ const isEdit = mode === 'edit';
       <input type="text" id="event-theme" name="theme" value={isEdit ? (event?.theme || '') : ''} />
     </div>
     <div class="form-group">
-      <label for="event-link">Event Link</label>
+      <label for="event-link">
+        Event Link
+        <span class="info-icon" tabindex="0" role="img" aria-label="Public event page (e.g. Luma). Powers the Spotlight page and its nav link." title="Public event page (e.g. Luma). Powers the Spotlight page and its nav link.">i</span>
+      </label>
       <input type="url" id="event-link" name="eventLink" placeholder="https://luma.com/..." value={isEdit ? (event?.eventLink || '') : ''} />
-      <p class="field-hint">Public event page (e.g. Luma). Powers the Spotlight page and its nav link.</p>
     </div>
   </div>
 
@@ -224,10 +226,21 @@ const isEdit = mode === 'edit';
     color: #dc2626;
   }
 
-  .field-hint {
-    margin: 0.35rem 0 0;
-    font-size: 0.8rem;
-    color: var(--color-text-light);
+  .info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    margin-left: 0.35rem;
+    border-radius: 50%;
+    background: var(--color-text-light);
+    color: #fff;
+    font-size: 0.7rem;
+    font-style: italic;
+    font-weight: 700;
+    cursor: help;
+    vertical-align: middle;
   }
 
   .form-actions {
