@@ -220,12 +220,22 @@ const spotlightDate = spotlight
   }
 
   @media (max-width: 768px) {
+    /* Stack on mobile: full-width poster on top, text below. */
+    .spotlight-promo {
+      flex-direction: column;
+    }
+
     .promo-cover {
-      flex-basis: 100px;
+      flex-basis: auto;
+      width: 100%;
+    }
+
+    .promo-cover img {
+      height: auto;
     }
 
     .promo-body {
-      padding: 0.85rem 1.15rem;
+      padding: 1.15rem 1.25rem;
     }
 
     /* Show the full description on mobile — no clamp. */
