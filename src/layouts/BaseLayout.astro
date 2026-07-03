@@ -104,7 +104,7 @@ const adminMenu: { href: string; label: string; icon: string; divider?: boolean 
           {hasUpcomingSpotlight && <li><a href="/spotlight" class="spotlight-link">Spotlight</a></li>}
           <li><a href="/calendar">Calendar</a></li>
           <li><a href="/directory">Directory</a></li>
-          <li><a href="/resources">Resources</a></li>
+          <li class:list={[{ 'mobile-hide-for-spotlight': hasUpcomingSpotlight }]}><a href="/resources">Resources</a></li>
           {
             user?.isAdmin ? (
               <li class="admin-menu">

@@ -462,6 +462,16 @@ nav {
   font-weight: bold;
   color: white;
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.logo img {
+  height: 1.5rem;
+  width: auto;
+  display: block;
+  /* logo-text.svg ships with default-black fills; render it white on the dark header */
+  filter: brightness(0) invert(1);
 }
 
 .nav-links {
@@ -567,6 +577,11 @@ footer {
   }
 
   .home-link {
+    display: none;
+  }
+
+  /* Free up crowded mobile nav: drop Resources when the Spotlight link shows. */
+  .nav-links .mobile-hide-for-spotlight {
     display: none;
   }
 
