@@ -13,9 +13,9 @@ const spotlightCover = spotlightLuma?.coverImage || null;
 // plain text (Luma's meta teaser is pre-truncated; links aren't needed here).
 const spotlightBlocks = spotlightLuma?.description ?? [];
 const stripTags = (html: string) => html.replace(/<[^>]*>/g, '');
-const spotlightHook = spotlightBlocks[0] ? stripTags(spotlightBlocks[0].html) : spotlightLuma?.teaser || null;
-const spotlightIntro = spotlightBlocks.find((b, i) => i > 0 && b.type === 'paragraph');
-const spotlightIntroText = spotlightIntro ? stripTags(spotlightIntro.html) : null;
+const spotlightHook = spotlightBlocks[0]?.html ? stripTags(spotlightBlocks[0].html) : spotlightLuma?.teaser || null;
+const spotlightIntro = spotlightBlocks.find((b, i) => i > 0 && b.type === 'paragraph' && b.html);
+const spotlightIntroText = spotlightIntro?.html ? stripTags(spotlightIntro.html) : null;
 const spotlightDate = spotlight
   ? spotlight.eventDate.toLocaleDateString('en-US', {
       weekday: 'long',

@@ -6,8 +6,9 @@ const CACHE_TTL_SECONDS = 60 * 60; // 1 hour — Luma content changes rarely
 const FETCH_TIMEOUT_MS = 5000;
 
 export interface LumaBlock {
-  type: 'heading' | 'paragraph';
-  html: string; // Sanitized inline HTML (text + <strong>/<em>/<a>/<br> only)
+  type: 'heading' | 'paragraph' | 'bullet_list' | 'ordered_list';
+  html?: string; // Sanitized inline HTML for heading/paragraph (text + <strong>/<em>/<a>/<br>)
+  items?: string[]; // Sanitized inline HTML per <li>, for lists
 }
 
 export interface LumaEventSummary {
@@ -113,7 +114,8 @@ function textNodeHtml(node: PmNode): string {
 
 function nodeHtml(node: PmNode): string {
   if (node.type === 'text') return textNodeHtml(node);
-  if (node.type === 'hardBreak') return '<br>';
+  // Luma uses 'hard_break'; accept the camelCase spelling too, just in case.
+  if (node.type === 'hard_break' || node.type === 'hardBreak') return '<br>';
   return (node.content ?? []).map(nodeHtml).join('');
 }
 
@@ -129,13 +131,23 @@ function parseDescription(html: string): LumaBlock[] {
   }
   if (!doc?.content) return [];
 
+  const hasText = (html: string) => /[a-z0-9]/i.test(html.replace(/<[^>]*>/g, ''));
+  const isBullet = (t?: string) => t === 'bullet_list' || t === 'bulletList';
+  const isOrdered = (t?: string) => t === 'ordered_list' || t === 'orderedList';
+
   const blocks: LumaBlock[] = [];
   for (const node of doc.content) {
+    if (isBullet(node.type) || isOrdered(node.type)) {
+      // Each list_item wraps paragraph(s); flatten to inline HTML per item.
+      const items = (node.content ?? [])
+        .map((li) => (li.content ?? []).map(nodeHtml).join('').trim())
+        .filter(hasText);
+      if (items.length) blocks.push({ type: isOrdered(node.type) ? 'ordered_list' : 'bullet_list', items });
+      continue;
+    }
     const html = nodeHtml(node).trim();
-    // Skip empties and decorative divider lines (e.g. a row of underscores) —
-    // check the visible text, ignoring tags.
-    const visible = html.replace(/<[^>]*>/g, '');
-    if (!visible || !/[a-z0-9]/i.test(visible)) continue;
+    // Skip empties and decorative divider lines (e.g. a row of underscores).
+    if (!hasText(html)) continue;
     blocks.push({ type: node.type === 'heading' ? 'heading' : 'paragraph', html });
   }
   return blocks;

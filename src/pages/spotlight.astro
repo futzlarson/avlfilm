@@ -93,9 +93,15 @@ const structuredData = {
       {descriptionBlocks.length > 0 ? (
         <div class="description">
           {descriptionBlocks.map((block) =>
-            block.type === 'heading'
-              ? <h2 set:html={block.html} />
-              : <p set:html={block.html} />
+            block.type === 'heading' ? (
+              <h2 set:html={block.html} />
+            ) : block.type === 'bullet_list' ? (
+              <ul>{(block.items ?? []).map((item) => <li set:html={item} />)}</ul>
+            ) : block.type === 'ordered_list' ? (
+              <ol>{(block.items ?? []).map((item) => <li set:html={item} />)}</ol>
+            ) : (
+              <p set:html={block.html} />
+            )
           )}
         </div>
       ) : teaser && (
@@ -207,6 +213,16 @@ const structuredData = {
   .description :global(a) {
     color: var(--color-primary);
     text-decoration: underline;
+  }
+
+  .description :global(ul),
+  .description :global(ol) {
+    margin: 0 0 1rem;
+    padding-left: 1.5rem;
+  }
+
+  .description :global(li) {
+    margin: 0 0 0.35rem;
   }
 
   .actions {
