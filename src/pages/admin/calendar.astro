@@ -197,11 +197,12 @@ try {
   function highlightKeywords(html: string): string {
     if (!html) return '';
 
-    // Highlight 'film' and 'movie' (case-insensitive)
-    // Use word boundaries to avoid matching partial words
-    return html
-      .replace(/\b(film|films)\b/gi, '<span class="highlight">$1</span>')
-      .replace(/\b(movie|movies)\b/gi, '<span class="highlight">$1</span>');
+    // Highlight 'film'/'movie' in text only. Match whole tags too and pass them
+    // through untouched, so a keyword inside an href (e.g. a .../movies-... URL)
+    // can't get wrapped in a span and break the tag.
+    return html.replace(/<[^>]+>|\b(?:films?|movies?)\b/gi, (match) =>
+      match.startsWith('<') ? match : `<span class="highlight">${match}</span>`
+    );
   }
 
   function renderSkippedEventCard(event: AvlGoEvent): string {
