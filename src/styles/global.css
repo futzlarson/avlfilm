@@ -467,10 +467,10 @@ nav {
 }
 
 .logo img {
-  height: 1.5rem;
+  height: 26px;
   width: auto;
   display: block;
-  /* logo-text.svg ships with default-black fills; render it white on the dark header */
+  /* logo-text.svg ships with black fills; render it white on the dark header */
   filter: brightness(0) invert(1);
 }
 
@@ -564,6 +564,10 @@ footer {
 
   .logo {
     font-size: 1rem;
+  }
+
+  .logo img {
+    height: 22px;
   }
 
   .nav-links {

@@ -32,9 +32,12 @@ const spotlightDate = spotlight
   title="Home"
   description="Connecting filmmakers across Western North Carolina. Find festivals, crew directories, events, production companies, and resources in Asheville and beyond."
 >
-  <h1>Welcome to AVL Film</h1>
-
-  <p class="intro">AVL Film exists to nurture the independent film scene in Asheville and throughout Western North Carolina by creating pathways for filmmakers to collaborate, connect, and build community.</p>
+  <div class="home-hero">
+    <img class="home-logo" src="/avl-film-logo-blue.svg" alt="AVL Film" />
+    <h1>Your ticket to the Western North Carolina film scene.</h1>
+    <div class="hero-rule" aria-hidden="true"><span>★</span></div>
+    <p class="intro">AVL Film exists to nurture the independent film scene in Asheville and throughout Western North Carolina by creating pathways for filmmakers to collaborate, connect, and build community.</p>
+  </div>
 
   {spotlight && (
     <a
@@ -131,6 +134,58 @@ const spotlightDate = spotlight
 </BaseLayout>
 
 <style>
+  .home-hero {
+    text-align: center;
+    margin: 1rem 0 3rem;
+  }
+
+  .home-logo {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    margin: 0 auto 1.5rem;
+    display: block;
+  }
+
+  .home-hero h1 {
+    /* Thesis line — plays on the ticket-stub logo. Navy pulled from the logo. */
+    font-size: clamp(1.9rem, 4.5vw, 2.6rem);
+    line-height: 1.12;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #163036;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  /* Gold star rule echoes the ★ in the logo wordmark. */
+  .hero-rule {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    max-width: 260px;
+    margin: 1.25rem auto 1.5rem;
+  }
+
+  .hero-rule::before,
+  .hero-rule::after {
+    content: "";
+    flex: 1;
+    height: 2px;
+    background: #d9b453;
+  }
+
+  .hero-rule span {
+    color: #d9b453;
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .home-hero .intro {
+    max-width: 620px;
+    margin: 0 auto;
+  }
+
   .spotlight-promo {
     display: flex;
     align-items: stretch;
