@@ -32,14 +32,15 @@ const spotlightDate = spotlight
   title="Home"
   description="Connecting filmmakers across Western North Carolina. Find festivals, crew directories, events, production companies, and resources in Asheville and beyond."
 >
-  <div class="home-hero">
-    <img class="home-logo" src="/avl-film-logo-blue.svg" alt="AVL Film" />
-    <h1>Your ticket to the Western North Carolina film scene.</h1>
-    <div class="hero-rule" aria-hidden="true"><span>★</span></div>
-    <p class="intro">AVL Film exists to nurture the independent film scene in Asheville and throughout Western North Carolina by creating pathways for filmmakers to collaborate, connect, and build community.</p>
-  </div>
+  <div class:list={['home-top', { 'has-promo': spotlight }]}>
+    <div class="home-hero">
+      <img class="home-logo" src="/logo/badge-blue.svg" alt="AVL Film" />
+      <h1>Your ticket to the Western North Carolina film scene.</h1>
+      <div class="hero-rule" aria-hidden="true"><span>★</span></div>
+      <p class="intro">AVL Film exists to nurture the independent film scene in Asheville and throughout Western North Carolina by creating pathways for filmmakers to collaborate, connect, and build community.</p>
+    </div>
 
-  {spotlight && (
+    {spotlight && (
     <a
       href={spotlight.eventLink || '/spotlight'}
       class="spotlight-promo"
@@ -59,7 +60,8 @@ const spotlightDate = spotlight
         <span class="promo-cta">{spotlight.eventLink ? 'Tickets' : 'View Details'}</span>
       </div>
     </a>
-  )}
+    )}
+  </div>
 
   <div class="features-grid">
     <a href="/festivals" class="feature-card">
@@ -134,27 +136,67 @@ const spotlightDate = spotlight
 </BaseLayout>
 
 <style>
+  /* Pair the intro hero with the Spotlight promo as two equal panels. */
+  .home-top.has-promo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    align-items: stretch;
+    margin: 1rem 0 2.5rem;
+  }
+
+  .home-top.has-promo .spotlight-promo {
+    margin: 0;
+  }
+
+  /* Left panel mirrors the promo card: same radius, warm fill, centered content. */
+  .home-top.has-promo .home-hero {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 2rem 2.25rem;
+    background: linear-gradient(135deg, #fbf7f0 0%, #f7f0e8 100%);
+    border-radius: var(--radius-xl);
+  }
+
+  @media (max-width: 900px) {
+    .home-top.has-promo {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    .home-top.has-promo .home-hero {
+      padding: 1.75rem;
+    }
+  }
+
+  /* Kept compact so it doesn't pull focus from the Spotlight promo beside it. */
   .home-hero {
     text-align: center;
-    margin: 1rem 0 3rem;
+    margin: 0.5rem 0 2rem;
+  }
+
+  .home-top.has-promo .home-hero {
+    margin: 0;
   }
 
   .home-logo {
     width: 100%;
-    max-width: 300px;
+    max-width: 190px;
     height: auto;
-    margin: 0 auto 1.5rem;
+    margin: 0 auto 1rem;
     display: block;
   }
 
   .home-hero h1 {
     /* Thesis line — plays on the ticket-stub logo. Navy pulled from the logo. */
-    font-size: clamp(1.9rem, 4.5vw, 2.6rem);
-    line-height: 1.12;
+    font-size: clamp(1.4rem, 3vw, 1.85rem);
+    line-height: 1.15;
     font-weight: 800;
     letter-spacing: -0.02em;
     color: #163036;
-    max-width: 640px;
+    max-width: 560px;
     margin: 0 auto;
   }
 
@@ -163,8 +205,8 @@ const spotlightDate = spotlight
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    max-width: 260px;
-    margin: 1.25rem auto 1.5rem;
+    max-width: 220px;
+    margin: 0.9rem auto 1rem;
   }
 
   .hero-rule::before,
@@ -182,8 +224,9 @@ const spotlightDate = spotlight
   }
 
   .home-hero .intro {
-    max-width: 620px;
+    max-width: 580px;
     margin: 0 auto;
+    font-size: 1rem;
   }
 
   .spotlight-promo {
