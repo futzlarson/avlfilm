@@ -2,6 +2,7 @@
 import type { AvlGoEvent } from '@app-types/avlgo-event';
 import { errorResponse, successResponse } from '@lib/api';
 import { requireAdmin } from '@lib/auth';
+import { calendarEventKey } from '@lib/calendar-event-key';
 import { createCalendarEvent } from '@lib/google-calendar';
 import { isEventAdded, markEventAdded } from '@lib/redis-calendar';
 // Astro types
@@ -26,8 +27,9 @@ export const POST: APIRoute = async (context) => {
       return errorResponse('Invalid event data. Required fields: id, title, startDate');
     }
 
-    // Check if event already added
-    const alreadyAdded = await isEventAdded(event.id);
+    // Check if this occurrence was already added
+    const trackingKey = calendarEventKey(event.id, event.startDate);
+    const alreadyAdded = await isEventAdded(trackingKey);
     if (alreadyAdded) {
       return errorResponse('Event has already been added to calendar', 409);
     }
@@ -36,11 +38,11 @@ export const POST: APIRoute = async (context) => {
     const googleEventId = await createCalendarEvent(event);
 
     // Track the event in Redis
-    await markEventAdded(event.id, googleEventId);
+    await markEventAdded(trackingKey, googleEventId);
 
     return successResponse({
       message: 'Event added to calendar successfully',
-      eventId: event.id,
+      eventId: trackingKey,
       googleEventId,
     });
   } catch (error) {

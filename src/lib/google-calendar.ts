@@ -26,6 +26,44 @@ export function getGoogleCalendarClient() {
 }
 
 /**
+ * List calendar entries in a time window, as {title, start} pairs.
+ * Lets the admin UI detect events added outside this tool (or before tracking).
+ */
+export async function listCalendarEvents(
+  timeMin: Date,
+  timeMax: Date
+): Promise<{ title: string; start: string }[]> {
+  const client = getGoogleCalendarClient();
+  const calendarId = import.meta.env.GOOGLE_CALENDAR_ID || 'primary';
+
+  const results: { title: string; start: string }[] = [];
+  let pageToken: string | undefined;
+
+  do {
+    const response = await client.events.list({
+      calendarId,
+      timeMin: timeMin.toISOString(),
+      timeMax: timeMax.toISOString(),
+      singleEvents: true,
+      orderBy: 'startTime',
+      maxResults: 250,
+      pageToken,
+    });
+
+    for (const item of response.data.items || []) {
+      const start = item.start?.dateTime || item.start?.date;
+      if (item.summary && start) {
+        results.push({ title: item.summary, start });
+      }
+    }
+
+    pageToken = response.data.nextPageToken || undefined;
+  } while (pageToken);
+
+  return results;
+}
+
+/**
  * Convert AVL GO event to Google Calendar event format
  */
 export function convertToCalendarEvent(event: AvlGoEvent) {
