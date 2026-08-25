@@ -164,6 +164,12 @@ try {
 
   function truncateText(text: string, maxLength: number): string {
     if (!text || text.length <= maxLength) return text || '';
+    // Anchor the snippet around the first film/movie match so it's visible.
+    const m = text.match(/film|movie/i);
+    if (m && m.index !== undefined && m.index > maxLength) {
+      const start = Math.max(0, m.index - 150);
+      return '...' + text.substring(start, start + maxLength).trim() + '...';
+    }
     return text.substring(0, maxLength).trim() + '...';
   }
 
@@ -192,8 +198,9 @@ try {
   }
 
   function renderTitle(event: AvlGoEvent): string {
+    const title = highlightKeywords(event.title);
     if (event.url) {
-      return `<a href="${event.url}" target="_blank" rel="noopener">${event.title}</a>`;
+      return `${title} <a class="title-link" href="${event.url}" target="_blank" rel="noopener" aria-label="Open event page in new tab" title="Open in new tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3"/></svg></a>`;
     }
     return event.title;
   }
@@ -202,7 +209,7 @@ try {
     if (!tags || tags.length === 0) return '';
 
     const html = tags.map(tag =>
-      `<span class="tag-pill">${tag}</span>`
+      `<span class="tag-pill">${highlightKeywords(tag)}</span>`
     ).join('');
 
     return `<div class="tags-container">${html}</div>`;
@@ -237,35 +244,38 @@ try {
     // Highlight 'film'/'movie' in text only. Match whole tags too and pass them
     // through untouched, so a keyword inside an href (e.g. a .../movies-... URL)
     // can't get wrapped in a span and break the tag.
-    return html.replace(/<[^>]+>|\b(?:films?|movies?)\b/gi, (match) =>
+    // Match the substring (so "filmed"/"filmmakers" highlight too), but never
+    // inside a tag — pass whole tags through untouched.
+    return html.replace(/<[^>]+>|film|movie/gi, (match) =>
       match.startsWith('<') ? match : `<span class="highlight">${match}</span>`
     );
   }
 
-  function renderSkippedEventCard(event: AvlGoEvent, by: 'organizer' | 'event'): string {
+  // Compact header for a collapsed row; clicking it expands the full card.
+  const toggle = `onclick="this.closest('.collapsible-row').classList.toggle('expanded')"`;
+
+  function renderSkippedHeader(event: AvlGoEvent, by: 'organizer' | 'event'): string {
     const date = formatDate(event.startDate);
     const organizer = event.organizer || '';
     const unskip = by === 'event'
       ? `unskipEvent(${jsAttr(event.id)}, this)`
       : `unskipOrganizer(${jsAttr(organizer)}, this)`;
     return `
-      <div class="event-card-skipped">
+      <div class="event-card-skipped row-head" ${toggle}>
         <div class="skipped-content">
           <div class="skipped-title">${event.title}</div>
           <div class="skipped-meta">${date} · ${organizer} · skipped ${by === 'event' ? 'series' : 'organizer'}</div>
         </div>
-        <button class="btn-unskip" onclick="${unskip}">Unskip</button>
+        <button class="btn-unskip" onclick="event.stopPropagation(); ${unskip}">Unskip</button>
       </div>
     `;
   }
 
   function renderEventCard(event: AvlGoEvent): string {
-    if (skippedEventIds.has(event.id)) {
-      return renderSkippedEventCard(event, 'event');
-    }
-    if (event.organizer && skippedOrganizers.has(event.organizer)) {
-      return renderSkippedEventCard(event, 'organizer');
-    }
+    const skippedBy: 'organizer' | 'event' | null = skippedEventIds.has(event.id)
+      ? 'event'
+      : (event.organizer && skippedOrganizers.has(event.organizer)) ? 'organizer' : null;
+    const isAdded = !skippedBy && addedEventIds.has(calendarEventKey(event.id, event.startDate));
     const date = formatDate(event.startDate);
     const location = event.location || '<span class="text-muted">Location TBA</span>';
     const description = event.description || 'No description available';
@@ -276,7 +286,7 @@ try {
     const descriptionHtml = highlightKeywords(parseMarkdown(isTruncated ? truncatedDesc : description));
     const eventId = event.id.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
-    return `
+    const fullCard = `
       <div class="event-card">
         <div class="event-image">${renderImage(event)}</div>
         <div class="event-content">
@@ -330,6 +340,26 @@ try {
         </div>
       </div>
     `;
+
+    // Skipped and added events collapse to a compact row that expands to the
+    // full card on click.
+    let header = '';
+    if (skippedBy) {
+      header = renderSkippedHeader(event, skippedBy);
+    } else if (isAdded) {
+      const preview = [date, event.organizer || event.source, event.location].filter(Boolean).join(' · ');
+      header = `
+        <div class="event-card-skipped event-card-added row-head" ${toggle}>
+          <div class="skipped-content">
+            <div class="skipped-title">${event.title}</div>
+            <div class="skipped-meta">${preview}</div>
+          </div>
+          <span class="event-added">Added</span>
+        </div>`;
+    }
+
+    if (!header) return fullCard;
+    return `<div class="collapsible-row">${header}<div class="collapsible-full">${fullCard}</div></div>`;
   }
 
   // Toggle description expansion
@@ -760,11 +790,11 @@ try {
     font-weight: 600;
   }
 
-  :global(.event-description .highlight) {
+  :global(.highlight) {
     background-color: #fef08a;
-    padding: 0.125rem 0.25rem;
+    color: #422006;
+    padding: 0.05rem 0.2rem;
     border-radius: 0.125rem;
-    font-weight: 500;
   }
 
   :global(.show-more-btn) {
@@ -906,23 +936,82 @@ try {
     margin-top: 0.125rem;
   }
 
+  /* Skipped/added events collapse to a compact, clickable row; expands to full card. */
+  :global(.row-head) {
+    cursor: pointer;
+  }
+
+  :global(.event-card-added) {
+    background: #f2faf4;
+    border-color: #cfe9d6;
+    opacity: 1;
+  }
+
+  :global(.row-head:hover) {
+    border-color: #9ca3af;
+  }
+
+  :global(.event-card-added.row-head:hover) {
+    border-color: #a9d8b6;
+  }
+
+  :global(.collapsible-full) {
+    display: none;
+  }
+
+  :global(.collapsible-row.expanded .collapsible-full) {
+    display: block;
+  }
+
+  :global(.collapsible-row.expanded > .row-head) {
+    display: none;
+  }
+
+  :global(.event-card-added .event-added) {
+    padding: 0.2rem 0.6rem;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  :global(.event-card-added .event-added::before) {
+    font-size: 0.85rem;
+  }
+
+  :global(.title-link) {
+    display: inline-flex;
+    vertical-align: middle;
+    color: #9ca3af;
+    margin-left: 0.35rem;
+  }
+
+  :global(.title-link svg) {
+    width: 15px;
+    height: 15px;
+  }
+
+  :global(.title-link:hover) {
+    color: var(--color-primary);
+  }
+
   /* Event Added Status */
   :global(.event-added) {
     display: inline-flex;
     align-items: center;
-    padding: 0.625rem 1.25rem;
+    /* Match .btn-skip-event box so the pair lines up. */
+    padding: calc(0.625rem - 1px) calc(1.25rem - 1px);
     background: #d4edda;
     color: #155724;
     border: 1px solid #c3e6cb;
     border-radius: var(--radius-md);
     font-weight: 600;
     font-size: 0.9375rem;
+    line-height: normal;
   }
 
   :global(.event-added::before) {
     content: '✓';
     margin-right: 0.375rem;
-    font-size: 1.125rem;
+    line-height: 1;
   }
 
   /* Mobile Responsive */
