@@ -89,6 +89,11 @@ const jsonLd = upcomingEvents.length > 0
 
         <form id="event-form">
           <div class="form-group">
+            <label for="event-email">Your Email <span class="required">*</span></label>
+            <input type="email" id="event-email" name="email" required maxlength="255" placeholder="So we can reach you with questions" />
+          </div>
+
+          <div class="form-group">
             <label for="event-title">Event Title <span class="required">*</span></label>
             <input type="text" id="event-title" name="title" required maxlength="200" />
           </div>
@@ -293,6 +298,7 @@ const jsonLd = upcomingEvents.length > 0
           startDateTime,
           endDateTime,
           link: formData.get('link') || null,
+          email: formData.get('email'),
         };
 
         const submitBtn = form.querySelector('.btn-submit') as HTMLButtonElement;

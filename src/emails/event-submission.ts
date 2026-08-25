@@ -14,6 +14,7 @@ export interface EventSubmission {
   startDateTime: string;
   endDateTime?: string | null;
   link?: string;
+  email?: string;
   googleCalendarUrl: string;
 }
 
@@ -47,6 +48,12 @@ export function generate(data: EventSubmission): string {
       <tr>
         <td style="${TABLE_HEADER_STYLE}">LINK</td>
         <td style="${TABLE_CELL_STYLE}"><a href="${data.link}" style="${LINK_STYLE}">${data.link}</a></td>
+      </tr>
+      ` : ''}
+      ${data.email ? `
+      <tr>
+        <td style="${TABLE_HEADER_STYLE}">CONTACT</td>
+        <td style="${TABLE_CELL_STYLE}"><a href="mailto:${data.email}" style="${LINK_STYLE}">${data.email}</a></td>
       </tr>
       ` : ''}
     </table>

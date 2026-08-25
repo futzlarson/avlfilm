@@ -66,10 +66,10 @@ function generateGoogleCalendarUrl(
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const { title, description, location, startDateTime, endDateTime, link } = await request.json();
+    const { title, description, location, startDateTime, endDateTime, link, email } = await request.json();
 
-    if (!title || !description || !location || !startDateTime) {
-      return errorResponse('Title, description, location, and start date/time are required');
+    if (!title || !description || !location || !startDateTime || !email) {
+      return errorResponse('Title, description, location, start date/time, and email are required');
     }
 
     if (import.meta.env.RESEND_API_KEY && import.meta.env.ADMIN_EMAIL) {
@@ -81,6 +81,7 @@ export const POST: APIRoute = async ({ request }) => {
           startDateTime,
           endDateTime,
           link,
+          email,
           googleCalendarUrl: generateGoogleCalendarUrl(
             title,
             description,
@@ -94,6 +95,7 @@ export const POST: APIRoute = async ({ request }) => {
         await resend.emails.send({
           from: import.meta.env.RESEND_FROM_EMAIL,
           to: import.meta.env.ADMIN_EMAIL,
+          replyTo: email,
           subject: eventSubmissionEmail.metadata.subject,
           html: eventSubmissionEmail.generate(eventData),
         });
