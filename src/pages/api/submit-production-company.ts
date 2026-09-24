@@ -1,6 +1,7 @@
 // Internal imports
 import * as productionCompanySubmissionEmail from '@emails/production-company-submission';
 import { errorResponse, successResponse } from '@lib/api';
+import { HONEYPOT_FIELD, isBotSubmission } from '@lib/honeypot';
 // Astro types
 import type { APIRoute } from 'astro';
 // External packages
@@ -10,7 +11,13 @@ const resend = new Resend(import.meta.env.RESEND_API_KEY);
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const { email, companyName, website, description } = await request.json();
+    const body = await request.json();
+    const { email, companyName, website, description } = body;
+
+    // Silently accept bot submissions so they don't retry, but do nothing.
+    if (isBotSubmission(body[HONEYPOT_FIELD])) {
+      return successResponse({ message: 'Submission received successfully' });
+    }
 
     // Validation
     if (!email || !companyName || !description) {

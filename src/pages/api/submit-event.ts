@@ -1,6 +1,7 @@
 // Internal imports
 import * as eventSubmissionEmail from '@emails/event-submission';
 import { errorResponse, jsonResponse } from '@lib/api';
+import { HONEYPOT_FIELD, isBotSubmission } from '@lib/honeypot';
 // Astro types
 import type { APIRoute } from 'astro';
 // External packages
@@ -66,7 +67,13 @@ function generateGoogleCalendarUrl(
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const { title, description, location, startDateTime, endDateTime, link, email } = await request.json();
+    const body = await request.json();
+    const { title, description, location, startDateTime, endDateTime, link, email } = body;
+
+    // Silently accept bot submissions so they don't retry, but do nothing.
+    if (isBotSubmission(body[HONEYPOT_FIELD])) {
+      return jsonResponse({ success: true }, 200);
+    }
 
     if (!title || !description || !location || !startDateTime || !email) {
       return errorResponse('Title, description, location, start date/time, and email are required');

@@ -1,0 +1,20 @@
+---
+// Hidden spam-trap field. Visually removed and hidden from assistive tech and
+// tab order, so only bots fill it. Server rejects submissions where it's set.
+import { HONEYPOT_FIELD } from '@lib/honeypot';
+---
+
+<div class="honeypot" aria-hidden="true">
+  <label>Leave this field blank</label>
+  <input type="text" name={HONEYPOT_FIELD} tabindex="-1" autocomplete="off" />
+</div>
+
+<style>
+  .honeypot {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+</style>

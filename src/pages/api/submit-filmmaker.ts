@@ -4,6 +4,7 @@ import { filmmakers } from '@db/schema';
 import * as filmmakerSubmissionEmail from '@emails/filmmaker-submission';
 import { errorResponse, jsonResponse } from '@lib/api';
 import { findUserByEmail } from '@lib/auth';
+import { HONEYPOT_FIELD, isBotSubmission } from '@lib/honeypot';
 import { subscribeToNewsletter } from '@lib/newsletter';
 import { sendPasswordResetEmail } from '@lib/send-reset-email';
 // Astro types
@@ -17,6 +18,11 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();
     const { name, email, phone, roles, company, website, instagram, youtube, facebook, gear, bio, notes, newsletter } = body;
+
+    // Silently accept bot submissions so they don't retry, but do nothing.
+    if (isBotSubmission(body[HONEYPOT_FIELD])) {
+      return jsonResponse({ success: true }, 201);
+    }
 
     if (!name || !email || !roles) {
       return errorResponse('Name, email, and roles are required');

@@ -1,5 +1,6 @@
 ---
 // Internal imports
+import Honeypot from '@components/Honeypot.astro';
 import type { Filmmaker } from '@db/schema';
 import { buildRoleData } from '@lib/roles';
 
@@ -164,6 +165,8 @@ const { roleAliasMap, canonicalRoles } = buildRoleData();
       <div id="success-message" class="alert alert-success" style="display: none;">Profile updated successfully!</div>
     </>
   )}
+
+  {!isEdit && <Honeypot />}
 
   <div class={isEdit ? 'form-actions-profile' : ''}>
     <button type="submit" class="btn-primary">{isEdit ? 'Save Changes' : 'Submit'}</button>

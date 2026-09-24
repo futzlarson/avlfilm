@@ -1,6 +1,7 @@
 ---
 // Internal imports
 import BaseLayout from '@layouts/BaseLayout.astro';
+import Honeypot from '@components/Honeypot.astro';
 import { getAddedEventIds } from '@lib/redis-calendar';
 import { convertEventsToJsonLd } from '@lib/event-seo';
 import type { AvlGoEvent } from '@app-types/avlgo-event';
@@ -151,6 +152,8 @@ const jsonLd = upcomingEvents.length > 0
             <input type="url" id="event-link" name="link" placeholder="https://" maxlength="500" />
           </div>
 
+          <Honeypot />
+
           <div class="form-actions">
             <button type="button" class="btn-cancel" id="cancel-event-btn">Cancel</button>
             <button type="submit" class="btn-submit">Submit Event</button>
@@ -231,6 +234,7 @@ const jsonLd = upcomingEvents.length > 0
     // Event Modal functionality
     import { setupModal } from '@lib/modal';
     import { showFormMessage } from '@lib/form-utils';
+    import { HONEYPOT_FIELD } from '@lib/honeypot';
 
     function setupEventModal() {
       const openBtn = document.getElementById('submit-event-btn');
@@ -299,6 +303,7 @@ const jsonLd = upcomingEvents.length > 0
           endDateTime,
           link: formData.get('link') || null,
           email: formData.get('email'),
+          [HONEYPOT_FIELD]: formData.get(HONEYPOT_FIELD),
         };
 
         const submitBtn = form.querySelector('.btn-submit') as HTMLButtonElement;
