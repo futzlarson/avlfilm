@@ -7,12 +7,29 @@ const SUBMIT_URL = 'https://forms.gle/mxqKihQ2KBPmd9Gd9';
 // ET offsets: October is EDT (UTC-4).
 const CONTEST_START = '2026-10-01T00:00:00-04:00';
 const CONTEST_DEADLINE = '2026-10-31T23:59:59-04:00';
+
+// Lets Google show the contest as an event in search results.
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'Event',
+  name: 'AVL Film 60-Second Film Contest',
+  description: 'Make a film 60 seconds or less during October. Open to anyone in North Carolina, all skill levels welcome.',
+  startDate: CONTEST_START,
+  endDate: CONTEST_DEADLINE,
+  eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
+  eventStatus: 'https://schema.org/EventScheduled',
+  location: { '@type': 'VirtualLocation', url: SUBMIT_URL },
+  organizer: { '@type': 'Organization', name: 'AVL Film', url: 'https://avlfilm.com' },
+  isAccessibleForFree: true,
+};
 ---
 
 <BaseLayout
   title="60-Second Film Contest"
-  description="Make and submit a film 60 seconds or less during the month of October. All skill levels welcome, a video from your phone is totally fine. Prizes for the winners."
-  keywords="Asheville film contest, 60 second film contest, short film competition, AVLFilm contest"
+  description="Asheville's 60-second film contest: make a one-minute film in October. Open to anyone in North Carolina, all skill levels welcome. Prizes and a screening for the winners."
+  keywords="Asheville film contest, 60 second film contest, North Carolina short film competition, AVL Film contest"
+  ogImage="https://avlfilm.com/contest-og.jpg"
+  structuredData={structuredData}
 >
   <section class="hero">
     <div class="timer" role="img" aria-label="60 seconds">
