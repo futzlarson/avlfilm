@@ -1,0 +1,211 @@
+---
+// Reusable countdown. Stays hidden until `startAt`, then ticks down to `deadline`.
+// Times are ISO strings with an explicit offset (ET) so they're timezone-correct.
+interface Props {
+  deadline: string;
+  startAt?: string;
+  heading?: string;
+  doneText?: string;
+}
+
+const { deadline, startAt = '', heading = 'Deadline', doneText = 'Submissions are closed!' } = Astro.props;
+---
+
+<div class="countdown" data-deadline={deadline} data-start={startAt} hidden>
+  <span class="countdown-label">{heading}</span>
+  <div class="countdown-units" data-units>
+    <div class="cu"><span class="cu-num" data-days>00</span><span class="cu-lbl">days</span></div>
+    <div class="cu"><span class="cu-num" data-hours>00</span><span class="cu-lbl">hrs</span></div>
+    <div class="cu"><span class="cu-num" data-mins>00</span><span class="cu-lbl">min</span></div>
+    <div class="cu"><span class="cu-num" data-secs>00</span><span class="cu-lbl">sec</span></div>
+  </div>
+  <span class="countdown-done" data-done hidden>{doneText}</span>
+</div>
+
+<script>
+  function pad(n: number): string {
+    return String(n).padStart(2, '0');
+  }
+
+  function burstConfetti(): void {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const canvas = document.createElement('canvas');
+    canvas.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9999';
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const colors = ['#667eea', '#764ba2', '#f97316', '#4ade80', '#ffb000'];
+    const pieces = Array.from({ length: 160 }, () => ({
+      x: window.innerWidth / 2,
+      y: window.innerHeight / 3,
+      vx: (Math.random() - 0.5) * 14,
+      vy: Math.random() * -14 - 4,
+      rot: Math.random() * 6,
+      vr: (Math.random() - 0.5) * 0.4,
+      size: 6 + Math.random() * 6,
+      color: colors[Math.floor(Math.random() * colors.length)],
+    }));
+
+    let frame = 0;
+    (function anim() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (const p of pieces) {
+        p.vy += 0.3;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.rot += p.vr;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+        ctx.restore();
+      }
+      frame++;
+      if (frame < 190) requestAnimationFrame(anim);
+      else canvas.remove();
+    })();
+  }
+
+  document.querySelectorAll<HTMLElement>('.countdown').forEach((el) => {
+    const deadline = new Date(el.dataset.deadline || '').getTime();
+    const start = el.dataset.start ? new Date(el.dataset.start).getTime() : 0;
+    const units = el.querySelector<HTMLElement>('[data-units]');
+    const done = el.querySelector<HTMLElement>('[data-done]');
+    const days = el.querySelector<HTMLElement>('[data-days]');
+    const hours = el.querySelector<HTMLElement>('[data-hours]');
+    const mins = el.querySelector<HTMLElement>('[data-mins]');
+    const secs = el.querySelector<HTMLElement>('[data-secs]');
+
+    if (!deadline || !units || !done || !days || !hours || !mins || !secs) return;
+
+    let fired = false;
+
+    function tick() {
+      const now = Date.now();
+      if (now < start) {
+        el.hidden = true;
+        return;
+      }
+      el.hidden = false;
+
+      let diff = deadline - now;
+      if (diff <= 0) {
+        units!.hidden = true;
+        done!.hidden = false;
+        if (!fired) {
+          fired = true;
+          burstConfetti();
+        }
+        return;
+      }
+
+      const day = Math.floor(diff / 86400000);
+      diff -= day * 86400000;
+      const hr = Math.floor(diff / 3600000);
+      diff -= hr * 3600000;
+      const mn = Math.floor(diff / 60000);
+      diff -= mn * 60000;
+      const sc = Math.floor(diff / 1000);
+
+      days!.textContent = pad(day);
+      hours!.textContent = pad(hr);
+      mins!.textContent = pad(mn);
+      secs!.textContent = pad(sc);
+    }
+
+    tick();
+    setInterval(tick, 1000);
+  });
+</script>
+
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+
+  .countdown {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0 auto 2.5rem;
+  }
+
+  /* Attribute selector must beat .countdown's display so `hidden` works */
+  .countdown[hidden] {
+    display: none;
+  }
+
+  .countdown-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-text-light, #666);
+  }
+
+  .countdown-units {
+    display: flex;
+    gap: 0.6rem;
+  }
+
+  .countdown-units[hidden] {
+    display: none;
+  }
+
+  /* Green LCD boxes to match the hero timer */
+  .cu {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 4.25rem;
+    padding: 0.6rem 0.5rem 0.5rem;
+    border-radius: 10px;
+    background: #05100a;
+    color: #4ade80;
+    box-shadow: inset 0 0 18px rgba(0, 255, 120, 0.12);
+    overflow: hidden;
+  }
+
+  /* CRT scanlines */
+  .cu::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: 10px;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.28) 0,
+      rgba(0, 0, 0, 0.28) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  }
+
+  .cu-num {
+    font-family: "VT323", monospace;
+    font-size: 2.6rem;
+    line-height: 1;
+    text-shadow: 0 0 10px rgba(74, 222, 128, 0.6);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cu-lbl {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(74, 222, 128, 0.7);
+    margin-top: 0.25rem;
+  }
+
+  .countdown-done {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #c2410c;
+  }
+</style>

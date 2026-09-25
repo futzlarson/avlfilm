@@ -1,8 +1,12 @@
 ---
 // Internal imports
 import BaseLayout from '@layouts/BaseLayout.astro';
+import Countdown from '@components/Countdown.astro';
 
 const SUBMIT_URL = 'https://forms.gle/mxqKihQ2KBPmd9Gd9';
+// ET offsets: October is EDT (UTC-4).
+const CONTEST_START = '2026-10-01T00:00:00-04:00';
+const CONTEST_DEADLINE = '2026-10-31T23:59:59-04:00';
 ---
 
 <BaseLayout
@@ -19,25 +23,26 @@ const SUBMIT_URL = 'https://forms.gle/mxqKihQ2KBPmd9Gd9';
     <p class="tagline">A one-minute filmmaking challenge, all October long.</p>
     <div class="cta">
       <a href={SUBMIT_URL} target="_blank" rel="noopener" class="btn-submit">Submit Your Film</a>
-      <span class="deadline">🎃 Due 11:59pm on Halloween 🎃</span>
+      <span class="deadline"><span>🎃</span>Due 11:59pm on Halloween<span>🎃</span></span>
     </div>
   </section>
+
+  <Countdown deadline={CONTEST_DEADLINE} startAt={CONTEST_START} heading="Deadline" doneText="Submissions are closed!" />
 
   <div class="what-is-it">
     <div class="pill"><span class="pill-emoji">🎥</span>Any skill level, any genre</div>
     <div class="pill"><span class="pill-emoji">🎞️</span>Submit as many as you like</div>
-    <div class="pill"><span class="pill-emoji">🏆</span>Prizes for the winners</div>
+    <div class="pill"><span class="pill-emoji">🏆</span>Prizes and a screening</div>
   </div>
 
   <p>
     Inspired by the <a href="https://48hourfilm.com/asheville" target="_blank" rel="noopener">48 Hour Film Project</a>,
-    it's a fun creative challenge for everyone. Never made a film before? This is the perfect excuse to try, and a video
+    it's a fun creative challenge for everyone! Never made a film before? This is the perfect excuse to try, and a video
     from your phone is totally fine. We can't wait to see what people do with sixty seconds of storytelling.
   </p>
 
   <p>
-    Submit by midnight on 🎃 Halloween 🎃. Winners are announced about a week later, and the films screen at our next
-    showcase.
+    Submit by midnight on 🎃 Halloween 🎃. Winners are announced at a screening about a week after the deadline.
   </p>
 
   <h2>FAQ</h2>
@@ -45,7 +50,7 @@ const SUBMIT_URL = 'https://forms.gle/mxqKihQ2KBPmd9Gd9';
   <div class="faq">
     <div class="faq-item">
       <h3>Who is eligible to enter and win?</h3>
-      <p>Anyone in North Carolina, from people who have never made a film before to people who do it professionally. All are welcome. Let's have fun.</p>
+      <p>Anyone in North Carolina, from people who have never made a film before to people who do it professionally. All are welcome. Let's have fun!</p>
     </div>
 
     <div class="faq-item">
@@ -54,8 +59,8 @@ const SUBMIT_URL = 'https://forms.gle/mxqKihQ2KBPmd9Gd9';
     </div>
 
     <div class="faq-item">
-      <h3>Why 60 seconds?</h3>
-      <p>Long enough to tell a story, short enough that anyone can pull it off in an afternoon.</p>
+      <h3>Is there a theme or prompt?</h3>
+      <p>Prompts are still being finalized. Check back before October!</p>
     </div>
 
     <div class="faq-item">
@@ -64,30 +69,47 @@ const SUBMIT_URL = 'https://forms.gle/mxqKihQ2KBPmd9Gd9';
     </div>
 
     <div class="faq-item">
+      <h3>Why 60 seconds?</h3>
+      <p>Because 10 and 20 seconds was ridiculously short.</p>
+    </div>
+
+    <div class="faq-item">
       <h3>Any tips?</h3>
-      <p>Don't overthink it! While you can do multiple angles and cuts, consider that maybe it's not necessary. Plenty of people submit a oner (a single continuous shot with no cuts), and that's totally okay.</p>
+      <p>Keep it simple. You can do multiple angles and cuts, but look for places to simplify. Some people submit a oner (a single continuous take), and that's totally okay.</p>
     </div>
 
     <div class="faq-item">
       <h3>Are credits included in the total length?</h3>
       <p>No. Ideally your credits will fit on a single screen and not scroll. Credits should, of course, not be longer than the film itself!</p>
     </div>
+
+    <div class="faq-item">
+      <h3>How do I find cast &amp; crew?</h3>
+      <p>For crew, browse our <a href="/directory">directory</a>. For cast, check our partner <a href="https://www.screenartistsco-op.com/contact-us/" target="_blank" rel="noopener">Screen Artists Co-op</a>.</p>
+    </div>
+
+    <div class="faq-item">
+      <h3>Any examples I can see?</h3>
+      <p><a href="https://www.youtube.com/watch?v=80OXl2r-rzo" target="_blank" rel="noopener">Watch the films</a> from our 20-second contest back in 2023!</p>
+    </div>
   </div>
 
   <h2>What are the requirements?</h2>
 
   <ul class="requirements">
-    <li>Make a film no more than 60 seconds in length. 16:9 aspect ratio (sideways on your phone)</li>
-    <li>Can be any genre</li>
+    <li>Make a film no more than 60 seconds in length. 16:9 aspect ratio (sideways on your phone) preferred</li>
+    <li>Any genre, and work in this year's prompts (announced before October)</li>
     <li>Include "This was made for the AVLFilm.com 60-second film contest 2026" at the end of your credits</li>
     <li>Submit by 11:59pm on October 31st</li>
-    <li>Have fun</li>
+    <li>Get weird with it!</li>
   </ul>
 
   <div class="cta cta-bottom">
     <a href={SUBMIT_URL} target="_blank" rel="noopener" class="btn-submit">Submit Your Film</a>
-    <span class="deadline">🎃 Due 11:59pm on Halloween 🎃</span>
+    <span class="deadline"><span>🎃</span>Due 11:59pm on Halloween<span>🎃</span></span>
   </div>
+
+  <p class="follow">Follow <a href="https://instagram.com/avlfilm" target="_blank" rel="noopener">@avlfilm</a> for updates.</p>
 </BaseLayout>
 
 <style>
@@ -108,11 +130,29 @@ const SUBMIT_URL = 'https://forms.gle/mxqKihQ2KBPmd9Gd9';
   }
 
   .timer-screen {
+    position: relative;
     display: inline-block;
     background: #05100a;
     border-radius: 12px;
     padding: 0.4rem 1.75rem 0.2rem;
     box-shadow: inset 0 0 24px rgba(0, 255, 120, 0.12);
+    overflow: hidden;
+  }
+
+  /* CRT scanlines */
+  .timer-screen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.25) 0,
+      rgba(0, 0, 0, 0.25) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    border-radius: 12px;
   }
 
   .timer-num {
@@ -174,6 +214,7 @@ const SUBMIT_URL = 'https://forms.gle/mxqKihQ2KBPmd9Gd9';
     text-decoration: none;
     font-weight: 800;
     padding: 0.875rem 2.25rem;
+    line-height: 1.5rem;
     border-radius: 999px;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
     transition: transform 0.15s, box-shadow 0.15s;
@@ -185,8 +226,17 @@ const SUBMIT_URL = 'https://forms.gle/mxqKihQ2KBPmd9Gd9';
   }
 
   .deadline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
     font-weight: 700;
     color: #fff;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    /* Match .btn-submit height: same padding/line-height, minus this pill's 1px border */
+    padding: calc(0.875rem - 1px) 1.5rem;
+    line-height: 1.5rem;
+    border-radius: 999px;
   }
 
   .cta-bottom {
@@ -200,7 +250,14 @@ const SUBMIT_URL = 'https://forms.gle/mxqKihQ2KBPmd9Gd9';
   }
 
   .cta-bottom .deadline {
-    color: #f97316;
+    color: #c2410c;
+    background: #fff7ed;
+    border-color: #fed7aa;
+  }
+
+  .follow {
+    margin-top: 1.5rem;
+    color: var(--color-text-light);
   }
 
   .what-is-it {
@@ -220,6 +277,16 @@ const SUBMIT_URL = 'https://forms.gle/mxqKihQ2KBPmd9Gd9';
     border: 1px solid #dfe1fb;
     font-weight: 600;
     color: #1f2937;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .pill:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 18px rgba(102, 126, 234, 0.2);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pill:hover { transform: none; }
   }
 
   .pill-emoji {
@@ -229,20 +296,20 @@ const SUBMIT_URL = 'https://forms.gle/mxqKihQ2KBPmd9Gd9';
 
   .faq {
     margin: 1.5rem 0 2.5rem;
-  }
-
-  .faq-item {
-    padding: 1.1rem 1.25rem;
-    margin-bottom: 1rem;
+    padding: 1.5rem 1.75rem;
     border-radius: var(--radius-lg);
     background: #fafafe;
     border: 1px solid #ecedf9;
     border-left: 4px solid var(--color-primary);
   }
 
+  .faq-item + .faq-item {
+    margin-top: 1.1rem;
+  }
+
   .faq-item h3 {
-    margin: 0 0 0.35rem;
-    font-size: 1.05rem;
+    margin: 0 0 0.15rem;
+    font-size: 1rem;
     color: var(--color-primary-dark);
   }
 
@@ -269,13 +336,19 @@ const SUBMIT_URL = 'https://forms.gle/mxqKihQ2KBPmd9Gd9';
   }
 
   @media (max-width: 768px) {
-    .timer {
-      width: 150px;
-      height: 150px;
+    .timer-num {
+      font-size: 4.5rem;
     }
 
-    .timer-num {
-      font-size: 3.25rem;
+    .hero h1 {
+      font-size: 1.4rem;
+    }
+
+    .deadline {
+      white-space: nowrap;
+      font-size: 0.9rem;
+      padding-left: 1.1rem;
+      padding-right: 1.1rem;
     }
   }
 </style>
