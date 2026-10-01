@@ -2,11 +2,7 @@
 // Internal imports
 import BaseLayout from '@layouts/BaseLayout.astro';
 import Countdown from '@components/Countdown.astro';
-
-const SUBMIT_URL = 'https://forms.gle/mxqKihQ2KBPmd9Gd9';
-// ET offsets: October is EDT (UTC-4).
-const CONTEST_START = '2026-10-01T00:00:00-04:00';
-const CONTEST_DEADLINE = '2026-10-31T23:59:59-04:00';
+import { CONTEST_DEADLINE, CONTEST_START, CONTEST_SUBMIT_URL } from '@config/contest';
 
 // Lets Google show the contest as an event in search results.
 const structuredData = {
@@ -18,7 +14,7 @@ const structuredData = {
   endDate: CONTEST_DEADLINE,
   eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
   eventStatus: 'https://schema.org/EventScheduled',
-  location: { '@type': 'VirtualLocation', url: SUBMIT_URL },
+  location: { '@type': 'VirtualLocation', url: CONTEST_SUBMIT_URL },
   organizer: { '@type': 'Organization', name: 'AVL Film', url: 'https://avlfilm.com' },
   isAccessibleForFree: true,
 };
@@ -39,7 +35,7 @@ const structuredData = {
     <h1>AVL Film 60-Second Film Contest</h1>
     <p class="tagline">A one-minute filmmaking challenge, all October long.</p>
     <div class="cta">
-      <a href={SUBMIT_URL} target="_blank" rel="noopener" class="btn-submit">Submit Your Film</a>
+      <a href={CONTEST_SUBMIT_URL} target="_blank" rel="noopener" class="btn-submit">Submit Your Film</a>
       <span class="deadline"><span>🎃</span>Due 11:59pm on Halloween<span>🎃</span></span>
     </div>
   </section>
@@ -122,7 +118,7 @@ const structuredData = {
   </ul>
 
   <div class="cta cta-bottom">
-    <a href={SUBMIT_URL} target="_blank" rel="noopener" class="btn-submit">Submit Your Film</a>
+    <a href={CONTEST_SUBMIT_URL} target="_blank" rel="noopener" class="btn-submit">Submit Your Film</a>
     <span class="deadline"><span>🎃</span>Due 11:59pm on Halloween<span>🎃</span></span>
   </div>
 

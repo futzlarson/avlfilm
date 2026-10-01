@@ -3,9 +3,12 @@
 import { getLumaEventSummary } from '@lib/luma';
 import { getUpcomingSpotlightEvent } from '@lib/spotlight-cache';
 import BaseLayout from '@layouts/BaseLayout.astro';
+import { CONTEST_DEADLINE } from '@config/contest';
 
 // Promo for the next upcoming Spotlight event (hidden when there's none).
 const spotlight = await getUpcomingSpotlightEvent();
+// Contest promo fills the slot when there's no Spotlight, until the deadline passes.
+const showContest = !spotlight && Date.now() < new Date(CONTEST_DEADLINE).getTime();
 const spotlightLuma = spotlight?.eventLink ? await getLumaEventSummary(spotlight.eventLink) : null;
 const spotlightTitle = spotlightLuma?.title || spotlight?.title || '';
 const spotlightCover = spotlightLuma?.coverImage || null;
@@ -32,7 +35,7 @@ const spotlightDate = spotlight
   title="Asheville Film Community: Festivals, Crew & Events"
   description="Connecting filmmakers across Western North Carolina: festivals, crew, events, and resources in Asheville and beyond."
 >
-  <div class:list={['home-top', { 'has-promo': spotlight }]}>
+  <div class:list={['home-top', { 'has-promo': spotlight || showContest }]}>
     <div class="home-hero">
       <img class="home-logo" src="/logo/badge-blue.svg" alt="AVL Film" />
       <h1>Your ticket to the Western North Carolina film scene.</h1>
@@ -59,6 +62,18 @@ const spotlightDate = spotlight
         {spotlightIntroText && <p class="promo-desc">{spotlightIntroText}</p>}
         <span class="promo-cta">{spotlight.eventLink ? 'Tickets' : 'View Details'}</span>
       </div>
+    </a>
+    )}
+
+    {showContest && (
+    <a href="/contest" class="contest-terminal">
+      <p class="term-line">&gt; AVL_FILM.CONTEST</p>
+      <p class="term-big" aria-label="60 seconds">0:60</p>
+      <p class="term-line">&gt; MAKE A ONE-MINUTE FILM</p>
+      <p class="term-line">&gt; OPEN TO ALL OF NC</p>
+      <p class="term-line">&gt; DUE 10/31 11:59PM 🎃</p>
+      <p class="term-line">&gt; PRIZES + SCREENING</p>
+      <span class="term-cta">[ LEARN MORE ]<span class="term-cursor" aria-hidden="true">_</span></span>
     </a>
     )}
   </div>
@@ -136,6 +151,8 @@ const spotlightDate = spotlight
 </BaseLayout>
 
 <style>
+  @import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+
   /* Pair the intro hero with the Spotlight promo as two equal panels. */
   .home-top.has-promo {
     display: grid;
@@ -315,6 +332,66 @@ const spotlightDate = spotlight
 
   .spotlight-promo:hover .promo-cta {
     background: #9a2119;
+  }
+
+  /* Contest promo styled as a green CRT terminal, matching the contest page timer. */
+  .contest-terminal {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 1.5rem 1.75rem;
+    border-radius: var(--radius-xl);
+    background: #05100a;
+    color: #4ade80;
+    font-family: "VT323", monospace;
+    text-decoration: none;
+    text-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
+    overflow: hidden;
+    transition: transform 0.15s ease;
+  }
+
+  .contest-terminal:hover {
+    transform: translateY(-2px);
+  }
+
+  /* CRT scanlines */
+  .contest-terminal::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.25) 0 1px, transparent 1px 3px);
+  }
+
+  .term-line {
+    margin: 0;
+    font-size: 1.35rem;
+    line-height: 1.3;
+  }
+
+  .term-big {
+    margin: 0.2rem 0 0.4rem;
+    font-size: 5rem;
+    line-height: 0.9;
+  }
+
+  .term-cta {
+    margin-top: 0.9rem;
+    font-size: 1.5rem;
+  }
+
+  .term-cursor {
+    animation: term-blink 1s steps(1) infinite;
+  }
+
+  @keyframes term-blink {
+    50% { opacity: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .contest-terminal:hover { transform: none; }
+    .term-cursor { animation: none; }
   }
 
   @media (max-width: 768px) {
