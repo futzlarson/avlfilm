@@ -4,6 +4,19 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import Countdown from '@components/Countdown.astro';
 import { CONTEST_DEADLINE, CONTEST_START, CONTEST_SUBMIT_URL } from '@config/contest';
 
+const PROMPTS = [
+  { icon: '🚪', title: 'The Threshold', text: 'Someone crosses an everyday threshold, like a doorway, bridge, creek or trail, and something subtly changes on the other side. Think of October as the space between seasons, or between worlds.' },
+  { icon: '🪶', title: 'A Message From the Woods', text: 'A character finds something, like a feather, note, key, photograph or ribbon, that seems meant just for them.' },
+  { icon: '🌿', title: 'The Witch Next Door', text: 'A playful documentary portrait of a totally ordinary person whose daily routines, like herbs, gardening, tarot, baking or tending animals, start to feel quietly magical.' },
+  { icon: '👜', title: 'Things We Carry', text: 'Someone empties their pockets or bag onto a table. Each object reveals a small piece of who they are.' },
+  { icon: '👻', title: 'The Ghost of Who I Used to Be', text: 'Someone comes across an object, photo or place tied to an earlier version of themselves. More emotional than spooky.' },
+  { icon: '🧵', title: 'The Invisible Thread', text: 'Two strangers pass through the same places over the course of a day without knowing it, until their paths finally cross.' },
+  { icon: '🌀', title: 'The Portal', text: 'Find a real but visually striking location, like a tunnel, old barn, foggy trail or swimming hole, and shoot it as if it leads somewhere else.' },
+  { icon: '🕒', title: 'Three Knocks', text: "It's 3 a.m. and someone knocks. The whole film is 60 seconds of deciding not to open the door." },
+  { icon: '🔁', title: 'The Loop', text: 'The last frame is the first frame, so the story traps the viewer.' },
+  { icon: '⏪', title: 'Played Backward', text: 'Shoot it so the story only makes sense in reverse.' },
+];
+
 // Lets Google show the contest as an event in search results.
 const structuredData = {
   '@context': 'https://schema.org',
@@ -58,6 +71,43 @@ const structuredData = {
     Submit by midnight on 🎃 Halloween 🎃. Winners are announced at a screening about a week after the deadline.
   </p>
 
+  <h2 id="prompts">This Year's Prompts</h2>
+  <p class="prompts-intro">Totally optional. Use one, combine a few, or skip them and make whatever you want.</p>
+
+  <div class="prompts">
+    {PROMPTS.map((p) => (
+      <div class="prompt">
+        <span class="prompt-icon" aria-hidden="true">{p.icon}</span>
+        <div>
+          <h3>{p.title}</h3>
+          <p>{p.text}</p>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <div class="constraints">
+    <p class="constraints-label">&gt; EXTRA_CHALLENGE<span class="term-cursor" aria-hidden="true">_</span></p>
+    <p class="constraints-intro">Add an optional constraint to any prompt, or to no prompt at all. Use one, stack a few, or skip them.</p>
+    <div class="constraint-list">
+      <div class="constraint">
+        <span class="constraint-icon" aria-hidden="true">🎥</span>
+        <h3>One take</h3>
+        <p>Shoot the whole film in a single continuous shot, with no cuts.</p>
+      </div>
+      <div class="constraint">
+        <span class="constraint-icon" aria-hidden="true">🙈</span>
+        <h3>No faces</h3>
+        <p>Never show a face on screen. Tell the story through hands, objects, places or shadows.</p>
+      </div>
+      <div class="constraint">
+        <span class="constraint-icon" aria-hidden="true">🤐</span>
+        <h3>No dialogue</h3>
+        <p>Nobody speaks. Let the images, sound and music carry the story.</p>
+      </div>
+    </div>
+  </div>
+
   <h2>FAQ</h2>
 
   <div class="faq">
@@ -69,11 +119,6 @@ const structuredData = {
     <div class="faq-item">
       <h3>What are the prizes?</h3>
       <p>Prizes are TBA, so stay tuned!</p>
-    </div>
-
-    <div class="faq-item">
-      <h3>Is there a theme or prompt?</h3>
-      <p>Prompts are still being finalized - will be posted sometime October 1st. Check back!</p>
     </div>
 
     <div class="faq-item">
@@ -111,7 +156,7 @@ const structuredData = {
 
   <ul class="requirements">
     <li>Make a film no more than 60 seconds in length. 16:9 aspect ratio (sideways on your phone) preferred</li>
-    <li>Any genre, and work in this year's prompts (posted October 1st)</li>
+    <li>Any genre, with or without <a href="#prompts">this year's prompts</a></li>
     <li>Include "This was made for the AVLFilm.com 60-second film contest 2026" at the end of your credits</li>
     <li>Submit by 11:59pm on October 31st</li>
     <li>Get weird with it!</li>
@@ -126,8 +171,6 @@ const structuredData = {
 </BaseLayout>
 
 <style>
-  @import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
-
   .hero {
     text-align: center;
     padding: 2.5rem 1.5rem 3rem;
@@ -305,6 +348,156 @@ const structuredData = {
   .pill-emoji {
     font-size: 1.5rem;
     line-height: 1;
+  }
+
+  .prompts-intro {
+    color: var(--color-text-light);
+    margin: -0.5rem 0 1.25rem;
+  }
+
+  .prompts {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin: 0 0 1.25rem;
+  }
+
+  /* Dark CRT panel so the optional challenges read as a separate "bonus" layer. */
+  .constraints {
+    position: relative;
+    margin: 0 0 2.5rem;
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    background: #05100a;
+    color: #d1fae5;
+    overflow: hidden;
+  }
+
+  .constraints::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 3px);
+  }
+
+  .constraints-label {
+    margin: 0 0 0.25rem;
+    font-family: "VT323", monospace;
+    font-size: 1.6rem;
+    line-height: 1;
+    color: #4ade80;
+    text-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
+  }
+
+  .term-cursor {
+    animation: blink 1s steps(1) infinite;
+  }
+
+  .constraints-intro {
+    margin: 0 0 1.25rem;
+    color: rgba(209, 250, 229, 0.85);
+  }
+
+  .constraint-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.85rem;
+  }
+
+  .constraint {
+    padding: 1rem 1.1rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(74, 222, 128, 0.35);
+    background: rgba(74, 222, 128, 0.06);
+    transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+
+  .constraint:hover {
+    transform: translateY(-3px);
+    border-color: rgba(74, 222, 128, 0.7);
+  }
+
+  .constraint-icon {
+    font-size: 1.6rem;
+    line-height: 1;
+  }
+
+  .constraint h3 {
+    margin: 0.5rem 0 0.25rem;
+    font-family: "VT323", monospace;
+    font-size: 1.7rem;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: #4ade80;
+    text-shadow: 0 0 8px rgba(74, 222, 128, 0.45);
+  }
+
+  .constraint p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: rgba(209, 250, 229, 0.85);
+  }
+
+  @media (max-width: 768px) {
+    .constraint-list {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .constraint:hover { transform: none; }
+    .term-cursor { animation: none; }
+  }
+
+  .prompt {
+    display: flex;
+    gap: 0.9rem;
+    align-items: flex-start;
+    padding: 1.1rem 1.25rem;
+    border-radius: var(--radius-lg);
+    background: #fafafe;
+    border: 1px solid #ecedf9;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .prompt:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 18px rgba(102, 126, 234, 0.15);
+  }
+
+  .prompt-icon {
+    flex: 0 0 2.6rem;
+    height: 2.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    border-radius: 50%;
+    background: #eef0ff;
+  }
+
+  .prompt h3 {
+    margin: 0 0 0.2rem;
+    font-size: 1.05rem;
+    color: var(--color-primary-dark);
+  }
+
+  .prompt p {
+    margin: 0;
+    font-size: 0.95rem;
+  }
+
+  @media (max-width: 640px) {
+    .prompts {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .prompt:hover { transform: none; }
   }
 
   .faq {
