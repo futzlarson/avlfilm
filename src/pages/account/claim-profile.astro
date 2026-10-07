@@ -72,6 +72,15 @@ const source = Astro.url.searchParams.get('source') || 'email_match';
         throw new Error(data.error || 'Failed to process request');
       }
 
+      if (data.found === false) {
+        const signupUrl = `/submit?email=${encodeURIComponent(String(formData.get('email') || ''))}`;
+        const link = Object.assign(document.createElement('a'), { href: signupUrl, textContent: 'Add yourself to the directory' });
+        errorMessage.replaceChildren("We couldn't find a directory profile with that email. ", link, '.');
+        errorMessage.style.display = 'block';
+        submitBtn.textContent = 'Send Setup Link';
+        return;
+      }
+
       successMessage.textContent = data.message || 'If that email exists in our directory, a link has been sent.';
       successMessage.style.display = 'block';
       form.reset();

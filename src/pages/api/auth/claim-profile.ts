@@ -22,13 +22,11 @@ export const POST: APIRoute = async ({ request }) => {
     // Find user
     const user = await findUserByEmail(email);
 
-    // Always return success (don't reveal if email exists)
+    // Directory profiles are public, so saying "not found" reveals nothing new and points people to signup.
     if (!user) {
       await sendSlackNotification(`Email not found claiming profile: ${email}`);
 
-      return successResponse({
-        message: 'If that email exists in our directory, a link has been sent',
-      });
+      return successResponse({ found: false });
     }
 
     // Check if already has password

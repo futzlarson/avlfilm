@@ -87,7 +87,7 @@ try {
     ) : (
       <>
         <div class="events-header">
-          <h2 style="margin: 0">Upcoming Events - <span id="event-period">Next 7 Days</span> (<span id="event-count">{events.length}</span>)</h2>
+          <h2 style="margin: 0">Upcoming Events - <span id="event-period"></span> (<span id="event-count">{events.length}</span>)</h2>
           <label class="toggle-label">
             <input type="checkbox" id="show-all-toggle" />
             <span>Show all events</span>
@@ -549,19 +549,21 @@ try {
 
     const periodElement = document.getElementById('event-period');
     if (periodElement) {
-      periodElement.textContent = showingAll ? 'All' : 'Next 7 Days';
+      periodElement.textContent = showingAll ? 'All' : `Next ${WINDOW_DAYS} Days`;
     }
   }
 
   // Filter events by date range
   const allEvents = [...events];
+  // Two weeks so a weekly session also covers the following week's same-day events.
+  const WINDOW_DAYS = 14;
 
   function filterEventsByNextWeek(): AvlGoEvent[] {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const nextWeek = new Date();
-    nextWeek.setDate(today.getDate() + 7);
+    nextWeek.setDate(today.getDate() + WINDOW_DAYS);
     nextWeek.setHours(23, 59, 59, 999);
 
     return allEvents.filter(event => {
@@ -579,7 +581,7 @@ try {
     }
   }
 
-  // Render on page load (default to next 7 days)
+  // Render on page load (default to the WINDOW_DAYS window)
   document.addEventListener('DOMContentLoaded', () => {
     const nextWeekEvents = filterEventsByNextWeek();
     renderEventsToGrid(nextWeekEvents, false);
