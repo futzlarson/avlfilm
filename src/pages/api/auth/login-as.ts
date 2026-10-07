@@ -3,7 +3,7 @@ import { db } from '@db';
 import { filmmakers } from '@db/schema';
 import { errorResponse, successResponse } from '@lib/api';
 import { requireAdmin } from '@lib/auth';
-import { signToken } from '@lib/jwt';
+import { signImpersonatorToken, signToken } from '@lib/jwt';
 // Astro types
 import type { APIRoute } from 'astro';
 // External packages
@@ -47,7 +47,7 @@ export const POST: APIRoute = async (context) => {
     });
 
     // Store original admin user ID
-    context.cookies.set('impersonator_id', admin.userId.toString(), {
+    context.cookies.set('impersonator_id', await signImpersonatorToken(admin.userId), {
       httpOnly: true,
       secure: import.meta.env.PROD,
       sameSite: 'lax',

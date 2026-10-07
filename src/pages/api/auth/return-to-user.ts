@@ -2,7 +2,7 @@
 import { db } from '@db';
 import { filmmakers } from '@db/schema';
 import { errorResponse, successResponse } from '@lib/api';
-import { signToken } from '@lib/jwt';
+import { signToken, verifyImpersonatorToken } from '@lib/jwt';
 // Astro types
 import type { APIRoute } from 'astro';
 // External packages
@@ -10,22 +10,21 @@ import { eq } from 'drizzle-orm';
 
 export const POST: APIRoute = async (context) => {
   try {
-    // Get impersonator ID from cookie
-    const impersonatorId = context.cookies.get('impersonator_id')?.value;
+    // Cookie holds a signed token, so a hand-set user id is rejected here.
+    const impersonatorCookie = context.cookies.get('impersonator_id')?.value;
+    const impersonatorIdNum = impersonatorCookie ? await verifyImpersonatorToken(impersonatorCookie) : null;
 
-    if (!impersonatorId) {
+    if (!impersonatorIdNum) {
       return errorResponse('Not impersonating a user', 400);
     }
-
-    // Get original user
-    const impersonatorIdNum = parseInt(impersonatorId, 10);
 
     const [originalUser] = await db
       .select()
       .from(filmmakers)
       .where(eq(filmmakers.id, impersonatorIdNum));
 
-    if (!originalUser) {
+    // Only admins can impersonate, so only return to an account that is still an admin.
+    if (!originalUser || !originalUser.isAdmin) {
       return errorResponse('Original user not found', 404);
     }
 
