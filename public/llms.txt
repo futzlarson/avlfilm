@@ -1,0 +1,17 @@
+# AVL Film
+
+> AVL Film is a community hub for independent filmmakers in Asheville and Western North Carolina: a crew directory, a film events calendar, regional festival listings, local resources, and community events like the 60-second film contest.
+
+## Main pages
+
+- [Filmmaker Directory](https://avlfilm.com/directory): Local crew and filmmakers (directors, camera, sound, editors, producers and more), filterable by role.
+- [Film Events Calendar](https://avlfilm.com/calendar): Upcoming film screenings, meetups and workshops around Asheville.
+- [Film Festivals Near Asheville](https://avlfilm.com/festivals): Festivals within 250 miles, sorted by distance and date.
+- [Video Production Companies](https://avlfilm.com/production): Asheville production companies, studios, and music and sound design studios.
+- [Resources](https://avlfilm.com/resources): Film schools, theaters, talent agencies, rentals, permits and other local resources.
+- [60-Second Film Contest](https://avlfilm.com/contest): October film contest open to anyone in North Carolina.
+- [Join the Directory](https://avlfilm.com/submit): Add a filmmaker profile.
+
+## Contact
+
+- Instagram: [@avlfilm](https://instagram.com/avlfilm)

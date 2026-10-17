@@ -1,21 +1,17 @@
 // Internal imports
 import { errorResponse, successResponse } from '@lib/api';
+import { HONEYPOT_FIELD, isBotSubmission } from '@lib/honeypot';
 import { subscribeToNewsletter } from '@lib/newsletter';
-import { sendSlackNotification } from '@lib/slack';
 // Astro types
 import type { APIRoute } from 'astro';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();
-    const { email, website } = body;
+    const { email } = body;
 
-    // Bot prevention: honeypot check
-    if (website) {
-      // Notify Slack about caught bot
-      await sendSlackNotification(`🤖 Bot caught in newsletter signup: ${email}`);
-
-      // Silently reject bot submission (looks like success to bot)
+    // Silently accept bot submissions so they don't retry, but do nothing.
+    if (isBotSubmission(body[HONEYPOT_FIELD])) {
       return successResponse({ message: 'Successfully subscribed to newsletter!' });
     }
 

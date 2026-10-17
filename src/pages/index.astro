@@ -3,6 +3,7 @@
 import { getLumaEventSummary } from '@lib/luma';
 import { getUpcomingSpotlightEvent } from '@lib/spotlight-cache';
 import BaseLayout from '@layouts/BaseLayout.astro';
+import Honeypot from '@components/Honeypot.astro';
 import { CONTEST_DEADLINE } from '@config/contest';
 
 // Promo for the next upcoming Spotlight event (hidden when there's none).
@@ -123,14 +124,7 @@ const spotlightDate = spotlight
           required
           autocomplete="email"
         />
-        <input
-          type="text"
-          name="website"
-          id="website"
-          autocomplete="off"
-          tabindex="-1"
-          aria-hidden="true"
-        />
+        <Honeypot />
         <button type="submit" class="btn-primary subscribe-btn">Subscribe</button>
         <div id="message" class="alert message"></div>
       </form>
@@ -492,14 +486,6 @@ const spotlightDate = spotlight
     border-radius: var(--radius-lg);
   }
 
-  .newsletter-form input[name="website"] {
-    position: absolute;
-    left: -9999px;
-    width: 0;
-    height: 0;
-    opacity: 0;
-    pointer-events: none;
-  }
 
   .subscribe-btn {
     width: 100%;
@@ -564,6 +550,7 @@ const spotlightDate = spotlight
 
 <script>
   import { showFormMessage } from '@lib/form-utils';
+  import { HONEYPOT_FIELD } from '@lib/honeypot';
 
   const form = document.getElementById('newsletter-form') as HTMLFormElement;
   const emailInput = document.getElementById('email') as HTMLInputElement;
@@ -586,7 +573,6 @@ const spotlightDate = spotlight
     submitBtn.textContent = 'Subscribing...';
 
     try {
-      const websiteInput = document.getElementById('website') as HTMLInputElement;
       const response = await fetch('/api/newsletter/subscribe', {
         method: 'POST',
         headers: {
@@ -594,7 +580,7 @@ const spotlightDate = spotlight
         },
         body: JSON.stringify({
           email,
-          website: websiteInput.value
+          [HONEYPOT_FIELD]: new FormData(form).get(HONEYPOT_FIELD),
         }),
       });
 
