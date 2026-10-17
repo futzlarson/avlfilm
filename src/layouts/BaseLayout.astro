@@ -24,6 +24,8 @@ const ogImage = ogImageProp || 'https://avlfilm.com/community-og.jpg';
 const defaultDescription = 'Connecting filmmakers and film enthusiasts across Western North Carolina with festivals, crew directories, events, and resources.';
 const finalDescription = description || defaultDescription;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site || Astro.url.origin);
+// Account and admin pages are private, so keep them out of search results.
+const noindex = /^\/(account|admin)(\/|$)/.test(Astro.url.pathname);
 
 // Show the public Spotlight nav link only when there's an upcoming event.
 const hasUpcomingSpotlight = (await getUpcomingSpotlightEvent()) !== null;
@@ -60,6 +62,7 @@ const adminMenu: { href: string; label: string; icon: string; divider?: boolean 
     <meta name="description" content={finalDescription} />
     {keywords && <meta name="keywords" content={keywords} />}
     <link rel="canonical" href={canonicalURL} />
+    {noindex && <meta name="robots" content="noindex" />}
 
     <!-- Open Graph / Facebook -->
     <meta property="og:site_name" content="AVL Film" />

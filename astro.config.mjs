@@ -16,6 +16,8 @@ export default defineConfig({
         return true;
       },
       serialize(item) {
+        // Match the canonical URLs, which have no trailing slash (homepage excepted).
+        if (item.url !== 'https://avlfilm.com/') item.url = item.url.replace(/\/$/, '');
         // Homepage - highest priority
         if (item.url === 'https://avlfilm.com/') {
           item.priority = 1.0;
