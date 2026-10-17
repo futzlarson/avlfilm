@@ -15,8 +15,10 @@ export function calendarEventKey(id: string, startDate: string): string {
  * Day-level, not minute-level, because AVL GO edits start times after we add.
  */
 export function calendarMatchKey(title: string, startDate: string): string {
+  // Years are dropped because listings get renamed with or without one ("Festival" vs "Festival 2026").
   const normalizedTitle = (title || '')
     .toLowerCase()
+    .replace(/\b(19|20)\d{2}\b/g, ' ')
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
 
