@@ -1,3 +1,4 @@
+import { waitUntil } from '@vercel/functions';
 import Rollbar from 'rollbar';
 
 /**
@@ -25,6 +26,11 @@ export const rollbar = new Rollbar({
     },
   },
 });
+
+// Vercel freezes the function once the response is sent, so keep it alive until Rollbar finishes sending.
+function send(level: 'error' | 'warning' | 'info', item: Error | string, data?: Record<string, unknown>) {
+  waitUntil(new Promise<void>((resolve) => rollbar[level](item, data ?? {}, () => resolve())));
+}
 
 /**
  * Log an error to Rollbar with optional context
@@ -72,7 +78,7 @@ export function logError(
     errorObj = new Error(String(error));
   }
 
-  rollbar.error(errorObj, data);
+  send('error', errorObj, data);
 }
 
 /**
@@ -86,7 +92,7 @@ export function logWarning(message: string, customData?: Record<string, unknown>
     return;
   }
 
-  rollbar.warning(message, customData);
+  send('warning', message, customData);
 }
 
 /**
@@ -100,5 +106,5 @@ export function logInfo(message: string, customData?: Record<string, unknown>) {
     return;
   }
 
-  rollbar.info(message, customData);
+  send('info', message, customData);
 }

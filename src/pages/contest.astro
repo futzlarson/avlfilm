@@ -2,6 +2,7 @@
 // Internal imports
 import BaseLayout from '@layouts/BaseLayout.astro';
 import Countdown from '@components/Countdown.astro';
+import TimerFont from '@components/TimerFont.astro';
 import { CONTEST_DEADLINE, CONTEST_START, CONTEST_SUBMIT_URL } from '@config/contest';
 
 const PROMPTS = [
@@ -40,6 +41,7 @@ const structuredData = {
   ogImage="https://avlfilm.com/contest-og.jpg"
   structuredData={structuredData}
 >
+  <TimerFont slot="head" />
   <section class="hero">
     <div class="timer" role="img" aria-label="60 seconds">
       <div class="timer-screen"><span class="timer-num">0<span class="colon blink">:</span>60</span></div>

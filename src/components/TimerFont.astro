@@ -1,0 +1,8 @@
+---
+// Stopwatch digit font for the contest timer, loaded without blocking the first paint.
+const href = 'https://fonts.googleapis.com/css2?family=VT323&display=swap';
+---
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href={href} media="print" onload="this.media='all'" />
+<noscript><link rel="stylesheet" href={href} /></noscript>

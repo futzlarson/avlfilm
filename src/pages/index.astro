@@ -4,6 +4,7 @@ import { getLumaEventSummary } from '@lib/luma';
 import { getUpcomingSpotlightEvent } from '@lib/spotlight-cache';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import Honeypot from '@components/Honeypot.astro';
+import TimerFont from '@components/TimerFont.astro';
 import { CONTEST_DEADLINE } from '@config/contest';
 
 // Promo for the next upcoming Spotlight event (hidden when there's none).
@@ -36,6 +37,7 @@ const spotlightDate = spotlight
   title="Asheville Film Community: Festivals, Crew & Events"
   description="Connecting filmmakers across Western North Carolina: festivals, crew, events, and resources in Asheville and beyond."
 >
+  {showContest && <TimerFont slot="head" />}
   <div class:list={['home-top', { 'has-promo': spotlight || showContest }]}>
     <div class="home-hero">
       <img class="home-logo" src="/logo/badge-blue.svg" alt="AVL Film" />
@@ -136,10 +138,19 @@ const spotlightDate = spotlight
   </div>
 
   <script is:inline type="text/javascript">
+    // The Instagram feed is heavy, so only load it when it's about to scroll into view.
     (function(){
-    var i,e,d=document,s="script";i=d.createElement("script");i.async=1;
-    i.src="https://cdn.curator.io/published/d5bcd531-5f22-498d-9491-8eb7cd4f0793.js";
-    e=d.getElementsByTagName(s)[0];e.parentNode.insertBefore(i, e);
+      var feed = document.getElementById('curator-feed-default-feed-layout');
+      function load(){
+        var i = document.createElement('script'); i.async = true;
+        i.src = 'https://cdn.curator.io/published/d5bcd531-5f22-498d-9491-8eb7cd4f0793.js';
+        document.body.appendChild(i);
+      }
+      if (!feed || !('IntersectionObserver' in window)) return load();
+      var io = new IntersectionObserver(function(entries){
+        if (entries[0].isIntersecting) { io.disconnect(); load(); }
+      }, { rootMargin: '600px' });
+      io.observe(feed);
     })();
   </script>
 </BaseLayout>
