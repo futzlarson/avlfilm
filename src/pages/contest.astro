@@ -163,10 +163,11 @@ const structuredData = {
 
   <ul class="requirements">
     <li>Make a film no more than 60 seconds in length. 16:9 aspect ratio (sideways on your phone) preferred</li>
+    <li>Shoot and edit it during October 2026. No films made before the contest started</li>
     <li>Any genre, with or without <a href="#prompts">this year's prompts</a></li>
     <li>Include "This was made for the AVLFilm.com 60-second film contest 2026" at the end of your credits</li>
     <li>Submit by 11:59pm on October 31st</li>
-    <li>Get weird with it!</li>
+    <li class="weird">Get weird with it!</li>
   </ul>
 
   <div class="cta cta-bottom">
@@ -551,6 +552,10 @@ const structuredData = {
     position: absolute;
     left: 0;
     top: 0.4rem;
+  }
+
+  .requirements li.weird::before {
+    content: '🤡';
   }
 
   @media (max-width: 768px) {
