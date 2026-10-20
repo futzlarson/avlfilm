@@ -1,5 +1,6 @@
 // Internal imports
 import { errorResponse, successResponse } from '@lib/api';
+import { HONEYPOT_FIELD, isBotSubmission } from '@lib/honeypot';
 import { findUserByEmail } from '@lib/auth';
 import { sendPasswordResetEmail } from '@lib/send-reset-email';
 // Astro types
@@ -7,7 +8,13 @@ import type { APIRoute } from 'astro';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const { email } = await request.json();
+    const body = await request.json();
+    const { email } = body;
+
+    // Silently accept bot submissions so they don't retry, but do nothing.
+    if (isBotSubmission(body[HONEYPOT_FIELD])) {
+      return successResponse({});
+    }
 
     if (!email) {
       return errorResponse('Email is required', 400);

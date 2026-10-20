@@ -1,6 +1,7 @@
 ---
 // Internal imports
 import BaseLayout from '@layouts/BaseLayout.astro';
+import Honeypot from '@components/Honeypot.astro';
 
 // Redirect if already logged in
 const user = Astro.locals.user;
@@ -36,6 +37,7 @@ if (user) {
 
       <div id="error-message" class="alert alert-error" style="display: none;"></div>
 
+      <Honeypot />
       <button type="submit" class="btn-primary btn-large btn-full">Create Account</button>
     </form>
 
@@ -52,6 +54,7 @@ if (user) {
 </BaseLayout>
 
 <script>
+  import { HONEYPOT_FIELD } from '@lib/honeypot';
   import { track } from '@lib/analytics';
 
   const form = document.getElementById('signup-form') as HTMLFormElement;
@@ -75,6 +78,7 @@ if (user) {
           name: formData.get('name'),
           email: formData.get('email'),
           password: formData.get('password'),
+          [HONEYPOT_FIELD]: formData.get(HONEYPOT_FIELD),
         }),
       });
 

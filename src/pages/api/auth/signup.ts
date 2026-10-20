@@ -2,6 +2,7 @@
 import { db } from '@db';
 import { filmmakers } from '@db/schema';
 import { errorResponse, successResponse } from '@lib/api';
+import { HONEYPOT_FIELD, isBotSubmission } from '@lib/honeypot';
 import { findUserByEmail } from '@lib/auth';
 import { signToken } from '@lib/jwt';
 import { hashPassword, validatePassword } from '@lib/password';
@@ -11,7 +12,13 @@ import type { APIRoute } from 'astro';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
-    const { email, password, name } = await request.json();
+    const body = await request.json();
+    const { email, password, name } = body;
+
+    // Silently accept bot submissions so they don't retry, but do nothing.
+    if (isBotSubmission(body[HONEYPOT_FIELD])) {
+      return successResponse({});
+    }
 
     // Validate inputs
     if (!email || !password || !name) {

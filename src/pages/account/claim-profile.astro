@@ -1,6 +1,7 @@
 ---
 // Internal imports
 import BaseLayout from '@layouts/BaseLayout.astro';
+import Honeypot from '@components/Honeypot.astro';
 
 // Redirect if already logged in
 const user = Astro.locals.user;
@@ -22,6 +23,7 @@ const source = Astro.url.searchParams.get('source') || 'email_match';
 
     <form id="claim-form" class="auth-form">
       <input type="hidden" name="source" value={source} />
+      <Honeypot />
       <div class="form-group">
         <label for="email">Email</label>
         <input type="email" id="email" name="email" required autocomplete="email" value={email} />
@@ -41,6 +43,7 @@ const source = Astro.url.searchParams.get('source') || 'email_match';
 </BaseLayout>
 
 <script>
+  import { HONEYPOT_FIELD } from '@lib/honeypot';
   const form = document.getElementById('claim-form') as HTMLFormElement;
   const errorMessage = document.getElementById('error-message') as HTMLElement;
   const successMessage = document.getElementById('success-message') as HTMLElement;
@@ -63,6 +66,7 @@ const source = Astro.url.searchParams.get('source') || 'email_match';
         body: JSON.stringify({
           email: formData.get('email'),
           source: formData.get('source'),
+          [HONEYPOT_FIELD]: formData.get(HONEYPOT_FIELD),
         }),
       });
 
