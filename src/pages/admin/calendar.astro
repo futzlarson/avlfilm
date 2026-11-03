@@ -111,7 +111,7 @@ try {
 <script>
   import { marked } from 'marked';
   import type { AvlGoEvent } from '@app-types/avlgo-event';
-  import { calendarEventKey } from '@lib/calendar-event-key';
+  import { calendarEventKey, seriesSkipKey } from '@lib/calendar-event-key';
 
   const events: AvlGoEvent[] = JSON.parse(
     document.getElementById('events-data')?.textContent || '[]'
@@ -257,8 +257,10 @@ try {
   function renderSkippedHeader(event: AvlGoEvent, by: 'organizer' | 'event'): string {
     const date = formatDate(event.startDate);
     const organizer = event.organizer || '';
+    // Older skips were saved by id; newer ones by series key.
+    const eventKey = skippedEventIds.has(event.id) ? event.id : seriesSkipKey(event.title, event.organizer);
     const unskip = by === 'event'
-      ? `unskipEvent(${jsAttr(event.id)}, this)`
+      ? `unskipEvent(${jsAttr(eventKey)}, this)`
       : `unskipOrganizer(${jsAttr(organizer)}, this)`;
     return `
       <div class="event-card-skipped row-head" ${toggle}>
@@ -272,7 +274,7 @@ try {
   }
 
   function renderEventCard(event: AvlGoEvent): string {
-    const skippedBy: 'organizer' | 'event' | null = skippedEventIds.has(event.id)
+    const skippedBy: 'organizer' | 'event' | null = (skippedEventIds.has(event.id) || skippedEventIds.has(seriesSkipKey(event.title, event.organizer)))
       ? 'event'
       : (event.organizer && skippedOrganizers.has(event.organizer)) ? 'organizer' : null;
     const isAdded = !skippedBy && addedEventIds.has(calendarEventKey(event.id, event.startDate));
@@ -335,7 +337,7 @@ try {
               ? '<span class="event-added">Added</span>'
               : `<button class="btn-gradient" onclick="addEventToCalendar('${eventId}')">Add to Calendar</button>`
             }
-            <button class="btn-skip-event" onclick="skipEvent(${jsAttr(event.id)}, this)">Skip series</button>
+            <button class="btn-skip-event" onclick="skipEvent(${jsAttr(seriesSkipKey(event.title, event.organizer))}, this)">Skip series</button>
           </div>
         </div>
       </div>

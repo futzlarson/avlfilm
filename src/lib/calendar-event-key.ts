@@ -14,13 +14,17 @@ export function calendarEventKey(id: string, startDate: string): string {
  * Fuzzy key for matching an AVL GO event against a Google Calendar entry.
  * Day-level, not minute-level, because AVL GO edits start times after we add.
  */
-export function calendarMatchKey(title: string, startDate: string): string {
-  // Years are dropped because listings get renamed with or without one ("Festival" vs "Festival 2026").
-  const normalizedTitle = (title || '')
+// Years are dropped because listings get renamed with or without one ("Festival" vs "Festival 2026").
+function normalizeTitle(title: string): string {
+  return (title || '')
     .toLowerCase()
     .replace(/\b(19|20)\d{2}\b/g, ' ')
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
+}
+
+export function calendarMatchKey(title: string, startDate: string): string {
+  const normalizedTitle = normalizeTitle(title);
 
   const parsed = new Date(startDate);
   const day = isNaN(parsed.getTime())
@@ -33,4 +37,12 @@ export function calendarMatchKey(title: string, startDate: string): string {
       }).format(parsed);
 
   return `${normalizedTitle}|${day}`;
+}
+
+/**
+ * Key for skipping a recurring event. Some sources (e.g. Eventbrite) give every
+ * date its own AVL GO id, so the id alone only skips one date.
+ */
+export function seriesSkipKey(title: string, organizer?: string | null): string {
+  return `series:${normalizeTitle(title)}|${normalizeTitle(organizer || '')}`;
 }

@@ -1,4 +1,4 @@
-import { calendarMatchKey } from '@lib/calendar-event-key';
+import { calendarMatchKey, seriesSkipKey } from '@lib/calendar-event-key';
 import { describe, expect, it } from 'vitest';
 
 describe('calendarMatchKey', () => {
@@ -22,5 +22,19 @@ describe('calendarMatchKey', () => {
 
   it('keeps numbers that are not years', () => {
     expect(calendarMatchKey('48 Hour Film Project', '2026-07-10T22:00:00.000Z')).toContain('48 hour');
+  });
+});
+
+describe('seriesSkipKey', () => {
+  it('matches different dates of the same recurring event', () => {
+    expect(seriesSkipKey('True Home Open Mic', 'Flood Gallery')).toBe(seriesSkipKey('True Home Open Mic', 'Flood Gallery'));
+  });
+
+  it('ignores case, punctuation and years', () => {
+    expect(seriesSkipKey('True Home Open Mic 2026!', 'flood gallery')).toBe(seriesSkipKey('True Home Open Mic', 'Flood Gallery'));
+  });
+
+  it('keeps events from different organizers apart', () => {
+    expect(seriesSkipKey('Open Mic', 'Flood Gallery')).not.toBe(seriesSkipKey('Open Mic', 'Another Venue'));
   });
 });
