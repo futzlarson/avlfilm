@@ -5,6 +5,9 @@ import Countdown from '@components/Countdown.astro';
 import TimerFont from '@components/TimerFont.astro';
 import { CONTEST_DEADLINE, CONTEST_START, CONTEST_SUBMIT_URL } from '@config/contest';
 
+// Once entries close, swap the submit buttons for a pointer to the screening.
+const closed = Date.now() > new Date(CONTEST_DEADLINE).getTime();
+
 const PROMPTS = [
   { icon: '🚪', title: 'The Threshold', text: 'Someone crosses an everyday threshold, like a doorway, bridge, creek or trail, and something subtly changes on the other side. Think of October as the space between seasons, or between worlds.' },
   { icon: '🪶', title: 'A Message From the Woods', text: 'A character finds something, like a feather, note, key, photograph or ribbon, that seems meant just for them.' },
@@ -50,12 +53,41 @@ const structuredData = {
     <h1>AVL Film 60-Second Film Contest</h1>
     <p class="tagline">A one-minute filmmaking challenge, all October long.</p>
     <div class="cta">
-      <a href={CONTEST_SUBMIT_URL} target="_blank" rel="noopener" class="btn-submit">Submit Your Film</a>
-      <span class="deadline"><span>🎃</span>Due 11:59pm on Halloween<span>🎃</span></span>
+      {closed ? (
+        <span class="deadline">Submissions are closed</span>
+      ) : (
+        <>
+          <a href={CONTEST_SUBMIT_URL} target="_blank" rel="noopener" class="btn-submit">Submit Your Film</a>
+          <span class="deadline"><span>🎃</span>Due 11:59pm on Halloween<span>🎃</span></span>
+        </>
+      )}
     </div>
   </section>
 
-  <Countdown deadline={CONTEST_DEADLINE} startAt={CONTEST_START} heading="Deadline" doneText="Submissions are closed!" />
+  {!closed && <Countdown deadline={CONTEST_DEADLINE} startAt={CONTEST_START} heading="Deadline" doneText="Submissions are closed!" />}
+
+  <section class="screening" id="screening" aria-labelledby="screening-heading">
+    <div class="screening-date" aria-hidden="true">
+      <span class="dow">Sun</span>
+      <span class="day">8</span>
+      <span class="mon">Nov</span>
+    </div>
+    <div class="screening-body">
+      <p class="screening-eyebrow">🎬 30 films submitted · You're invited</p>
+      <h2 id="screening-heading">The Screening, Sunday Nov 8</h2>
+      <p class="screening-intro">Come see every film, cheer on your friends, and meet fellow creatives.</p>
+      <div class="screening-details">
+        <div><span class="k"><span class="ic" aria-hidden="true">🗓️</span> When</span><span class="v">5pm mingle<br />6pm screening</span></div>
+        <div><span class="k"><span class="ic" aria-hidden="true">🎥</span> What</span><span class="v">Free screening of all 30 films</span></div>
+        <div><span class="k"><span class="ic" aria-hidden="true">🏠</span> Where</span><span class="v"><a href="https://www.instagram.com/apocalypseparlor/" target="_blank" rel="noopener">Apocalypse Parlor</a><br /><a class="map-btn" href="https://www.google.com/maps/search/?api=1&query=21+Young+Rd+Weaverville+NC" target="_blank" rel="noopener"><span aria-hidden="true">📍</span> 21 Young Rd, Weaverville</a></span></div>
+      </div>
+      <ul class="screening-notes">
+        <li><span aria-hidden="true">🍺</span> BYOB, no alcohol sold</li>
+        <li><span aria-hidden="true">🍿</span> Popcorn machine</li>
+        <li><span aria-hidden="true">🌱</span> Bringing food? Vegan only, per the venue</li>
+      </ul>
+    </div>
+  </section>
 
   <div class="what-is-it">
     <div class="pill"><span class="pill-emoji">🎥</span>Any skill level, any genre</div>
@@ -170,10 +202,12 @@ const structuredData = {
     <li class="weird">Get weird with it!</li>
   </ul>
 
-  <div class="cta cta-bottom">
-    <a href={CONTEST_SUBMIT_URL} target="_blank" rel="noopener" class="btn-submit">Submit Your Film</a>
-    <span class="deadline"><span>🎃</span>Due 11:59pm on Halloween<span>🎃</span></span>
-  </div>
+  {!closed && (
+    <div class="cta cta-bottom">
+      <a href={CONTEST_SUBMIT_URL} target="_blank" rel="noopener" class="btn-submit">Submit Your Film</a>
+      <span class="deadline"><span>🎃</span>Due 11:59pm on Halloween<span>🎃</span></span>
+    </div>
+  )}
 
   <p class="follow">Follow <a href="https://instagram.com/avlfilm" target="_blank" rel="noopener">@avlfilm</a> for updates.</p>
 </BaseLayout>
@@ -322,6 +356,183 @@ const structuredData = {
   .follow {
     margin-top: 1.5rem;
     color: var(--color-text-light);
+  }
+
+  /* Event callout styled like a ticket, so it stands apart from the contest info. */
+  .screening {
+    display: flex;
+    gap: 1.75rem;
+    align-items: stretch;
+    margin: 0 0 2.5rem;
+    padding: 1.75rem;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, #2a1838 0%, #4a2766 100%);
+    color: #f3ecda;
+    box-shadow: 0 10px 30px rgba(42, 24, 56, 0.25);
+  }
+
+  .screening-date {
+    flex: 0 0 auto;
+    width: 7rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: #f3ecda;
+    color: #2a1838;
+    padding: 0.75rem 0;
+    line-height: 1;
+  }
+
+  .screening-date .dow,
+  .screening-date .mon {
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .screening-date .mon {
+    color: #c2410c;
+  }
+
+  .screening-date .day {
+    font-size: 3.5rem;
+    font-weight: 900;
+    margin: 0.2rem 0;
+  }
+
+  .screening-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .screening-eyebrow {
+    margin: 0 0 0.3rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fbbf24;
+  }
+
+  .screening h2 {
+    margin: 0 0 0.35rem;
+    color: #fff;
+    font-size: 1.7rem;
+  }
+
+  .screening-intro {
+    margin: 0 0 1.1rem;
+    color: rgba(243, 236, 218, 0.9);
+  }
+
+  .screening-details {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin: 0 0 1rem;
+  }
+
+  .screening-details > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.75rem 0.9rem;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+  }
+
+  .screening-details .ic {
+    font-size: 1.15rem;
+    vertical-align: -0.1em;
+  }
+
+  .screening-details .map-btn {
+    display: inline-block;
+    margin-top: 0.5rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    background: #fbbf24;
+    color: #2a1838;
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .screening-details .map-btn:hover {
+    background: #fcd34d;
+  }
+
+  .screening-details .k {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #fbbf24;
+  }
+
+  .screening-details .v {
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .screening-details a {
+    color: #fff;
+    text-decoration: underline;
+  }
+
+  .screening-notes {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .screening-notes li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    font-size: 0.92rem;
+  }
+
+  .screening-notes li span {
+    font-size: 1.2rem;
+    line-height: 1;
+    margin-right: 0.15rem;
+  }
+
+  @media (max-width: 760px) {
+    .screening {
+      flex-direction: column;
+      gap: 1.1rem;
+      padding: 1.25rem;
+    }
+
+    .screening-date {
+      flex-direction: row;
+      gap: 0.6rem;
+      width: auto;
+      align-self: flex-start;
+      padding: 0.5rem 1rem;
+    }
+
+    .screening-date .day {
+      font-size: 1.8rem;
+      margin: 0;
+    }
+
+    .screening-details {
+      grid-template-columns: 1fr;
+    }
   }
 
   .what-is-it {

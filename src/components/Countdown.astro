@@ -82,7 +82,8 @@ const { deadline, startAt = '', heading = 'Deadline', doneText = 'Submissions ar
 
     if (!deadline || !units || !done || !days || !hours || !mins || !secs) return;
 
-    let fired = false;
+    // Only celebrate if the page was open before the deadline, not on every later visit.
+    let fired = Date.now() >= deadline;
 
     function tick() {
       const now = Date.now();
