@@ -1,8 +1,10 @@
 ---
 // Internal imports
-import { getBannerSettings } from '@lib/banner-cache';
+import { getBannerSettings, isBannerActive } from '@lib/banner-cache';
 
-const { html: bannerHtml, enabled: bannerEnabled } = await getBannerSettings();
+const banner = await getBannerSettings();
+const bannerHtml = banner.html;
+const bannerEnabled = isBannerActive(banner);
 
 // Check if impersonating a user
 const impersonatorId = Astro.cookies.get('impersonator_id')?.value;

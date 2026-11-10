@@ -11,6 +11,25 @@ const BANNER_CACHE_KEY = 'banner:settings';
 export interface BannerSettings {
   html: string;
   enabled: boolean;
+  // Optional YYYY-MM-DD bounds (Eastern), inclusive; empty means no limit.
+  startDate: string;
+  endDate: string;
+}
+
+const BANNER_KEYS = ['banner_html', 'banner_enabled', 'banner_start_date', 'banner_end_date'];
+
+/** Today's date in Eastern time as YYYY-MM-DD, so date bounds match what admins typed. */
+function todayEastern(now: Date): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+}
+
+/** Whether the banner should show right now: enabled and within its optional date range. */
+export function isBannerActive(settings: BannerSettings, now: Date = new Date()): boolean {
+  if (!settings.enabled) return false;
+  const today = todayEastern(now);
+  if (settings.startDate && today < settings.startDate) return false;
+  if (settings.endDate && today > settings.endDate) return false;
+  return true;
 }
 
 /**
@@ -25,7 +44,7 @@ export async function getBannerSettings(): Promise<BannerSettings> {
     });
 
     if (cached) {
-      return JSON.parse(cached) as BannerSettings;
+      return { startDate: '', endDate: '', ...JSON.parse(cached) } as BannerSettings;
     }
   } catch (error) {
     // Log warning but continue to database fallback
@@ -37,11 +56,14 @@ export async function getBannerSettings(): Promise<BannerSettings> {
     const settings = await db
       .select()
       .from(siteSettings)
-      .where(inArray(siteSettings.key, ['banner_html', 'banner_enabled']));
+      .where(inArray(siteSettings.key, BANNER_KEYS));
 
+    const value = (key: string) => settings.find(row => row.key === key)?.value;
     const bannerSettings: BannerSettings = {
-      html: settings.find(row => row.key === 'banner_html')?.value || '<p>Welcome to AVL Film!</p>',
-      enabled: settings.find(row => row.key === 'banner_enabled')?.value === 'true'
+      html: value('banner_html') || '<p>Welcome to AVL Film!</p>',
+      enabled: value('banner_enabled') === 'true',
+      startDate: value('banner_start_date') || '',
+      endDate: value('banner_end_date') || '',
     };
 
     // Try to cache the result (non-blocking)
@@ -63,7 +85,9 @@ export async function getBannerSettings(): Promise<BannerSettings> {
     // Return safe defaults if database fails
     return {
       html: '<p>Welcome to AVL Film!</p>',
-      enabled: false
+      enabled: false,
+      startDate: '',
+      endDate: '',
     };
   }
 }
